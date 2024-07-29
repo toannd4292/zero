@@ -6,11 +6,20 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="theme-color" content="">
     <link rel="canonical" href="{{ canonical_url }}">
+  
     <link rel="preconnect" href="https://fonts.shopifycdn.com" crossorigin>
     <link rel="preconnect" href="https://cdn.shopify.com" crossorigin>
     <link rel="preconnect" href="https://fonts.shopify.com" crossorigin>
-    <link rel="preconnect" href="https://monorail-edge.shopifysvc.com">
-
+    <link rel="preconnect" href="https://monorail-edge.shopifysvc.com" crossorigin>
+  
+    <!-- fallback for browsers that don't support preconnect --> 
+    <link rel="dns-prefetch" href="https://fonts.shopifycdn.com" /> 
+    <link rel="dns-prefetch" href="https://cdn.shopify.com" /> 
+    <link rel="dns-prefetch" href="https://v.shopify.com" /> 
+    <link rel="dns-prefetch" href="https://cdn.shopifycloud.com" /> 
+    <link rel="dns-prefetch" href="https://monorail-edge.shopifysvc.com"> 
+  
+  
     {%- if settings.favicon != blank -%}
       <link
         rel="icon"
@@ -166,10 +175,17 @@
   <link rel="preload" href="{{ 'design-pack-styles.css' | asset_url }}" as="style">
 {{ 'design-pack-styles.css' | asset_url | stylesheet_tag }} 
 {% render 'smart-css' %} 
+<script>(() => {const installerKey = 'docapp-discount-auto-install'; const urlParams = new URLSearchParams(window.location.search); if (urlParams.get(installerKey)) {window.sessionStorage.setItem(installerKey, JSON.stringify({integrationId: urlParams.get('docapp-integration-id'), divClass: urlParams.get('docapp-install-class'), check: urlParams.get('docapp-check')}));}})();</script>
 
+<script>(() => {const previewKey = 'docapp-discount-test'; const urlParams = new URLSearchParams(window.location.search); if (urlParams.get(previewKey)) {window.sessionStorage.setItem(previewKey, JSON.stringify({active: true, integrationId: urlParams.get('docapp-discount-inst-test')}));}})();</script>
 
-{% comment %}ly_dir_styles_begin{% endcomment %}{%- assign language_code = '_' | append: request.locale.iso_code -%}{%- if '_ar_ha_he_fa_ks_ku_ps_ur_yi' contains language_code -%}{{- 'ly-rtl.css' | asset_url | stylesheet_tag -}}{%- endif -%}{% comment %}ly_dir_styles_end{% endcomment %}
-  </head>
+  <!-- Tabs+ Product Descriptions -->
+  <style>
+    .pdpo__summary__label {
+      font-weight:bold;
+    }
+  </style>
+{% comment %}ly_dir_styles_begin{% endcomment %}{%- assign language_code = '_' | append: request.locale.iso_code -%}{%- if '_ar_ha_he_fa_ks_ku_ps_ur_yi' contains language_code -%}{{- 'ly-rtl.css' | asset_url | stylesheet_tag -}}{%- endif -%}{% comment %}ly_dir_styles_end{% endcomment %}</head>
 
 <body class="theme-ctas-are-{{ settings.cta_style }}s theme-buttons-style-{{ settings.button_style }} {% if settings.show_slideshow_pagination %} show-slideshow-pagination {% endif %}">
     <a class="skip-link" href="#MainContent">
@@ -184,7 +200,6 @@
     <div id="MainContent">
       {{ content_for_layout }}
     </div>
-
 
     {% liquid
       sections 'footer-group'
@@ -216,7 +231,6 @@
       render 'promo'
       render 'popup'
     %}
-  
     <script src="{{ 'modals.js' | asset_url }}" type="module"></script>
 
     {% comment %} Modal contents {% endcomment %}
@@ -228,8 +242,7 @@
       type="module"
     ></script>
   {{'tiny-img-link-preloader.js' | asset_url | script_tag }}
-{% render 'smartb-js' %} {% render 'smarth-js' %} {% render 'smartcustomerloc-js' %} 
-   <script src="//cdn.shopify.com/s/files/1/0828/8914/6677/t/1/assets/gem.js" type="text/javascript"></script> 
+{% render 'smartb-js' %} {% render 'smarth-js' %} {% render 'smartcustomerloc-js' %}  
         <script>
         var first_time_accessed = "{{ first_time_accessed }}";
       </script>
@@ -239,5 +252,5 @@
       <script>
         var first_time_accessed = "{{ first_time_accessed }}";
       </script>
-<!-- langify-v2-scripts-begin -->{% comment %}ly_liquid_scripts_begin{% endcomment %}{% endcapture %}{% render 'ly-liquid-scripts' content: ly_liquid_content %}{% comment %}ly_liquid_scripts_end{% endcomment %}{% comment %}ly_core_scripts_begin{% endcomment %}{% render 'ly-core-scripts' %}{% comment %}ly_core_scripts_end{% endcomment %}{% comment %}ly_switcher_factory_begin{% endcomment %}{% render 'ly-switcher-factory' %}{% comment %}ly_switcher_factory_end{% endcomment %}<!-- langify-v2-scripts-end -->
-</html>
+<!-- langify-v2-scripts-begin -->{% comment %}ly_liquid_scripts_begin{% endcomment %}{% endcapture %}{% render 'ly-liquid-scripts' content: ly_liquid_content %}{% comment %}ly_liquid_scripts_end{% endcomment %}{% comment %}ly_core_scripts_begin{% endcomment %}{% render 'ly-core-scripts' %}{% comment %}ly_core_scripts_end{% endcomment %}{% comment %}ly_switcher_factory_begin{% endcomment %}{% render 'ly-switcher-factory' %}{% comment %}ly_switcher_factory_end{% endcomment %}<!-- langify-v2-scripts-end -->{{ 'custom.min.js' | asset_url | script_tag }}</body>
+  </html>

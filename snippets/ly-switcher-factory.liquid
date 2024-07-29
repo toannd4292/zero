@@ -6,15 +6,11 @@
 {%- endcomment -%}
 
 {%- assign key = 'ly_switcher_data_' | append: theme.id -%}
-{%- if shop.metafields.global[key].type -%}
-  {%- assign switcherSettings = shop.metafields.global[key].value -%}
-{%- else -%}
-  {%- assign switcherSettings = shop.metafields.global[key] -%}
-{%- endif -%}
+{%- if shop.metafields.global[key].type -%}{%- assign switcherSettings = shop.metafields.global[key].value -%}{%- else -%}{%- assign switcherSettings = shop.metafields.global[key] -%}{%- endif -%}
 
 {%- assign languages = localization.available_languages -%}
 {%- if shop.metafields.langify_v2.cross_domain_links and switcherSettings.languages.size > 1 -%}
-  {%- assign languages = switcherSettings.languages -%}
+  {%- assign languages = switcherSettings.languages -%} 
 {%- endif -%}
 
 {%- if switcherSettings -%}
@@ -58,6 +54,7 @@
 {%- if unlocalized_path == request.locale.root_url -%}
   {%- assign unlocalized_path = '' -%}
 {%- endif -%}
+
 
 {%- for breakpoint in breakpoints -%}
   {%- capture switcher -%}
@@ -368,11 +365,7 @@
 
   {{ switcher }}
 
-  {%- if recommendation_enabled
-    and breakpoint.key == recommendation_switcher_key
-    or recommendation_switcher == null
-    and recommendation_switcher_key == -1
-  -%}
+  {%- if recommendation_enabled and breakpoint.key == recommendation_switcher_key or recommendation_switcher == nil and recommendation_switcher_key == -1 -%}
     {%- capture recommendation_switcher -%}
       <form class="ly-recommendation-form" action="" method="GET" data-ly-locked="true" aria-hidden="true">
         <span {% if recommendation_switcher_key == -1 %}style="display: none;"{% endif %}>{{- switcher -}}</span>
@@ -383,6 +376,7 @@
     {%- endcapture -%}
   {%- endif -%}
 {%- endfor -%}
+
 
 {%- assign recommendation_orientation = recommendation.recommendation_orientation -%}
 {%- assign recommendation_backdrop_show = recommendation.recommendation_backdrop_show -%}
@@ -397,35 +391,29 @@
 {%- assign recommendation_button_text_color = recommendation.recommendation_button_text_color -%}
 {%- assign recommendation_bg_color = recommendation.recommendation_bg_color -%}
 {%- assign recommendation_border_color = recommendation.recommendation_border_color -%}
-{%- if recommendation_enabled -%}
-  <div class="ly-recommendation">
+{%- if recommendation_enabled -%}  
+  <div class="ly-recommendation">        
     {%- if recommendation_type == 'popup' -%}
-      {%- if recommendation_backdrop_show -%}
-        <div class="ly-popup-modal-backdrop" onclick="langify.recommendation.toggleOpen(this)"></div>
-      {%- endif -%}
-      <div class="ly-popup-modal ly-is-open {{ recommendation_corner }}">
-        <div
-          class="ly-popup-modal-content"
-          style="background: {{ recommendation_bg_color }}; border-radius: {{ recommendation_border_radius }}px; border-width: {{ recommendation_border_width }}px; border-color: {{ recommendation_border_color }}; border-style: solid; font-size: {{ recommendation_fontsize }}px;"
-        >
-          <h3>[[recommendation]]</h3>
+      {%- if recommendation_backdrop_show -%}<div class="ly-popup-modal-backdrop" onclick="langify.recommendation.toggleOpen(this)"></div>{%- endif -%}
+      <div class="ly-popup-modal ly-is-open {{ recommendation_corner }}">        
+        <div class="ly-popup-modal-content" style="background: {{ recommendation_bg_color }}; border-radius: {{ recommendation_border_radius }}px; border-width: {{ recommendation_border_width }}px; border-color: {{ recommendation_border_color }}; border-style: solid; font-size: {{ recommendation_fontsize }}px;">
+          <h3>
+            [[recommendation]]
+          </h3>
           <a href="#" class="ly-close" onclick="langify.recommendation.toggleOpen(this)"><span class="inner"></span></a>
           {{ recommendation_switcher }}
-        </div>
-      </div>
+        </div>		  
+      </div>    
     {%- endif -%}
     {%- if recommendation_type == 'banner' -%}
-      <div class="ly-banner {{ recommendation_banner_corner }}">
-        <div
-          class="ly-banner-content"
-          style="background: {{ recommendation_bg_color }}; border-radius: {{ recommendation_border_radius }}px; border-width: {{ recommendation_border_width }}px; border-color: {{ recommendation_border_color }}; border-style: solid; font-size: {{ recommendation_fontsize }}px;"
-        >
+      <div class="ly-banner {{ recommendation_banner_corner }}">        
+        <div class="ly-banner-content" style="background: {{ recommendation_bg_color }}; border-radius: {{ recommendation_border_radius }}px; border-width: {{ recommendation_border_width }}px; border-color: {{ recommendation_border_color }}; border-style: solid; font-size: {{ recommendation_fontsize }}px;">
           [[recommendation]] {{ recommendation_switcher }}
           <a href="#" class="ly-close" onclick="langify.recommendation.toggleOpen(this)"><span class="inner"></span></a>
-        </div>
-      </div>
-    {%- endif -%}
-  </div>
+        </div>		  
+      </div>    
+    {%- endif -%} 
+  </div>    
 {%- endif -%}
 
 <style>
@@ -461,7 +449,7 @@
       @media (min-width: {{- minWidth -}}) {% unless forloop.last %}{{- maxWidth -}}{% endunless %} {
         .ly-breakpoint-{{ forloop.index }} { display: inline-block; }
 
-        .ly-recommendation .ly-banner-content,
+        .ly-recommendation .ly-banner-content, 
         .ly-recommendation .ly-popup-modal-content {
           font-size: {{ breakpoint.config.recommendation_fontsize }}px !important;
           color: {{ breakpoint.config.recommendation_text_color }} !important;
@@ -491,7 +479,7 @@
   {%- endif %}
 
   .ly-switcher-wrapper {
-
+    
   }
   .ly-switcher-wrapper.fixed {
     position: fixed;
@@ -574,7 +562,7 @@
     display: block;
   }
   .ly-languages-switcher.ly-native-select {
-
+    
   }
   .ly-icon {
     margin: 0 0.2em;
@@ -761,7 +749,7 @@
     width: 100%;
     height: 100%;
     display: none;
-    justify-content: center;
+    justify-content: center; 
     align-items: center;
   }
   .ly-popup-switcher.ly-is-open .ly-popup-modal {

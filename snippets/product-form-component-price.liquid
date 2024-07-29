@@ -20,10 +20,22 @@
         {
           'text-scheme-accent': current_variant && current_variant.compare_at_price && current_variant.compare_at_price > current_variant.price,
           'invisible': !current_variant
-        }"
+        }
+      "
       data-product-price
-      :style="current_variant && current_variant.compare_at_price && current_variant.compare_at_price > current_variant.price ? 'font-weight: bold; color: #A90606;' : 'color: #000000; font-weight: bold;'" <!-- Dynamic inline style based on variant discount status -->
+      :style="current_variant && current_variant.compare_at_price && current_variant.compare_at_price > current_variant.price ? 'font-weight: bold; color: #A90606;' : 'color: #000000; font-weight: bold;'"
+      <!--
+      Dynamic
+      inline
+      style
+      based
+      on
+      variant
+      discount
+      status
+      --
     >
+      >
       {% if settings.currency_code_enable %}
         {{ current_variant.price | money_with_currency }}
       {% else %}
@@ -34,11 +46,18 @@
     <template x-if="current_variant && current_variant.compare_at_price && current_variant.compare_at_price > current_variant.price">
       <span class="text-theme-basic">
         <span class="sr-only">{{ 'products.general.sale_price' | t }}</span>
-        <s data-compare-price
+        <s
+          data-compare-price
           class="text-scheme-meta original-price"
           x-html="formatMoney(current_variant.compare_at_price)"
-          style="font-size: 1em; font-weight: bold; color: #42535C;" <!-- Original price color -->
+          style="font-size: 1em; font-weight: bold; color: #42535C;"
+          <!--
+          Original
+          price
+          color
+          --
         >
+          >
           <!-- No need for additional logic here, the template only renders when there's a discount -->
         </s>
       </span>
@@ -55,4 +74,3 @@
     <!-- ... existing policies code ... -->
   {%- endunless -%}
 </div>
-

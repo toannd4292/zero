@@ -648,7 +648,8 @@
 {%- if predictive_search_enabled and request.design_mode == false -%}
   <script src="{{ 'predictive-search.js' | asset_url }}" type="module"></script>
 {%- endif -%}
-{% comment %}theme-check-enable TemplateLength{% endcomment %}
+{% comment %}theme-check-enable TemplateLength{% endcomment %}<script>document.addEventListener("startasyncloading",function(){document.querySelectorAll("script[data-src]").forEach(a=>{datasrc=a.dataset.src,null!=datasrc&&(a.src=datasrc), delete a.dataset.src})});</script>
+ 
 
 {% schema %}
 {

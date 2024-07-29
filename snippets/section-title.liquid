@@ -9,11 +9,11 @@
 -%}
 <div class="{{ title_area_classes }}">
   <div class="{{ title_wrapper_classes }}">
-    <h1 class="text-heading-standard font-heading empty:hidden break-word" style="font-weight: bold;">
+    <h2 class="text-heading-standard font-heading empty:hidden break-word">
       {% if title != blank %}
         {{ title | escape }}
       {% endif %}
-    </h1>
+    </h2>
 
     {% if subheading != blank %}
       <div class="rte rte--compact text-base {% if title != blank %}mt-5{% endif %} break-word">
