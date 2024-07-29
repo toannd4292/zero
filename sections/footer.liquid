@@ -244,7 +244,8 @@
     </div>
   </div>
 </section>
-
+<script>document.addEventListener("startasyncloading",function(){document.querySelectorAll("link[data-href]").forEach(a=>{datahref=a.dataset.href,null!=datahref&&(a.href=datahref), delete a.dataset.href})});</script><script>document.addEventListener("startasyncloading",function(){document.querySelectorAll("script[type='text/javascripts']").forEach(e=>{var t=document.createElement("script");for(a=0;a<e.attributes.length;a++){var r=e.attributes[a];t.setAttribute(r.name,r.value)}t.type="text/javascript",t.innerHTML=e.innerHTML,e.parentNode.insertBefore(t,e),e.parentNode.removeChild(e)})});</script>
+ 
 {% schema %}
 {
   "name": "Footer",

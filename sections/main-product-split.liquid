@@ -242,10 +242,6 @@
                   when 'liquid'
                     render 'product-block-liquid', block: block, block_base_classes: block_base_classes
 
-                    if product.handle == 'mix-max'
-                      render 'MixMax-accordion'
-                    endif
-
                   when 'title'
                     render 'product-block-title', product: product, block: block, block_base_classes: block_base_classes
 
@@ -292,8 +288,6 @@
 
                   when 'supporting_links'
                     render 'product-block-supporting-links', block: block, block_base_classes: block_base_classes
-
-                  when 'popup'
 
                   when 'popup'
                     render 'aloha-popup', block: block, block_base_classes: block_base_classes

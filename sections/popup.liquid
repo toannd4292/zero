@@ -1,46 +1,238 @@
-<div x-data>
-  <template x-teleport="body">
-    <div
-      x-show="$store.modals.popup.open"
-      @keydown.escape.prevent.stop="$store.modals.close('popup')"
-      @click="$store.modals.close('popup')"
-      class="fixed inset-0 z-110"
-      data-color-scheme="{{ settings.modal_color_scheme | default: 'tertiary' }}"
-      id="modals-popup"
-      @popup-is-open.window="setTimeout(() => { $focus.first() }, 120)"
-    >
-      <div
-        x-show="$store.modals.popup.open"
-        x-transition:enter.opacity.duration.200ms
-        x-transition:leave.opacity.duration.225ms.delay.125ms
-        class="fixed inset-0 bg-scheme-text/50"
-      >
-        <!-- Overlay -->
-      </div>
-      <div
-        x-show="$store.modals.popup.open"
-        class="h-full w-full flex"
-      >
-        <div
-          @click.stop
-          x-show="$store.modals.popup.open"
-          x-transition:enter="transition ease-gentle duration-[300ms] delay-75"
-          x-transition:enter-start="translate-y-4 scale-[0.99] opacity-0"
-          x-transition:enter-end="translate-y-0 opacity-100"
-          x-transition:leave="transition ease-gentle duration-[300ms]"
-          x-transition:leave-start="scale-100 opacity-100"
-          x-transition:leave-end="scale-[0.925] opacity-0"
-          x-trap.noscroll.inert="$store.modals.popup.open"
-          class="relative w-9/12 h-5/6 px-5 md:px-5 lg:px-10 bg-scheme-background text-scheme-text m-auto overflow-y-auto"
-          id="popup-slot"
-          role="dialog"
-          aria-modal="true"
-          :aria-label="getModalLabel('popup', $el)"
-          tabindex="-1"
-        >
-          <!-- Modal content is teleported here -->
-        </div>
-      </div>
+{% if section.settings.enable or request.design_mode %}
+  {% liquid
+    assign content_wrapper_classes = 'py-10 px-10 md:py-10 md:px-10 lg:py-12 lg:px-20'
+
+    if section.settings.image != blank
+      assign has_image = true
+      assign content_wrapper_classes = 'py-8 px-10 md:py-10 md:px-10 lg:py-12 lg:px-16'
+
+      if section.settings.image_position == 'right'
+       assign content_wrapper_classes = content_wrapper_classes | append: ' md:order-first'
+      endif
+
+      if section.settings.show_image_on_mobile
+        assign image_class = 'block w-full md:h-full max-md:aspect-2.35 object-cover'
+      else
+        assign image_class = 'sw-hidden md:block w-full h-full object-cover'
+      endif
+    endif
+  %}
+  <div
+    x-data="ThemeSection_PromoPopup({
+      delay: {{ section.settings.delay }},
+      frequency: {{ section.settings.frequency }},
+      enabled: {{ section.settings.enable }},
+      sectionId: '{{ section.id }}',
+    })"
+    x-init="mounted"
+    data-section="promo-popup"
+  >
+    <div x-show="$store.modals.promo.open">
+      <template data-should-teleport="#promo-slot">
+        <template x-if="$store.modals.promo.contents === 'promoPopup'">
+          <div @click.outside="$store.modals.close('promo')" data-modal-label="{{ section.settings.title | strip | escape }}" class="bg-scheme-background text-scheme-text {% if has_image %} md:max-w-[70vw] {% else %} md:max-w-md {% endif %}">
+            <div class="absolute top-0 right-0 mt-5 mr-5">
+              <button @click.prevent="$store.modals.close('promo')" class="block ml-auto top-0">
+                <span class="sr-only">{{ 'general.accessibility.close_modal' | t }}</span>
+                <span class="inline-block w-6 h-6 drop-shadow-[0.06rem_0.12rem_0_rgb(var(--color-scheme-background))]">{% render 'icon-close' %}</span>
+              </button>
+            </div>
+            <div
+              {% if has_image %}
+                class="md:grid md:grid-cols-2"
+              {% endif %}
+            >
+              {% if has_image %}
+                {{ section.settings.image | image_url: width: 2000 | image_tag: sizes: '33vw', class: image_class }}
+              {% endif %}
+              <div class="{{ content_wrapper_classes }}">
+                {% if section.settings.title != blank %}
+                  <h2 class="font-heading text-2xl break-word" class="" tabindex="-1">
+                    {{ section.settings.title | strip }}
+                  </h2>
+                {% endif %}
+
+                {% if section.settings.text != blank %}
+                  <div class="text-theme-basic mt-5 rte rte--compact">
+                    {{ section.settings.text }}
+                  </div>
+                {% endif %}
+
+                {% if section.settings.call_to_action == 'newsletter' %}
+                  <div class="mt-10">
+                    {% form 'customer' %}
+                      {% if form.errors %}
+                        <div class="needs-attention">
+                          {{ form.errors | default_errors }}
+                        </div>
+                      {% endif %}
+
+                      {% if form.posted_successfully? %}
+                        <p class="mb-5">
+                          {{ 'general.newsletter_form.confirmation' | t }}
+                        </p>
+                      {% else %}
+                        <input
+                          type="hidden"
+                          name="contact[tags]"
+                          value="newsletter"
+                        />
+                        <label for="Email" class="sr-only">
+                          {{ 'general.newsletter_form.newsletter_email' | t }}
+                        </label>
+                        <input
+                          type="email"
+                          name="contact[email]"
+                          id="Email"
+                          class="w-full"
+                          value="{% if customer %}{{ customer.email }}{% endif %}"
+                          placeholder="{{ 'general.newsletter_form.newsletter_email' | t }}"
+                          autocorrect="off"
+                          autocapitalize="off"
+                        />
+                        <div class="mt-5">
+                          <button
+                            type="submit"
+                            class="theme-button theme-button--solid"
+                          >
+                            {{ 'general.newsletter_form.submit' | t }}
+                          </button>
+                        </div>
+                      {% endif %}
+
+                    {% endform %}
+                  </div>
+                {% else %}
+                  <div class="mt-10">
+                    {% liquid
+                      assign cta_text = section.settings.cta_text
+                      assign cta_url = section.settings.cta_url
+                    %}
+                    {% if cta_url != blank %}
+                      <a
+                        class="theme-button theme-button--solid break-word"
+                        href="{{ cta_url }}"
+                      >
+                        {{ cta_text | strip }}
+                      </a>
+                    {% endif %}
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </template>
+      </template>
     </div>
-  </template>
-</div>
+  </div>
+{% else %}
+  {% if request.design_mode %}
+    <div x-data x-init="$store.modals.close('promo')"></div>
+  {% endif %}
+{% endif %}
+
+{% unless request.design_mode %}
+  <script src="{{ 'sections-promo-popup.bundle.min.js' | asset_url }}" type="module"></script>
+{% endunless %}
+
+{% schema %}
+{
+  "name": "Popup",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "enable",
+      "label": "Enable popup",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "delay",
+      "min": 2,
+      "max": 30,
+      "step": 1,
+      "label": "Delay",
+      "unit": "s",
+      "default": 4,
+      "info": "Delay won't be applied when inside theme editor."
+    },
+    {
+      "type": "range",
+      "id": "frequency",
+      "min": 2,
+      "max": 30,
+      "step": 1,
+      "label": "Frequency",
+      "unit": "d",
+      "default": 30,
+      "info": "Number of days before a closed popup reappears."
+    },
+    {
+      "type": "header",
+      "content": "Content"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Image",
+      "info": "Image will not display on mobile."
+    },
+    {
+      "id": "image_position",
+      "type": "radio",
+      "label": "Image position",
+      "options": [
+        {
+          "value": "left",
+          "label": "Left"
+        },
+        {
+          "value": "right",
+          "label": "Right"
+        }
+      ],
+      "default": "left"
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Heading",
+      "default": "Sign up to our newsletter"
+    },
+    {
+      "type": "richtext",
+      "id": "text",
+      "label": "Text",
+      "default": "<p>Receive special offers and first look at new products.</p>"
+    },
+    {
+      "type": "radio",
+      "id": "call_to_action",
+      "label": "Call to action",
+      "options": [
+        {
+          "value": "newsletter",
+          "label": "Newsletter signup"
+        },
+        {
+          "value": "button",
+          "label": "Button"
+        }
+      ],
+      "default": "newsletter",
+      "info": "Customers who subscribe will have their email address added to the “accepts marketing” [customer list](/admin/customers?query=&accepts_marketing=1)."
+    },
+    {
+      "type": "url",
+      "id": "cta_url",
+      "label": "Button link"
+    },
+    {
+      "type": "text",
+      "id": "cta_text",
+      "label": "Button text",
+      "default": "Shop Now"
+    }
+  ]
+}
+{% endschema %}

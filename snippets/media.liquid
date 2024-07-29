@@ -72,7 +72,9 @@
                     image_size: '2000x',
                     controls: true,
                     autoplay: true,
-                    loop: section.settings.enable_video_looping
+                    loop: section.settings.enable_video_looping,
+                    muted: true,
+                    playsinline: true
                 }}
               {% when 'external_video' %}
                 {% liquid
@@ -80,19 +82,25 @@
                 %}
                 {% case media.host %}
                   {% when 'youtube' %}
+
+                  {% when 'youtube' %}
                     {{
                       media
                       | external_video_url:
                         enablejsapi: 1,
-                        autoplay: true,
-                        loop: section.settings.enable_video_looping,
-                        playlist: media.external_id
+                        autoplay: 1,
+                        loop: 1,
+                        playlist: media.external_id,
+                        mute: 1,
+                        playsinline: 1
                       | external_video_tag: class: video_object_class
                     }}
                   {% when 'vimeo' %}
+
+                  {% when 'vimeo' %}
                     {{
                       media
-                      | external_video_url: autoplay: true, loop: section.settings.enable_video_looping
+                      | external_video_url: autoplay: 1, loop: 1, muted: 1, background: 1
                       | external_video_tag: class: video_object_class
                     }}
                 {% endcase %}
