@@ -1,0 +1,378 @@
+{% liquid
+  assign section_color = section.settings.color_scheme
+  
+  if section.settings.show_payment_icons and shop.enabled_payment_types != empty
+    assign payment_icons = true
+  else
+    assign payment_icons = false
+  endif
+  
+  if section.settings.show_locale_selector and shop.published_locales.size > 1
+    assign locale_selector = true
+  else
+    assign locale_selector = false
+  endif
+  
+  if section.settings.show_country_selector and localization.available_countries.size > 1
+    assign country_selector = true
+  else
+    assign country_selector = false
+  endif
+%}
+
+<section
+  class="pt-5 pb-5 bg-scheme-background text-scheme-text {% if section.settings.disable_color_transition %}disable-section-color-transition disable-section-color-transition-source{% endif %}"
+  data-color-scheme="{{ section_color }}"
+>
+  <div class="max-w-site mx-auto px-1 lg:px-1 grid lg:grid-cols-1 gap-1 gap-y-1 lg:gap-1">
+    {% if section.settings.logo != blank or social_account_items %}
+      <div class="logo lg:row-start-1 lg:row-span-full grid gap-5 {% unless section.blocks.size > 0 or payment_icons or country_selector or locale_selector %} items-center {% endunless %} {% if social_account_items %} grid-cols-2 lg:block {% endif %} ">
+        <div class="logo {% if social_account_items %} lg:mb-8 {% endif %}">
+          {% if section.settings.logo != blank %}
+            {% liquid
+              assign logo = section.settings.logo
+              assign logo_max_width = 100
+              assign requested_width = logo_max_width | times: 3
+              assign logo_style = 'max-width: ' | append: logo_max_width | append: 'px'
+              assign logo_alt = section.settings.logo.alt | default: shop.name | escape
+            %}
+            {% capture logo_sizes %}34vw, (min-width: 990px) calc(100vw / 7){% endcapture %}
+            <a href="{{ routes.root_url }}" class="block lg:max-w-[75%]">
+              {{ logo | image_url: width: requested_width | image_tag: style: logo_style, sizes: logo_sizes, loading: 'lazy', alt: logo_alt }}
+            </a>
+          {% endif %}
+        </div>
+      </div>
+    {% endif %}
+
+    {% if section.blocks.size > 0 %}
+      <div class="blocks lg:col-span-6 grid gap-5 gap-y-10 lg:gap-10 grid-cols-1 lg:grid-cols-10 mb-5">
+        {% for block in section.blocks %}
+          <div
+            class="
+              {%- if forloop.first %}
+                lg:col-start-1
+              {% endif %}
+
+              {% if forloop.last %}
+                lg:col-end-last
+              {% endif %}
+
+              {% if section.blocks.size == 2 %}
+                lg:col-span-5
+              {% else %}
+                {% if block.type == 'newsletter' %}
+                  lg:col-span-4
+                {% else %}
+                  lg:col-span-3
+                {% endif -%}
+              {% endif %}
+            "
+            {{ block.shopify_attributes }}
+          >
+            {% case block.type %}
+              {% when 'menus' %}
+                {% liquid
+                  if block.settings.main_linklist != blank
+                    assign main_linklist = block.settings.main_linklist
+                  endif
+
+                  if block.settings.second_linklist != blank
+                    assign second_linklist = block.settings.second_linklist
+                  endif
+
+                  if main_linklist and second_linklist
+                    assign has_two_linklists = true
+                  endif
+                %}
+                <div
+                  class="{% if has_two_linklists %}lg:grid lg:grid-cols-2{% endif %}"
+                >
+                  {% if main_linklist %}
+                    {% render 'footer-linklist', linklist: main_linklist, has_two_linklists: has_two_linklists %}
+                  {% endif %}
+
+                  {% if second_linklist %}
+                    {% render 'footer-linklist', linklist: second_linklist, has_two_linklists: has_two_linklists %}
+                  {% endif %}
+                </div>
+              {% when 'tagline' %}
+                <div class="text-theme-basic rte rte--compact">
+                  {{ block.settings.text }}
+                </div>
+
+                {% if block.settings.show_social_icons %}
+                  {% liquid
+                    assign social_accounts = 'Facebook, Twitter, Pinterest, Instagram, Snapchat, TikTok, Tumblr, YouTube, Vimeo, LinkedIn' | split: ', '
+
+                    assign social_account_items_string = ''
+
+                    assign social_item_separator = '||__social-item-end__||'
+
+                    for social in social_accounts
+                      assign social_handle = social | handleize
+                      assign social_link = 'social_' | append: social_handle | append: '_link'
+
+                      if settings[social_link] != blank
+                        capture social_account_item
+                          echo '<a href="' | append: settings[social_link] | append: '">'
+                          case social_handle
+                            when 'facebook'
+                              render 'icon-facebook'
+                            when 'twitter'
+                              render 'icon-twitter'
+                            when 'pinterest'
+                              render 'icon-pinterest'
+                            when 'instagram'
+                              render 'icon-instagram'
+                            when 'snapchat'
+                              render 'icon-snapchat'
+                            when 'tiktok'
+                              render 'icon-tiktok'
+                            when 'tumblr'
+                              render 'icon-tumblr'
+                            when 'youtube'
+                              render 'icon-youtube'
+                            when 'vimeo'
+                              render 'icon-vimeo'
+                            when 'linkedin'
+                              render 'icon-linkedin'
+                          endcase
+                          echo '</a>'
+                          echo social_item_separator
+                        endcapture
+
+                        assign social_account_items_string = social_account_items_string | append: social_account_item
+                      endif
+                    endfor
+
+                    if social_account_items_string != blank
+                      assign social_account_items = social_account_items_string | split: social_item_separator
+                    endif
+                  %}
+                  <div class="mt-10">
+                    <ul class="flex flex-wrap justify-end lg:justify-start -m-2">
+                      {% for item in social_account_items %}
+                        <li class="w-[1.125rem] h-[1.125rem] m-2">
+                          {{ item }}
+                        </li>
+                      {% endfor %}
+                    </ul>
+                  </div>
+                {% endif %}
+              {% when 'newsletter' %}
+                {% if block.settings.text != blank %}
+                  <div class="text-theme-basic mb-5 rte rte--compact">
+                    {{ block.settings.text }}
+                  </div>
+                {% endif %}
+                {% form 'customer' %}
+                  {% if form.errors %}
+                    <div class="text-theme-basic needs-attention">
+                      {{ form.errors | default_errors }}
+                    </div>
+                  {% endif %}
+
+                  {% if form.posted_successfully? %}
+                    <p class="text-theme-basic mb-5">{{ 'general.newsletter_form.confirmation' | t }}</p>
+                  {% else %}
+                    <input
+                      type="hidden"
+                      name="contact[tags]"
+                      value="newsletter"
+                    />
+                    <label for="Email" class="sr-only">
+                      {{ 'general.newsletter_form.newsletter_email' | t }}
+                    </label>
+                    <div class="grid grid-cols-[minmax(0,_1fr)_auto]">
+                      <input
+                        type="email"
+                        name="contact[email]"
+                        id="Email"
+                        class="text-theme-basic"
+                        value="{% if customer %}{{ customer.email }}{% endif %}"
+                        placeholder="{{ 'general.newsletter_form.newsletter_email' | t }}"
+                        autocorrect="off"
+                        autocapitalize="off"
+                      />
+                      <button
+                        type="submit"
+                        class="ml-3 md:ml-5 theme-button theme-button--solid"
+                      >
+                        <span class="text-theme-basic">
+                          {{ 'general.newsletter_form.submit' | t }}
+                        </span>
+                      </button>
+                    </div>
+                  {% endif %}
+                {% endform %}
+            {% endcase %}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <div class="copyright-and-payment-icons-and-markets lg:col-span-7 flex md:flex-row-reverse md:items-top flex-col">
+      {% if payment_icons or country_selector or locale_selector %}
+        <div class="payment-and-markets {% unless section.blocks.size == 0 %} lg:row-start-last {% endunless %} flex flex-col {% unless country_selector or locale_selector %} justify-end {% endunless %} items-start lg:items-end">
+          <div class="-my-3">
+            {% if country_selector or locale_selector %}
+              <div class="markets my-3">
+                {% render 'localization',
+                  country_selector: country_selector,
+                  locale_selector: locale_selector,
+                %}
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      {% endif %}
+      <div>
+        {% if payment_icons %}
+          <div class="payments mt-5 max-w-[80%] mr-auto lg:mr-5 ml-5 lg:ml-auto lg:max-w-full">
+            <span class="sr-only">{{ 'layout.footer.accepted_payments' | t }}</span>
+            <ul class="flex justify-start lg:justify-end flex-wrap -mx-2">
+              {% for type in shop.enabled_payment_types %}
+                <li>
+                  {{ type | payment_type_svg_tag: class: 'payment-icon' }}
+                </li>
+              {% endfor %}
+            </ul>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Footer",
+  "class": "mt-auto",
+  "settings": [
+    {
+      "type": "image_picker",
+      "id": "logo",
+      "label": "Logo image"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_payment_icons",
+      "label": "Show payment icons",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "Language selector",
+      "info": "To add a language, go to your [language settings.](/admin/settings/languages)"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_locale_selector",
+      "label": "Show language selector",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Country/region selector",
+      "info": "To add a country/region, go to your [payment settings.](/admin/settings/payments)"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_country_selector",
+      "label": "Show country/region selector",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Color"
+    },
+    {
+      "type": "select",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "options": [
+        {
+          "value": "primary",
+          "label": "Primary"
+        },
+        {
+          "value": "secondary",
+          "label": "Secondary"
+        },
+        {
+          "value": "tertiary",
+          "label": "Tertiary"
+        }
+      ]
+    },
+    {
+      "type": "checkbox",
+      "id": "disable_color_transition",
+      "label": "Disable transition",
+      "info": "Overrides section color transitions theme setting."
+    }
+  ],
+  "blocks": [
+    {
+      "type": "menus",
+      "name": "Menus",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "link_list",
+          "id": "main_linklist",
+          "label": "Menu",
+          "default": "footer",
+          "info": "This menu won’t show dropdown items"
+        },
+        {
+          "type": "link_list",
+          "id": "second_linklist",
+          "label": "Secondary menu",
+          "info": "This menu won’t show dropdown items"
+        }
+      ]
+    },
+    {
+      "type": "tagline",
+      "name": "Tagline and social links",
+      "limit": 1,
+      "settings": [
+        {
+          "id": "text",
+          "type": "richtext",
+          "label": "Text",
+          "default": "<p>Use this to add additional information about your store, e.g. address / contact details.</p>"
+        },
+        {
+          "type": "header",
+          "content": "Social media icons"
+        },
+        {
+          "type": "paragraph",
+          "content": "To display your social media accounts, link them in your theme settings."
+        },
+        {
+          "type": "checkbox",
+          "id": "show_social_icons",
+          "label": "Show social media icons"
+        }
+      ]
+    },
+    {
+      "type": "newsletter",
+      "name": "Newsletter",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "richtext",
+          "id": "text",
+          "label": "Text",
+          "default": "<p>Receive special offers and first look at new products.</p>"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

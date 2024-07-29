@@ -1,0 +1,307 @@
+{%- if section.settings.enable or request.design_mode -%}
+  <div
+    x-data="ThemeSection_AgeCheck({
+      mode: {{ section.settings.mode | json | escape }},
+      date_format: {{ section.settings.date_format | json | escape }},
+      minimum_age: {{ section.settings.minimum_age | json | escape }},
+      redirect_url: {{ section.settings.redirect_link | json | escape }},
+      enabled: {{ section.settings.enable | default: false }},
+      sectionId: '{{ section.id }}'
+    })"
+    x-init="mounted"
+    data-section="age-check"
+  >
+    <div>
+      <template data-should-teleport="#modal-slot">
+        <div data-color-scheme="{{ section.settings.color_scheme | default: 'primary' }}">
+          <div x-show="$store.modals.modal.contents === 'ageCheck'" class=" bg-scheme-background fixed top-0 left-0 right-0 bottom-0 w-full h-full overflow-hidden">
+          </div>
+          <div
+            x-show="$store.modals.modal.contents === 'ageCheck'"
+            x-transition.duration.300ms
+            class="py-section-vertical-spacing px-5 lg:px-10 fixed top-0 left-0 right-0 bottom-0 w-full h-full flex items-center justify-center overflow-hidden text-scheme-text"
+          >
+            <div
+              @click.stop
+              class="max-w-site relative z-10 mx-auto"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="ageCheckTitle"
+              tabindex="-1"
+            >
+            <div class="text-center mx-auto relative z-10 space-y-10">
+              {% if section.settings.logo != blank %}
+                {%- assign image_size = section.settings.logo_max_width | append: 'x' -%}
+                {%- assign image_size_2x = image_size | times: 2 -%}
+                <img
+                  srcset="{{ section.settings.logo | image_url: width: image_size }} 1x, {{ section.settings.logo | image_url: width: image_size_2x }} 2x"
+                  src="{{ section.settings.logo | image_url: width: image_size }}"
+                  loading="lazy"
+                  class="inline w-auto"
+                  width="{{ section.settings.logo.width }}"
+                  height="{{ section.settings.logo.height }}"
+                  alt="{{ section.settings.logo.alt | default: shop.name | escape }}"
+                >
+              {% endif %}
+
+              {% if section.settings.title != '' %}
+                <h2
+                  id="ageCheckTitle"
+                  class="font-heading text-2xl"
+                >
+                  {{ section.settings.title }}
+                </h2>
+              {% endif %}
+
+              {%- if section.settings.text != '' -%}
+                <div class="font-main mx-auto rte rte--compact">
+                  {{ section.settings.text }}
+                </div>
+              {%- endif -%}
+
+              {%- case section.settings.mode -%}
+                {%- when 'buttons' -%}
+                  <div class="grid grid-cols-12 gap-5">
+                    <div class="col-span-6">
+                    <button @click="approveEntry" role="button" class="theme-button theme-button--solid min-w-[6rem]" >
+                      <span>{{ section.settings.yes_button_text }}</span>
+                    </button>
+                    </div>
+                    <div class="col-span-6">
+                      <button @click="denyEntry" role="button" class="theme-button min-w-[6rem]">
+                        <span>{{ section.settings.no_button_text }}</span>
+                      </button>
+                    </div>
+                  </div>
+                {%- when 'dob' -%}
+                  {%- capture day_input -%}
+                    <div class="input-container w-full">
+                      <label class="sr-only" for="age-check-day">{{ 'age_check.day' | t }}</label>
+                      <input
+                        type="tel"
+                        maxlength="2"
+                        id="age-check-day"
+                        name="day"
+                        class="text-center  w-full"
+                        autocorrect="off"
+                        autocapitalize="off"
+                        autocomplete="email"
+                        placeholder="DD"
+                        required
+                        x-ref="day"
+                        x-model="day"
+                      >
+                    </div>
+                  {%- endcapture -%}
+                  {%- capture month_input -%}
+                    <div class="input-container w-full">
+                      <label class="sr-only" for="month" id="age-check-month">{{ 'age_check.month' | t }}</label>
+                      <input
+                        type="tel"
+                        maxlength="2"
+                        id="age-check-month"
+                        name="month"
+                        class="text-center  w-full"
+                        autocorrect="off"
+                        autocapitalize="off"
+                        autocomplete="email"
+                        placeholder="MM"
+                        x-ref="month"
+                        x-model="month"
+                        required
+                      >
+                    </div>
+                  {%- endcapture -%}
+                  <div class="grid grid-cols-12 gap-2 max-w-xs mx-auto dob-form" id="dob-form">
+                    {%- if section.settings.date_format == 'dd-mm-yyyy' -%}
+                      <div class="input-grid-item col-span-4">
+                        {{ day_input }}
+                      </div>
+                      <div class="input-grid-item col-span-4">
+                        {{ month_input }}
+                      </div>
+                    {%- else -%}
+                      <div class="input-grid-item col-span-4">
+                        {{ month_input }}
+                      </div>
+                      <div class="input-grid-item col-span-4">
+                        {{ day_input }}
+                      </div>
+                    {%- endif -%}
+                    <div class="input-grid-item col-span-4">
+                      <div class="input-container">
+                        <label class="sr-only" for="age-check-year">{{ 'age_check.year' | t }}</label>
+                        <input
+                          type="tel"
+                          maxlength="4"
+                          name="year"
+                          id="age-check-year"
+                          class="text-center  w-full"
+                          autocorrect="off"
+                          autocapitalize="off"
+                          autocomplete="email"
+                          placeholder="YYYY"
+                          required
+                          x-ref="year"
+                          x-model="year"
+                        >
+                      </div>
+                    </div>
+                  </div>
+              {%- endcase -%}
+            </div>
+            </div>
+          </div>
+        </div>
+      </template>
+    </div>
+  </div>
+
+
+  {% unless request.design_mode %}
+    <script src="{{ 'sections-age-check.bundle.min.js' | asset_url }}" type="module"></script>
+  {% endunless %}
+
+{%- endif -%}
+
+
+{% schema %}
+{
+  "name": "Age check",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "enable",
+      "label": "Enable age check",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "Content"
+    },
+    {
+      "type": "image_picker",
+      "id": "logo",
+      "label": "Custom logo",
+      "info": "800 x 300px recommended."
+    },
+    {
+      "type": "range",
+      "id": "logo_max_width",
+      "min": 20,
+      "max": 800,
+      "step": 10,
+      "unit": "px",
+      "label": "Custom logo width",
+      "default": 100
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Heading",
+      "default": "Age verification"
+    },
+    {
+      "id": "text",
+      "type": "richtext",
+      "label": "Text",
+      "default": "<p>Are you over 21 years of age?</p>"
+    },
+    {
+      "type": "radio",
+      "id": "mode",
+      "label": "Mode",
+      "default": "buttons",
+      "options": [
+        {
+          "value": "buttons",
+          "label": "Button prompt"
+        },
+        {
+          "value": "dob",
+          "label": "Date of birth input"
+        }
+      ]
+    },
+    {
+      "type": "header",
+      "content": "Button prompt"
+    },
+    {
+      "type": "text",
+      "id": "yes_button_text",
+      "label": "Approve button text",
+      "default": "Yes"
+    },
+    {
+      "type": "text",
+      "id": "no_button_text",
+      "label": "Deny button text",
+      "default": "No"
+    },
+    {
+      "type": "header",
+      "content": "Date of birth input"
+    },
+    {
+      "type": "radio",
+      "id": "date_format",
+      "label": "Date format",
+      "default": "mm-dd-yyyy",
+      "options": [
+        {
+          "value": "mm-dd-yyyy",
+          "label": "MM DD YYYY"
+        },
+        {
+          "value": "dd-mm-yyyy",
+          "label": "DD MM YYYY"
+        }
+      ]
+    },
+    {
+      "type": "range",
+      "id": "minimum_age",
+      "min": 15,
+      "max": 25,
+      "step": 1,
+      "unit": "yrs",
+      "label": "Minimum age",
+      "default": 18
+    },
+    {
+      "type": "header",
+      "content": "Redirect URL"
+    },
+    {
+      "type": "url",
+      "id": "redirect_link",
+      "label": "Link",
+      "info": "Visitors will be redirected to this link if they click the deny button or enter a date of birth that is under the required age."
+    },
+    {
+      "type": "header",
+      "content": "Color"
+    },
+    {
+      "type": "select",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "options": [
+        {
+          "value": "primary",
+          "label": "Primary"
+        },
+        {
+          "value": "secondary",
+          "label": "Secondary"
+        },
+        {
+          "value": "tertiary",
+          "label": "Tertiary"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

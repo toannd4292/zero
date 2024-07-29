@@ -1,0 +1,214 @@
+.rte {
+  --rte-spacing-unit: calc(var(--base-line-height) * 1rem);
+  font-family: var(--main-font-stack);
+  font-weight: var(--main-font-weight);
+  font-style: var(--main-font-style);
+  font-size: var(--font-size-theme-basic);
+  line-height: var(--line-height-theme-basic);
+  --stack-space: var(--rte-spacing-unit);
+}
+
+.rte--compact {
+  --rte-spacing-unit: 0.625rem;
+}
+
+.rte > *:not(:empty) + *:not(:empty) {
+  margin-block-start: var(--stack-space);
+}
+
+.rte > h1 + p {
+  --stack-space: calc(var(--rte-spacing-unit) / 2.5);
+}
+
+.rte > * + h1 {
+  --stack-space: calc(var(--rte-spacing-unit) * 2.5);
+}
+
+/* .rte > .rte__table:not(:last-child),
+.rte > .rte__external-video:not(:last-child) {
+  margin-block-end: var(--stack-space);
+} */
+
+.rte h1,
+.rte h2,
+.rte h3,
+.rte h4,
+.rte h5,
+.rte h6,
+.rte ul,
+.rte ol {
+  word-break: normal;
+  overflow-wrap: anywhere;
+}
+
+.rte h1,
+.rte h2,
+.rte h3,
+.rte h4 {
+  /* Same as .font-heading */
+  font-family: var(--heading-font-stack);
+  font-weight: var(--heading-font-weight);
+  font-style: var(--heading-font-style);
+}
+
+.rte h1 {
+  font-size: var(--standard-heading-size);
+  line-height: var(--line-height-heading);
+}
+
+.rte h2 {
+  font-size: var(--font-size-xl);
+  line-height: var(--line-height-heading);
+}
+
+.rte h3 {
+  font-size: var(--font-size-lg);
+  line-height: var(--line-height-heading);
+}
+
+.rte h4 {
+  font-size: var(--font-size-md);
+  line-height: var(--base-line-height);
+}
+
+.rte h5 {
+  font-size: var(--font-size-md);
+  line-height: var(--base-line-height);
+  font-size: var(--font-size-theme-basic);
+  line-height: var(--line-height-theme-basic);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.rte h6 {
+  font-size: var(--font-size-theme-basic);
+  line-height: var(--line-height-theme-basic);
+  font-weight: 700;
+}
+
+.rte ul {
+  list-style-type: disc;
+  padding-left: 2.5rem;
+}
+
+.rte ol {
+  list-style-type: decimal;
+  padding-left: 2.5rem;
+}
+
+.rte hr {
+  border-top-width: 1px;
+  border-color: rgb(var(--color-scheme-text) / 0.2);
+}
+
+/* For links, see .theme-link CSS */
+
+.rte blockquote {
+  border-left-width: 2px;
+  border-color: rgb(var(--color-scheme-text) / 0.3);
+  padding-top: calc(var(--stack-space) / 2);
+  padding-bottom: calc(var(--stack-space) / 2);
+  padding-left: 1.25rem;
+  font-size: var(--font-size-lg);
+  line-height: var(--line-height-heading);
+  font-family: var(--heading-font-stack);
+}
+
+.rte mark {
+  --tw-bg-opacity: 1;
+  background-color: rgb(var(--color-scheme-accent) / var(--tw-bg-opacity));
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+  --tw-text-opacity: 1;
+  color: rgb(var(--color-scheme-background) / var(--tw-text-opacity));
+}
+
+.rte code {
+  border-radius: 0.375rem;
+  border-width: 1px;
+  border-color: rgb(var(--color-scheme-text) / 0.1);
+  background-color: rgb(var(--color-scheme-text) / 0.05);
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+  color: rgb(var(--color-scheme-text) / 0.8);
+}
+
+.rte table {
+  table-layout: fixed;
+}
+
+.rte table,
+.rte th,
+.rte td {
+  border-width: 1px;
+  border-color: rgb(var(--color-scheme-text) / 0.25);
+}
+
+.rte th,
+.rte td {
+  padding: 0.25rem;
+}
+
+@media (min-width: 990px) {
+
+  .rte th,
+.rte td {
+    padding: 0.5rem;
+  }
+}
+
+.rte pre {
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.rte .rte__table {
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.rte .rte__external-video {
+  --stack-space: calc(var(--rte-spacing-unit) * 2.5);
+  aspect-ratio: var(--tw-aspect-w) / var(--tw-aspect-h);
+  --tw-aspect-w: 16;
+  --tw-aspect-h: 9;
+  position: relative;
+}
+
+.rte .rte__external-video > iframe {
+  position: absolute;
+  inset: 0px;
+  height: 100%;
+  width: 100%;
+}
+
+.rte:not(.rte--compact) > h1,
+.rte:not(.rte--compact) > h2,
+.rte:not(.rte--compact) > h3,
+.rte:not(.rte--compact) > h4,
+.rte:not(.rte--compact) > h5,
+.rte:not(.rte--compact) > h6,
+.rte:not(.rte--compact) > p,
+.rte:not(.rte--compact) > ul,
+.rte:not(.rte--compact) > ol {
+  max-width: 42rem;
+}
+
+.quotes-container p:not(:empty)::before {
+  content: open-quote;
+}
+
+.quotes-container p::after {
+  content: no-close-quote;
+}
+
+.quotes-container p:last-of-type::after {
+  content: close-quote;
+}

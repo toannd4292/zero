@@ -1,0 +1,89 @@
+{% liquid
+  assign section_color = 'primary'
+%}
+
+<section
+  class="py-section bg-scheme-background text-scheme-text"
+  data-color-scheme="{{ section_color }}"
+>
+  <div class="max-w-site mx-auto my-10 px-5 md:px-10 min-h-[55vh]">
+    {% form 'activate_customer_password' %}
+      <div class="max-w-5xl mx-auto md:grid md:grid-cols-2 md:gap-grid-gutter">
+        <div class="mb-20 md:mb-0">
+          <h1
+            class="font-heading text-heading-standard mb-5"
+            tabindex="-1"
+            data-should-focus
+          >
+            {{ 'customer.activate_account.title' | t }}
+          </h1>
+          <p class="text-theme-basic">
+            {{ 'customer.activate_account.subtext' | t }}
+          </p>
+        </div>
+        <div>
+          {% if form.errors %}
+            <div class="mb-10 needs-attention" tabindex="-1" data-login-error>
+              {{ form.errors | default_errors }}
+            </div>
+          {% endif %}
+
+          <div class="-my-5">
+            <div class="my-5">
+              <label
+                class="mb-2 block text-theme-basic text-left"
+                for="CustomerPassword"
+              >
+                {{ 'customer.activate_account.password' | t }}
+              </label>
+              <input
+                type="password"
+                name="customer[password]"
+                id="CustomerPassword"
+                autocomplete="password"
+                class="w-full {% if form.errors contains 'password' %} border-scheme-error {% endif %}"
+                placeholder="{{ 'customer.activate_account.password' | t }}"
+              />
+            </div>
+
+            <div class="my-5">
+              <label
+                class="mb-2 block text-theme-basic text-left"
+                for="PasswordConfirmation"
+              >
+                {{ 'customer.activate_account.password_confirm' | t }}
+              </label>
+              <input
+                type="password"
+                name="customer[password_confirmation]"
+                id="PasswordConfirmation"
+                autocomplete="password"
+                class="w-full {% if form.errors contains 'password_confirmation' %} border-scheme-error {% endif %}"
+                placeholder="{{ 'customer.activate_account.password_confirm' | t }}"
+              />
+            </div>
+
+            <div class="mt-10 mb-5">
+              <button
+                type="submit"
+                class="theme-button theme-button--solid w-full"
+              >
+                {{ 'customer.activate_account.submit' | t }}
+              </button>
+            </div>
+
+            <div class="my-5">
+              <button
+                type="submit"
+                class="theme-button w-full"
+                name="decline"
+              >
+                {{ 'customer.activate_account.cancel' | t }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endform %}
+  </div>
+</section>

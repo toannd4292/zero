@@ -1,0 +1,85 @@
+<template data-should-teleport="#left-drawer-slot">
+  <div
+    x-show="$store.modals.leftDrawer.contents === 'desktop-sidebar-nav'"
+    class="sidebar-nav py-6"
+  >
+    <div class="relative flex items-center justify-between mt-4 mb-2">
+      <h2 class="sr-only" tabindex="-1">
+        {{ section.settings.linklist.title }}
+      </h2>
+      <button @click.prevent="$store.modals.close('desktop-sidebar-nav')" class="block ml-auto top-0">
+        <span class="sr-only">{{ 'general.accessibility.close_modal' | t }}</span>
+        <span class="inline-block w-6 h-6">{% render 'icon-close' %}</span>
+      </button>
+    </div>
+    <ul>
+      {% for link in section.settings.linklist.links %}
+        {% comment %}
+          First level (not shown)
+        {% endcomment %}
+        {% assign showcase_link_tiles = '' %}
+        {% if link.links.size > 0 %}
+          <li x-show="$store.nav.currentIndex === {{ forloop.index }}">
+            <ul>
+              {% for link in link.links %}
+                {% comment %}
+                  Second level
+                {% endcomment %}
+                {%- liquid
+                  assign showcase_link = false
+
+                  if section.settings.showcase_second_level_links != 'none'
+                    if link.type == 'collection_link' or link.type == 'product_link'
+                      if link.links.size == 0
+                        assign showcase_link = true
+                      endif
+                    endif
+                  endif
+                -%}
+                {% unless showcase_link %}
+                  <li class="mt-10">
+                    <a class="block font-heading text-heading-standard break-word" href="{{ link.url }}">
+                      {{- link.title -}}
+                    </a>
+                    {% if link.links.size > 0 %}
+                        <ul class="mt-4">
+                          {% for link in link.links %}
+                            {% comment %}
+                              Third level
+                            {% endcomment %}
+                            <li class="my-2">
+                              <a class="text-base break-word" href="{{ link.url }}">
+                                {{- link.title -}}
+                              </a>
+                            </li>
+                          {% endfor %}
+                        </ul>
+                    {% endif %}
+                  </li>
+                {% else %}
+                  {%- capture link_tile -%}
+                    {% if section.settings.showcase_second_level_links == 'scroll' %}
+                      <li class="text-base font-main my-4 mr-4 relative snap-start">
+                        {% render 'showcase-tile', object: link.object, crop: section.settings.collection_image_crop, image_wrapper_class: 'w-[8rem] shrink-0 grow-0 h-auto' %}
+                      </li>
+                    {% else %}
+                      <li class="text-base font-main relative">
+                        {% render 'showcase-tile', object: link.object, crop: section.settings.collection_image_crop %}
+                      </li>
+                    {% endif %}
+                  {%- endcapture -%}
+                  {%- assign showcase_link_tiles = showcase_link_tiles | append: link_tile -%}
+                {%- endunless -%}
+              {% endfor %}
+            </ul>
+            {% if showcase_link_tiles %}
+              <div class="my-4 nav-item">
+                {% render 'showcase-link-tiles', style: section.settings.showcase_second_level_links, content: showcase_link_tiles %}
+              </div>
+            {% endif %}
+          </li>
+        {% endif %}
+      {% endfor %}
+    </ul>
+  </div>
+</template>

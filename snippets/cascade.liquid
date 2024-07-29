@@ -1,0 +1,437 @@
+{% liquid
+  assign full_width_item_header = '||__cascade-item:full__||'
+  assign item_separator = '||__cascade-item-end__||'
+
+  assign start_col = 0
+  if first_block_position and first_block_position == 'right'
+    assign start_col = 1
+  endif
+
+  assign half_col_counter = start_col
+
+  assign single_col_content = ''
+
+  assign first_single_content_block = true
+  assign first_item_after_break = true
+
+  assign content_items_array = content_items | split: item_separator
+
+  unless grid_class
+    assign grid_class = 'grid grid-cols-2 gap-x-grid-gutter gap-y-0'
+  endunless
+
+  assign mobile_width = 'w-5/6'
+
+  unless enable_cascade_on_mobile
+    assign mobile_width = 'w-full'
+  endunless
+
+  if alternate_first_block_position
+    if start_col == 0
+      assign first_block_in_odd_row = 0
+      assign first_block_in_even_row = 1
+    else
+      assign first_block_in_odd_row = 1
+      assign first_block_in_even_row = 2
+    endif
+  endif
+
+  assign offset = sequence | default: 1
+  assign offset = offset | minus: 1
+  assign indexes = '0,1,2,3,4' | split: ','
+  assign sliced_indexes = indexes | slice: 0, offset
+  assign indexes = indexes | slice: offset, 5 | concat: sliced_indexes
+  
+
+%}
+
+<div class="mx-auto empty:hidden" data-cascade-container data-cascade-spacing="{{ spacing }}" data-cascade-variance="{{ variance }}" data-cascade-layout="{{ desktop_layout }}">
+  <div
+    class="{% unless cascade_product_desktop_layout == 'full_width' %}sw-hidden{% endunless %} {% unless desktop_layout == 'single_column' %} md:block {% endunless %}"
+    {% if request.design_mode and desktop_layout != 'single_column' %}
+      x-data="Theme_BlockRoot('(min-width: 768px)')"
+    {% endif %}
+  >
+    <div
+      class="{{ grid_class }}"
+    >
+      {% for content_item in content_items_array %}
+        {% liquid
+          assign full_width_item = false
+          assign enable_variance = true
+          assign parallax_item = false
+          assign hide_on_mobile = false
+          assign product_form = false
+          assign featured_media = false
+          assign disable_single_render = false
+
+          if content_item contains full_width_item_header
+            assign full_width_item = true
+          endif
+
+          if content_item contains 'data-disable-variance'
+            assign enable_variance = false
+          endif
+
+          if content_item contains 'data-media-item'
+            assign parallax_item = true
+          endif
+
+          if content_item contains 'data-cascade-hide-on-mobile'
+            assign hide_on_mobile = true
+          endif
+
+          if content_item contains 'data-cascade-product-form'
+            assign product_form = true
+            unless desktop_layout == 'single_column'
+              assign disable_single_render = true
+            endunless
+          endif
+
+          if content_item contains 'data-cascade-featured-media'
+            assign featured_media = true
+            if desktop_layout == 'two_columns'
+              assign disable_single_render = true
+            endif
+            if full_width_item == true and cascade_product_desktop_layout != 'full_width'
+              assign hide_on_mobile = true 
+            endif 
+          endif
+        %}
+
+        {% if full_width_item == false %}
+          {% liquid
+            assign mod = half_col_counter | modulo: 2
+
+            capture cycle_index
+              cycle 0, 1, 2, 3, 4
+            endcapture
+
+            capture mobile_single_alignment_class
+              unless hide_on_mobile
+              cycle "mobile": "cascade-align-left", "cascade-align-right"
+              endunless
+            endcapture
+
+            capture desktop_single_alignment_class
+              cycle "desktop": "md:cascade-align-left", "md:cascade-align-right"
+            endcapture
+
+            if variance != 'none' and enable_variance
+              if variance == 'low'
+
+                assign item_widths = ' md:w-full | md:w-10/12 | md:w-10/12 | md:w-full | md:w-10/12 ' | split: '|'
+                assign item_speeds =  '1,-3,-5,3,-1' | split: ','
+
+                assign item_align = 'md:mx-auto'
+
+                capture item_spacing
+                  case spacing
+                    when 'medium'
+                      echo 'mt-cascade-4'
+                    when 'small'
+                      echo 'mt-cascade-2'
+                    when 'large'
+                      echo 'mt-cascade-6'
+                  endcase
+                endcapture
+              elsif variance == 'medium'
+
+                assign item_widths = ' md:w-full | md:w-8/12 | md:w-10/12 | md:w-full | md:w-8/12 ' | split: '|'
+                assign item_speeds =  '-3,3,-1,1,2' | split: ','
+
+                capture parallax_speed
+                  cycle '-1', '3', '1'
+                endcapture
+
+                capture item_align
+                  cycle 'md:cascade-mr-auto', 'md:mx-auto', 'md:cascade-ml-auto', 'md:mx-auto'
+                endcapture
+
+                capture item_spacing
+                  case spacing
+                    when 'medium'
+                      echo 'mt-cascade-3'
+                    when 'small'
+                      echo 'mt-cascade-1'
+                    when 'large'
+                      echo 'mt-cascade-5'
+                  endcase
+                endcapture
+              elsif variance == 'high'
+
+                assign item_widths = ' md:w-full | md:w-7/12 | md:w-10/12 | md:w-5/12 | md:w-8/12 ' | split: '|'
+                assign item_speeds =  '-3,3,-2,1' | split: ','
+                capture item_align
+                  cycle 'md:cascade-mr-auto', 'md:mx-auto', 'md:cascade-ml-auto', 'md:mx-auto'
+                endcapture
+
+                capture item_spacing
+                  case spacing
+                    when 'medium'
+                      echo 'mt-cascade-3'
+                    when 'small'
+                      echo 'mt-cascade-1'
+                    when 'large'
+                      echo 'mt-cascade-5'
+                  endcase
+                endcapture
+              endif
+
+              assign cycle_index = cycle_index | plus: 0
+              assign width_index = indexes[cycle_index] | plus: 0
+              assign item_width = item_widths[width_index]
+              assign item_parallax_speed = item_speeds[width_index]
+
+            else
+              assign item_width = 'md:w-full'
+              assign item_align = ''
+
+              capture item_spacing
+                case spacing
+                  when 'medium'
+                    echo 'mt-cascade-4'
+                  when 'small'
+                    echo 'mt-cascade-2'
+                  when 'large'
+                    echo 'mt-cascade-6'
+                endcase
+              endcapture
+            endif
+
+            if forloop.index0 == 0
+              assign item_parallax_speed = 1
+            endif
+          %}
+
+          {% capture cascade_item %}
+            <div
+              class="
+              relative
+              min-h-[8vw]
+              {{ item_width }} {{ item_align }}
+              {% unless product_form or featured_media %}sw-hidden md:block{% endunless %}
+              {% if product_form or featured_media %}-mx-5 md:mx-0 max-md:mt-0{% endif %}
+              {% if featured_media %}pt-10 lg:pt-0 px-5 md:px-0 mb-5 md:mb-0{% endif %}
+              motion-reduce:transition-none transition-opacity delay-[var(--col-delay)] duration-500
+              {% unless settings.cascade_fade_in_items %}revealed{% endunless %}
+              {% unless first_item_after_break %} {{ item_spacing }} {% endunless %}
+              "
+                data-cascade-item
+              {% if parallax_item %}
+                data-parallax-container
+                data-parallax-speed="{{ item_parallax_speed }}"
+                data-parallax-id="{{ section_id }}-{{ forloop.index }}"
+              {% endif %}
+            >
+              {%- if parallax_item -%}
+              <div data-parallax-element>
+              {%- endif -%}
+              {{ content_item }}
+              {%- if parallax_item -%}
+              </div>
+              {%- endif -%}
+            </div>
+          {% endcapture %}
+
+          {% capture single_cascade_item_class %}
+            {% if product_form or featured_media %}
+              -mx-5 md:mx-0 
+              md:min-h-[8vw]
+              lg:w-8/12
+              mx-auto
+              revealed
+              max-md:mt-0
+              {% if featured_media %}pt-10 lg:pt-0 px-5 md:px-0 mb-5 md:mb-0{% endif %}
+              {% if hide_on_mobile %}sw-hidden md:block{% endif %}
+              {% unless first_item_after_break %} {{ item_spacing }} {% endunless %}
+            {% else %}
+              min-h-[8vw]
+              {{ single_item_alignment }}
+              {{ mobile_width }} lg:w-8/12
+              {% if hide_on_mobile %}sw-hidden md:block{% endif %}
+              motion-reduce:transition-none transition-opacity delay-[var(--col-delay)] duration-500
+              {% unless settings.cascade_fade_in_items %}revealed{% endunless %}
+              {% unless first_item_after_break %} {{ item_spacing }} {% endunless %}
+              first:max-md:mt-0
+              {{ mobile_single_alignment_class }}
+              {%- if first_single_content_block -%}
+                max-md:mt-0
+                {%- assign first_single_content_block = false -%}
+              {%- endif -%}
+            {% endif %}
+            {{ desktop_single_alignment_class }}
+          {% endcapture %}
+
+          {% capture single_cascade_item %}
+            <div
+              class="{{ single_cascade_item_class }}"
+              data-cascade-item
+              {% if parallax_item %}
+                data-parallax-container
+                data-parallax-speed="{{ item_parallax_speed }}"
+                data-parallax-id="{{ section_id }}-single-{{ forloop.index }}"
+              {% endif %}
+            >
+              <div class="{{ item_width }} {{ item_align }}">
+                {%- if parallax_item -%}
+                <div data-parallax-element >
+                {%- endif -%}
+                {{ content_item }}
+                {%- if parallax_item -%}
+                </div>
+                {%- endif -%}
+              </div>
+            </div>
+          {% endcapture %}
+
+          {% liquid
+
+            comment
+            if skip_featured_media and featured_media_attribute
+              unless cascade_item contains featured_media_attribute
+                assign single_col_content = single_col_content | append: single_cascade_item
+              endunless
+            else
+              assign single_col_content = single_col_content | append: single_cascade_item
+            endif
+            endcomment
+
+            unless disable_single_render
+            assign single_col_content = single_col_content | append: single_cascade_item
+            endunless
+            
+            if mod == 0
+              assign left_content = left_content | append: cascade_item
+            else
+              assign right_content = right_content | append: cascade_item
+            endif
+
+            assign half_col_counter = half_col_counter | plus: 1
+            assign first_item_after_break = false
+          %}
+        {% endif %}
+
+        {% if full_width_item == true or forloop.last %}
+          {%- unless desktop_layout == 'single_column' %}
+            {% if left_content != '' or right_content != '' %}
+              <div class="relative [--col-delay:_0ms]">
+                {{ left_content }}
+              </div>
+              <div class="relative [--col-delay:_300ms] {% if cascade_product_desktop_layout == 'full_width' and alternate_first_block_position %}max-md:row-start-1{% endif %}">
+                {{ right_content }}
+              </div>
+            {% endif %}
+          {%- endunless -%}
+          {% if full_width_item == true %}
+            {% liquid
+              if variance != 'none' and enable_variance
+                if variance == 'low'
+                  case spacing
+                    when 'medium'
+                      assign item_spacing_top = 'mt-cascade-4'
+                      assign item_spacing_bottom = 'mb-cascade-4'
+                    when 'small'
+                      assign item_spacing_top = 'mt-cascade-2'
+                      assign item_spacing_bottom = 'mb-cascade-2'
+                    when 'large'
+                      assign item_spacing_top = 'mt-cascade-6'
+                      assign item_spacing_bottom = 'mb-cascade-6'
+                  endcase
+                elsif variance == 'high' or variance == 'medium'
+                  case spacing
+                    when 'medium'
+                      assign item_spacing_top = 'mt-cascade-3'
+                      assign item_spacing_bottom = 'mb-cascade-3'
+                    when 'small'
+                      assign item_spacing_top = 'mt-cascade-1'
+                      assign item_spacing_bottom = 'mb-cascade-1'
+                    when 'large'
+                      assign item_spacing_top = 'mt-cascade-5'
+                      assign item_spacing_bottom = 'mb-cascade-5'
+                  endcase
+                endif
+              else
+                case spacing
+                  when 'medium'
+                    assign item_spacing_top = 'mt-cascade-4'
+                    assign item_spacing_bottom = 'mb-cascade-4'
+                  when 'small'
+                    assign item_spacing_top = 'mt-cascade-2'
+                    assign item_spacing_bottom = 'mb-cascade-2'
+                  when 'large'
+                    assign item_spacing_top = 'mt-cascade-6'
+                    assign item_spacing_bottom = 'mb-cascade-6'
+                endcase
+              endif
+            %}
+            {% capture cascade_item %}
+              <div
+                data-cascade-item
+                class="
+                  col-span-full
+                  {% unless settings.cascade_fade_in_items %}revealed{% endunless %}
+                  {% unless forloop.first %} {{ item_spacing_top }} {% endunless %}
+                  {% unless forloop.last %} {{ item_spacing_bottom }} {% endunless %}
+                  {% if hide_on_mobile %}sw-hidden md:block{% endif %}
+                  {% if featured_media %}max-md:mb-5 max-md:pt-10{% endif %}
+                  "
+                >
+                <div
+                  class="{% unless featured_media %}{{ mobile_width }}{% endunless %} lg:w-5/6 mx-auto motion-reduce:transition-none transition-opacity duration duration-200"
+                >
+                  {{ content_item | replace: full_width_item_header, '' }}
+                </div>
+              </div>
+            {% endcapture %}
+            {% liquid
+              unless desktop_layout == 'single_column'
+              echo cascade_item
+              endunless
+
+              if alternate_first_block_position
+                capture half_col_counter
+                  cycle first_block_in_odd_row, first_block_in_even_row
+                endcapture
+              else
+                assign half_col_counter = 0
+              endif
+
+              assign left_content = ''
+              assign right_content = ''
+
+              assign first_item_after_break = true
+
+              unless disable_single_render
+              assign single_col_content = single_col_content | append: cascade_item
+              endunless
+            %}
+          {% endif %}
+
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+{% if single_col_content != '' %}
+  <div
+    class="relative {% unless desktop_layout == 'single_column' %} md:hidden {% endunless %} {{ single_container_class }} {% if first_block_position and first_block_position == 'right' %}cascade-reverse{% endif %}"
+    data-cascade-container data-cascade-spacing="{{ spacing }}" data-cascade-variance="{{ variance }}"  data-cascade-layout="{{ desktop_layout }}"
+    {% if request.design_mode %}
+      {% if desktop_layout != 'single_column' %}
+        x-data="Theme_BlockRoot('(max-width: 767px)')"
+      {% else %}
+        x-data="Theme_BlockRoot"
+      {% endif %}
+    {% endif %}
+  >
+    {{ single_col_content }}
+  </div>
+{% endif %}
+
+{%- unless request.design_mode -%}
+{%- if settings.cascade_enable_parallax or settings.cascade_fade_in_items -%}
+<script src="{{ 'cascade-animations.js' | asset_url }}" defer></script>
+{%- endif -%}
+{%- endunless -%}

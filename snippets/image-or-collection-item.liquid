@@ -1,0 +1,41 @@
+{%- assign text_size = text_size | default: 'text-heading-standard' -%}
+{% capture image_content %}
+  {% unless image == blank %}
+    {{ image | image_url: width: 2000 | image_tag: loading: 'lazy', sizes: sizes }}
+  {% else %}
+    {{ placeholder_key | placeholder_svg_tag: 'bg-scheme-placeholder-background text-scheme-placeholder-foreground fill-current' }}
+  {% endunless %}
+{% endcapture %}
+<div class="mx-auto" {% if attributes %}{{ attributes }}{% endif %}>
+  <div class="relative">
+    {% if link != blank %}
+      <a class="absolute inset-0 z-20" href="{{ link }}">
+        <span class="sr-only">
+          {% if text != blank %}
+            {{ text }}
+          {% elsif image != blank and image.alt != blank %}
+            {{ image.alt }}
+          {% endif %}
+        </span>
+      </a>
+    {% endif %}
+    <div
+      class="absolute inset-0 grid place-content-center text-center z-10 {% if link != blank %} cursor-pointer {% endif %}"
+      data-color-scheme="{{ text_scheme }}"
+    >
+      <div class="text-scheme-text">
+        <p class="font-heading {{ text_size }} break-word">
+          {{ text }}
+        </p>
+        {% if subheading %}
+          <div class="mt-5 rte rte--compact lg:max-w-2xl lg:mx-auto">
+            {{ subheading }}
+          </div>
+        {% endif %}
+      </div>
+    </div>
+    <div class="z-0" data-scale-reveal>
+      {{ image_content }}
+    </div>
+  </div>
+</div>

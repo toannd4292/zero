@@ -1,0 +1,13 @@
+{%- if overlay_heading -%}
+<div class="w-full absolute top-0 left-0 bottom-0 right-0 z-10 pointer-events-none">
+  <div class="flex items-center justify-center sticky top-0  h-full w-full max-h-screen px-5 lg:px-10">
+    <h2 class="font-heading text-heading-feature text-center lg:max-w-3/4 break-word">
+      {{ title | strip }}
+    </h2>
+  </div>
+</div>
+{%- else -%}
+<h2 class="font-heading text-heading-standard mb-10 {{ title_text_align }} break-word">
+  {{ title | strip }}
+</h2>
+{%- endif -%}

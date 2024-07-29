@@ -1,0 +1,128 @@
+{%- liquid
+
+  assign desktop_layout = section.settings.desktop_layout
+  assign enable_cascade_on_mobile = section.settings.enable_cascade_on_mobile
+  assign sequence = section.settings.sequence
+
+  if section.settings.variance == 'global'
+    assign variance = settings.variance
+  else
+    assign variance = section.settings.variance
+  endif
+
+  if section.settings.spacing == 'global'
+    assign spacing = settings.cascade_item_spacing
+  else
+    assign spacing = section.settings.spacing
+  endif
+
+  assign counter = 0
+
+  assign full_width_item_header = '||__cascade-item:full__||'
+  assign item_separator = '||__cascade-item-end__||'
+-%}
+
+{% for collection_item in items %}
+  {% liquid
+    if using_blocks
+      assign collection = collection_item.settings.collection
+      assign title = collection_item.settings.title
+      assign subheading = collection_item.settings.subheading
+    else
+      assign collection = collection_item
+      assign title = false
+      assign subheading = false
+    endif
+
+    assign mod = counter | modulo: 2
+
+    if section.settings.alternate_row_color_scheme != 'follow'
+      if mod > 0
+        assign color_scheme = section.settings.alternate_row_color_scheme
+      else
+        assign color_scheme = section_color
+      endif
+    else
+      assign color_scheme = section_color
+    endif
+  %}
+  <div class="{% if class %} {{ class }} {% endif %} py-section bg-scheme-background text-scheme-text lg:grid gap-x-grid-gutter lg:grid-cols-4 max-w-site mx-auto px-5 lg:px-10" data-color-scheme="{{ color_scheme }}" {% if using_blocks %}{{ collection_item.shopify_attributes }}{% endif %}>
+    <div class="lg:col-span-1">
+      <div class="pb-10 pl-5 pr-20 lg:px-0 lg:pb-0">
+        <h2 class="text-heading-standard font-heading m-0 break-word">
+          {% if title != blank %}
+            {{ title | escape }}
+          {% elsif collection %}
+            {{ collection.title | escape }}
+          {% else %}
+            {{ 'sections.onboarding.collection_title' | t }}
+          {% endif %}
+        </h2>
+
+        {% if subheading != blank or show_description == true %}
+          {% if subheading != blank %}
+            <div class="text-base {% if title != blank %}mt-5{% endif %}">
+              {{ subheading }}
+            </div>
+          {% elsif collection %}
+            <div class="text-base mt-5">
+              {{ collection.description }}
+            </div>
+          {% endif %}
+        {% endif %}
+
+        {% if show_collection_link %}
+          <div class="mt-10">
+            <a class="theme-cta" href="{{ collection.url }}">
+              {{ 'collections.general.all_of_collection' | t }}
+            </a>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+    <div class="lg:col-span-3">
+      {% liquid
+        capture product_items
+          if collection != empty
+            assign collection_counter = 0
+            for product in collection.products limit: section.settings.max_products_cascade
+              assign remainder = collection_counter | modulo: 3
+              if remainder == 0 and section.settings.feature_full_width_products
+                echo full_width_item_header
+              endif 
+              echo '<div data-media-item>'
+              render 'product-tile', product: product, tag: 'div', sizes: '50vw'
+              echo '</div>'
+              echo item_separator
+              assign collection_counter = collection_counter | plus: 1
+            endfor
+          else
+            assign collection_counter = 0
+            for i in (0..section.settings.max_products_cascade)
+              capture current_cycle
+                cycle '1', '2', '3', '4', '5', '6'
+              endcapture
+              assign placeholder_name = 'product-' | append: current_cycle
+              assign remainder = collection_counter | modulo: 3
+              if remainder == 0 and section.settings.feature_full_width_products
+                echo full_width_item_header
+              endif 
+              render 'product-tile-placeholder', placeholder_name: placeholder_name, tag: 'div'
+              echo item_separator
+              assign collection_counter = collection_counter | plus: 1
+            endfor
+          endif
+        endcapture
+      %}
+      {% render 'cascade',
+        content_items: product_items,
+        variance: variance,
+        spacing: spacing,
+        desktop_layout: desktop_layout,
+        enable_cascade_on_mobile: enable_cascade_on_mobile,
+        sequence: sequence
+      %}
+    </div>
+  </div>
+  {% assign counter = counter | plus: 1 %}
+{% endfor %}

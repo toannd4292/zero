@@ -1,0 +1,83 @@
+html.no-js [data-fade-in].opacity-0 {
+  opacity: 1;
+}
+
+html.no-js .invisible.no-js-visible {
+  visibility: visible;
+}
+
+html.no-js .js-enabled,
+html.js .no-js {
+  display: none;
+}
+
+.break-word {
+  /**
+   * Not the same as Tailwind’s .break-words,
+   * this is like `word-break: break-word;`, which
+   * is now deprecated
+   */
+  word-break: normal;
+  overflow-wrap: anywhere;
+}
+
+*:not(.disable-section-color-transition) .text-scheme-text:not([x-show]):not(.disable-section-color-transition) {
+  transition: 0.2s color ease;
+}
+
+*:not(.disable-section-color-transition) .bg-scheme-background:not([x-show]):not(.disable-section-color-transition) {
+  transition: 0.3s background-color ease;
+}
+
+*:not(.disable-section-color-transition) .text-scheme-text:not([x-show]):not(.disable-section-color-transition),
+*:not(.disable-section-color-transition) .bg-scheme-background:not([x-show]):not(.disable-section-color-transition) {
+  transition-property: color, background-color;
+  transition-duration: 0.2s, 0.3s;
+  transtion-timing-function: ease;
+}
+
+#header .bg-scheme-background:not([x-show]):not(.disable-section-color-transition) {
+  transition-property: color, background-color;
+  transition-duration: 0.2s, 0s;
+  transtion-timing-function: ease;
+}
+
+@keyframes pointright {
+  0% {
+    opacity: 0;
+    transform: translateX(0);
+  }
+
+  15% {
+    opacity: 1;
+    transform: translateX(15%);
+  }
+
+  20% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  25% {
+    opacity: 1;
+    transform: translateX(15%);
+  }
+
+  30% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  55% {
+    opacity: 0;
+  }
+
+  80% {
+    transform: translateX(15%);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateX(15%);
+  }
+}

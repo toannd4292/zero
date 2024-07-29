@@ -1,0 +1,26 @@
+{%- capture speed -%}marquee {{ speed_number }}s linear infinite{%- endcapture -%}
+<div id="marquee-{{ id }}" class="{% if  link == blank %}{% if text_size_class contains 'xl' %}py-4{% else %}py-2{% endif %}{% endif %} marquee bg-{{ section_color }}-background text-{{ section_color }}-text overflow-hidden">
+  {%- if link != blank -%}
+  <a href="{{ link }}" class="block {% if text_size_class contains 'xl' %}py-4{% else %}py-2{% endif %} text-{{ section_color }}-text hover:text-{{ section_color }}-accent">
+  {%- endif -%}
+  <div class="marquee-container inline-block whitespace-nowrap pl-[100%] font-{{ font }} {{ text_size_class }}">
+    {%- if repeat_text -%}
+      {% for i in (1..4) %}
+      <span {% if i > 1 %}aria-hidden="true"{% endif %}>{{ text }}</span>
+      {% endfor %}
+    {%- else -%}
+      <span>{{ text }}</span>
+    {%- endif -%}
+  </div>
+  {%- if link != blank -%}
+  </a>
+  {% endif %}
+</div>
+
+<style>
+@media (prefers-reduced-motion: no-preference) {
+  #marquee-{{ id }} .marquee-container {
+    animation: {{ speed }} {{ direction }};
+  }
+}
+</style>

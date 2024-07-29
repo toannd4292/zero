@@ -1,0 +1,35 @@
+<div
+  x-data
+>
+  <template x-teleport="body">
+    <div
+      x-show="$store.modals.promo.open"
+      class="fixed inset-0 z-110 pointer-events-none"
+      data-color-scheme="{{ settings.modal_color_scheme | default: 'tertiary' }}"
+      id="modals-promo"
+    >
+      <div
+        x-show="$store.modals.promo.open"
+        class="h-full w-full flex"
+      >
+        <div
+          x-show="$store.modals.promo.open"
+          x-transition:enter="transition ease-gentle duration-[300ms] delay-75"
+          x-transition:enter-start="translate-y-4 scale-[0.99] opacity-0"
+          x-transition:enter-end="translate-y-0 opacity-100"
+          x-transition:leave="transition ease-gentle duration-[300ms]"
+          x-transition:leave-start="scale-100 opacity-100"
+          x-transition:leave-end="scale-[0.925] opacity-0"
+          class="relative top-auto mt-auto right-0 bottom-0 left-0 md:left-auto md:mb-12 mr-auto ml-auto md:mr-12 bg-scheme-background text-scheme-text overflow-y-auto pointer-events-auto"
+          id="promo-slot"
+          role="dialog"
+          aria-modal="true"
+          :aria-label="getModalLabel('promo', $el)"
+          tabindex="-1"
+        >
+          <!-- Modal content is teleported here -->
+        </div>
+      </div>
+    </div>
+  </template>
+</div>

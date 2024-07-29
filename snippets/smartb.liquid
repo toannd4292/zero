@@ -1,0 +1,274 @@
+{% assign HideAssets = hideAssets | default: 0 %}{% if HideAssets != '1' %}{% render 'smart-css' %}{% endif %}
+		{% assign smartbMobileSize = smartbMobileSize | default: 100 %}
+			{% assign smartbTabletSize = smartbTabletSize | default: 100 %}
+			{% assign smartbProduct = product %}
+			{% assign smartbCustId = customer.id %}
+			{% assign smartbGiftCard = product.gift_card? %}
+			{% assign smartbVarient = product.variants.size %}
+			{%- assign smartbmoneyformat = shop.money_format | split: "{{" | last | remove: "}}" | strip | strip_html -%}
+			{% if smartbmoneyformat == "amount_with_comma_separator" or smartbmoneyformat == "amount_no_decimals_with_comma_separator" %}
+				{% assign smartbProdPrice = product.price | money_without_currency | remove: "." | replace: ",", "." %}
+				{% assign smartbProdPriceCompare = product.compare_at_price | money_without_currency | remove: "." | replace: ",", "." | default: 0 %}
+			{% else %} 
+				{% assign smartbProdPrice = product.price | money_without_currency | remove: "," %}
+				{% assign smartbProdPriceCompare = product.compare_at_price | money_without_currency | remove: "," | default: 0 %}
+			{% endif %}
+			{% assign smartbProdPrice = product.price | divided_by: 100.00 %}
+			{% assign smartbCustomerTag = customer.tags | downcase %}
+			{% assign smartbCompanyName = customer.current_company.name | downcase %}
+			{% assign smartbPublishedDate = product.published_at | date: "%s" %}
+			{% assign smartbPublishDateDiff = "now" | date: "%s" | minus: smartbPublishedDate %}
+			{% assign smartbTemplate = smartPageType | default: template | downcase %}
+			{% assign smartbLanguage = request.locale.iso_code | downcase %}
+			{% assign smartmetafield = smartbProduct.metafields %}
+			{% assign smartbProductTitle = smartbProduct.title | downcase %}
+			{% assign smartbProductType = smartbProduct.type | downcase %}
+			{% assign smartbProductVendor = smartbProduct.vendor | downcase %}
+			{% assign smartbShopifyTags = smartbProduct.tags | downcase %}
+			{% assign smartbProductWeight = product.variants.first.weight %}
+			{% assign smartbUTC = "now" | date: "%s" %}
+			{% assign smartbstartTime = "633870000"  %}
+			{% assign smartbEndTime = "2053940400"  %}
+			{% assign smartbMaxDisplayBadge = smartbMaxDisplayBadge | default: 10 %}	
+			{% assign smartbCreatedDateSec = smartbProduct.created_at | date: "%s" %}
+			{% assign smartbDateDiff = "now" | date: "%s" | minus: smartbCreatedDateSec %}
+			{% assign smartbCollectionIds = smartbProduct.collections | map: "id" | default: 0  %}				
+			{% assign smartbBadgeCounter = 1 %}
+			{% assign VariantCount = product.variants.size %}
+			{% assign SaleAmount    = 0 %}	
+			{% assign SalePercent   = 0 %}
+			{% assign CustomerOrderCount = customer.orders_count | default: 0 %}
+			{% assign CustomerTotalSpent = customer.total_spent | divided_by: 100.00  | default: 0 %}
+			{% assign ProductSKU = product.selected_or_first_available_variant.sku | downcase | default: 0 %}
+			{% assign VariantSKU = product.selected_or_first_available_variant.sku | downcase | default: 0 %}
+			{% assign VariantSelectedOption = product.selected_or_first_available_variant.title | downcase | default: 0 %}
+			{% assign smartGroup = smartbGroup | default: "1" %}
+			{% if smartbProduct.price and smartbProduct.compare_at_price %}
+				{% assign SaleAmount = smartbProduct.compare_at_price | minus: smartbProduct.price %}	
+				{% if SaleAmount > 0 %}
+					{% if smartbmoneyformat == "amount_with_comma_separator" or smartbmoneyformat == "amount_no_decimals_with_comma_separator" or  smartbmoneyformat contains "amount_with_comma_separator" %}
+						{% assign SalePercent = product.compare_at_price | minus: product.price | times: 100.0 | divided_by: product.compare_at_price | money_without_currency | replace: ",", "." | times: 100 | remove: ".0" | plus: 0 %}
+					{% elsif smartbmoneyformat contains "amount_no_decimals" %} 
+						{% assign divisor = product.compare_at_price  | times: 1.0 %}
+						{% assign SalePercent = product.compare_at_price | minus: product.price | divided_by: divisor  | times: 100.0 | round %}
+					{% else %} 
+						{% assign SalePercent = product.compare_at_price | minus: product.price | times: 100.0 | divided_by: product.compare_at_price | money_without_currency | times: 100 | remove: ".0" | plus: 0 %}
+					{% endif %}
+				{% endif %}
+        	{% endif %}
+			{% assign Inventory = 0 %}
+			{% assign Inventory2 = 0 %}
+			{% assign SmartbVariantInventory = 0 %}
+			{% assign SmartbVariantInventoryPolicy = "any" %}
+			{% if passvariantsmart.id %} 
+				{% assign SmartbVariantInventory = passvariantsmart.inventory_quantity %}	
+				{% assign SmartbVariantInventoryPolicy = passvariantsmart.inventory_policy %}
+				{% assign VariantSKU = passvariantsmart.sku | downcase %}
+				{% assign VariantSelectedOption = passvariantsmart.title | downcase %}
+				{% assign VariantMetafield=passvariantsmart.metafields %}
+			{% endif %}
+			{% assign SaleAmountVar  = 0 %}	
+			{% assign SalePercentVar = 0 %}
+			{% assign SalePercentMin = 0 %}
+			{% assign SalePercentMax = 0 %}
+			{% assign VariantSaleAmount = SaleAmountVar %}	
+			{% assign VariantSalePercent = SalePercentVar %}
+        	{% for productVariant in smartbProduct.variants %}
+				{% assign Inventory2 = productVariant.inventory_quantity | at_least: 0 %}
+				{% assign Inventory = Inventory | plus: Inventory2 %}
+				{% if productVariant.price and productVariant.compare_at_price %}
+					{% assign SaleAmountVar = productVariant.compare_at_price | minus: productVariant.price %}	
+					{% if SaleAmountVar > 0 %}
+						{% if smartbmoneyformat == "amount_with_comma_separator" or smartbmoneyformat == "amount_no_decimals_with_comma_separator" or  smartbmoneyformat contains "amount_with_comma_separator" %}
+							{% assign SalePercentVar = productVariant.compare_at_price | minus: productVariant.price | times: 100.0 | divided_by: productVariant.compare_at_price | money_without_currency | replace: ",", "." | times: 100 | remove: ".0" | plus: 0 %}
+						{% elsif smartbmoneyformat contains "amount_no_decimals" %} 
+							{% assign divisor = productVariant.compare_at_price  | times: 1.0 %}
+							{% assign SalePercentVar = productVariant.compare_at_price | minus: productVariant.price | divided_by: divisor  | times: 100.0 | round %}
+						{% else %} 
+							{% assign SalePercentVar = productVariant.compare_at_price | minus: productVariant.price | times: 100.0 | divided_by: productVariant.compare_at_price | money_without_currency | times: 100 | remove: ".0" | plus: 0 %}
+						{% endif %}
+						{% if SalePercentMin == 0 or SalePercentMin > SalePercentVar %}
+							{% assign SalePercentMin = SalePercentVar %}
+						{% endif %}
+						{% if SalePercentMax == 0 or SalePercentMax < SalePercentVar %}
+							{% assign SalePercentMax = SalePercentVar %}
+						{% endif %}
+						{% if passvariantsmart.id %} 
+							{% if passvariantsmart.id == productVariant.id %} 
+								{% assign VariantSaleAmount = SaleAmountVar %}	
+								{% assign VariantSalePercent = SalePercentVar %}
+							{% endif %}
+						{% endif %}
+					{% endif %}
+				{% endif %}			
+			{% endfor %}<div class="smartBadges outersmartb{{product.id}}-{{smartGroup}} {{smartbOuterClass}} smart-d-block" style="{{ smartbOuterStyle }}" data-smartproductsid="{{product.id}}" data-smartbOuterClass="{{smartbOuterClass}}" data-smartbOuterStyle="{{smartbOuterStyle}}" data-smartbInnerClass="{{smartbInnerClass}}" data-smartbInnerStyle="{{smartbInnerStyle}}" data-smartbGroup="{{smartGroup}}" data-smartbMaxDisplayBadge="{{smartbMaxDisplayBadge}}" >	
+  	{% comment %} Start Badge: 1 {% endcomment %}
+  	{% if smartbBadgeCounter <= smartbMaxDisplayBadge %}
+  	 {% assign isStartbShowBadge = false %} {% if product.metafields.smart.myordercount != blank %}
+						{% if product.metafields.smart.myordercount.value.ordercount %}
+							{% assign OrderCount = product.metafields.smart.myordercount.value.ordercount | default: 0 %}
+							{% assign RecentSoldCount = product.metafields.smart.myordercount.value.recentcount | default: 0 %}
+						{% else%}
+							{% assign OrderCount = product.metafields.smart.myordercount.ordercount | default: 0 %}
+							{% assign RecentSoldCount = product.metafields.smart.myordercount.recentcount | default: 0 %}
+						{% endif %}
+					{% else  %} 
+						{% assign OrderCount = product.metafields.smart.ordercount | default: 0 %}
+						{% assign RecentSoldCount = product.metafields.smart.recentcount | default: 0 %}
+					{% endif %}{% if true %}{% assign isStartbShowBadge = true %}{% endif %}{% assign smartbUTC 		= "now" | date: "%s" %}
+			{% assign smartbUTC 		= smartbUTC | plus: 0 %}
+			{% assign smartbStartTime = 633870000  %}
+			{% assign smartbEndTime = 2053940400  %}
+			{% if smartbStartTime <= smartbUTC and smartbEndTime >= smartbUTC %}{% assign Image = 'smart_2619.png' %}{% assign ImageHeight = 'x50' %}{% assign Imagesize = Image | asset_img_url: 'master' %}{% if isStartbShowBadge == true %} 
+				{% assign smartbadgeGroup = '1' %} 
+				{% if smartGroup == smartbadgeGroup %}
+				{% assign smartbBadgeCounter = smartbBadgeCounter | plus: 1 %}{% assign lastbstring = '' %}{% assign getlastbstring = 'Badge Text' %}<div class="smartbDesktop {{smartbInnerClass}} smartb-2619   smartbScreenSize "  data-countryselected= '' data-screensizeselected= '1,1,1,1'  countryrule=1 visitorcountryrule=0 onclick="smartredirectLink('','0','2619','1');" style="{{ smartbInnerStyle }} " >
+
+    <div style="; color: transparent; font-size: 14px; line-height: 0px; max-width: 100%; padding: 0px; opacity: 1; background-color: transparent;"  >      
+        <div  class="badgetitle smart-height-adjust"  data-defaultheight= '50' data-mobileheight= '0' data-tabletheight= '0' style="white-space: normal; overflow: hidden; text-align: center;">
+            <img class="smartbImage" src="{{Imagesize}}" alt="badge" style="display:none;max-height:50px;height:unset;" >
+         
+        </div>	   
+    </div>
+</div> 
+{% endif %}{% endif %}{% endif %}	{% endif %}
+	{% comment %} End Badge: 1 {% endcomment %}	
+	
+		
+  	{% comment %} Start Badge: 2 {% endcomment %}
+  	{% if smartbBadgeCounter <= smartbMaxDisplayBadge %}
+  	 {% assign isStartbShowBadge = false %} {% if product.metafields.smart.myordercount != blank %}
+						{% if product.metafields.smart.myordercount.value.ordercount %}
+							{% assign OrderCount = product.metafields.smart.myordercount.value.ordercount | default: 0 %}
+							{% assign RecentSoldCount = product.metafields.smart.myordercount.value.recentcount | default: 0 %}
+						{% else%}
+							{% assign OrderCount = product.metafields.smart.myordercount.ordercount | default: 0 %}
+							{% assign RecentSoldCount = product.metafields.smart.myordercount.recentcount | default: 0 %}
+						{% endif %}
+					{% else  %} 
+						{% assign OrderCount = product.metafields.smart.ordercount | default: 0 %}
+						{% assign RecentSoldCount = product.metafields.smart.recentcount | default: 0 %}
+					{% endif %}{% if true %}{% assign isStartbShowBadge = true %}{% endif %}{% assign smartbUTC 		= "now" | date: "%s" %}
+			{% assign smartbUTC 		= smartbUTC | plus: 0 %}
+			{% assign smartbStartTime = 633870000  %}
+			{% assign smartbEndTime = 2053940400  %}
+			{% if smartbStartTime <= smartbUTC and smartbEndTime >= smartbUTC %}{% assign Image = 'smart_2620.png' %}{% assign ImageHeight = 'x56' %}{% assign Imagesize = Image | asset_img_url: 'master' %}{% if isStartbShowBadge == true %} 
+				{% assign smartbadgeGroup = '1' %} 
+				{% if smartGroup == smartbadgeGroup %}
+				{% assign smartbBadgeCounter = smartbBadgeCounter | plus: 1 %}{% assign lastbstring = '' %}{% assign getlastbstring = 'Badge Text' %}<div class="smartbDesktop {{smartbInnerClass}} smartb-2620   smartbScreenSize "  data-countryselected= '' data-screensizeselected= '1,1,1,1'  countryrule=1 visitorcountryrule=0 onclick="smartredirectLink('','0','2620','1');" style="{{ smartbInnerStyle }} " >
+
+    <div style="; color: transparent; font-size: 14px; line-height: 0px; max-width: 100%; padding: 0px; opacity: 1; background-color: transparent;"  >      
+        <div  class="badgetitle smart-height-adjust"  data-defaultheight= '56' data-mobileheight= '0' data-tabletheight= '0' style="white-space: normal; overflow: hidden; text-align: center;">
+            <img class="smartbImage" src="{{Imagesize}}" alt="badge" style="display:none;max-height:56px;height:unset;" >
+         
+        </div>	   
+    </div>
+</div> 
+{% endif %}{% endif %}{% endif %}	{% endif %}
+	{% comment %} End Badge: 2 {% endcomment %}	
+	
+		
+  	{% comment %} Start Badge: 3 {% endcomment %}
+  	{% if smartbBadgeCounter <= smartbMaxDisplayBadge %}
+  	 {% assign isStartbShowBadge = false %} {% if product.metafields.smart.myordercount != blank %}
+						{% if product.metafields.smart.myordercount.value.ordercount %}
+							{% assign OrderCount = product.metafields.smart.myordercount.value.ordercount | default: 0 %}
+							{% assign RecentSoldCount = product.metafields.smart.myordercount.value.recentcount | default: 0 %}
+						{% else%}
+							{% assign OrderCount = product.metafields.smart.myordercount.ordercount | default: 0 %}
+							{% assign RecentSoldCount = product.metafields.smart.myordercount.recentcount | default: 0 %}
+						{% endif %}
+					{% else  %} 
+						{% assign OrderCount = product.metafields.smart.ordercount | default: 0 %}
+						{% assign RecentSoldCount = product.metafields.smart.recentcount | default: 0 %}
+					{% endif %}{% if true %}{% assign isStartbShowBadge = true %}{% endif %}{% assign smartbUTC 		= "now" | date: "%s" %}
+			{% assign smartbUTC 		= smartbUTC | plus: 0 %}
+			{% assign smartbStartTime = 633870000  %}
+			{% assign smartbEndTime = 2053940400  %}
+			{% if smartbStartTime <= smartbUTC and smartbEndTime >= smartbUTC %}{% assign Image = 'smart_2621.png' %}{% assign ImageHeight = 'x56' %}{% assign Imagesize = Image | asset_img_url: 'master' %}{% if isStartbShowBadge == true %} 
+				{% assign smartbadgeGroup = '1' %} 
+				{% if smartGroup == smartbadgeGroup %}
+				{% assign smartbBadgeCounter = smartbBadgeCounter | plus: 1 %}{% assign lastbstring = '' %}{% assign getlastbstring = 'Badge Text' %}<div class="smartbDesktop {{smartbInnerClass}} smartb-2621   smartbScreenSize "  data-countryselected= '' data-screensizeselected= '1,1,1,1'  countryrule=1 visitorcountryrule=0 onclick="smartredirectLink('','0','2621','1');" style="{{ smartbInnerStyle }} " >
+
+    <div style="; color: transparent; font-size: 14px; line-height: 0px; max-width: 100%; padding: 0px; opacity: 1; background-color: transparent;"  >      
+        <div  class="badgetitle smart-height-adjust"  data-defaultheight= '56' data-mobileheight= '0' data-tabletheight= '0' style="white-space: normal; overflow: hidden; text-align: center;">
+            <img class="smartbImage" src="{{Imagesize}}" alt="badge" style="display:none;max-height:56px;height:unset;" >
+         
+        </div>	   
+    </div>
+</div> 
+{% endif %}{% endif %}{% endif %}	{% endif %}
+	{% comment %} End Badge: 3 {% endcomment %}	
+	
+		
+  	{% comment %} Start Badge: 4 {% endcomment %}
+  	{% if smartbBadgeCounter <= smartbMaxDisplayBadge %}
+  	 {% assign isStartbShowBadge = false %} {% if product.metafields.smart.myordercount != blank %}
+						{% if product.metafields.smart.myordercount.value.ordercount %}
+							{% assign OrderCount = product.metafields.smart.myordercount.value.ordercount | default: 0 %}
+							{% assign RecentSoldCount = product.metafields.smart.myordercount.value.recentcount | default: 0 %}
+						{% else%}
+							{% assign OrderCount = product.metafields.smart.myordercount.ordercount | default: 0 %}
+							{% assign RecentSoldCount = product.metafields.smart.myordercount.recentcount | default: 0 %}
+						{% endif %}
+					{% else  %} 
+						{% assign OrderCount = product.metafields.smart.ordercount | default: 0 %}
+						{% assign RecentSoldCount = product.metafields.smart.recentcount | default: 0 %}
+					{% endif %}{% if true %}{% assign isStartbShowBadge = true %}{% endif %}{% assign smartbUTC 		= "now" | date: "%s" %}
+			{% assign smartbUTC 		= smartbUTC | plus: 0 %}
+			{% assign smartbStartTime = 633870000  %}
+			{% assign smartbEndTime = 2053940400  %}
+			{% if smartbStartTime <= smartbUTC and smartbEndTime >= smartbUTC %}{% assign Image = 'smart_2689.png' %}{% assign ImageHeight = 'x50' %}{% assign Imagesize = Image | asset_img_url: 'master' %}{% if isStartbShowBadge == true %} 
+				{% assign smartbadgeGroup = '1' %} 
+				{% if smartGroup == smartbadgeGroup %}
+				{% assign smartbBadgeCounter = smartbBadgeCounter | plus: 1 %}{% assign lastbstring = '' %}{% assign getlastbstring = 'Badge Text' %}<div class="smartbDesktop {{smartbInnerClass}} smartb-2689   smartbScreenSize "  data-countryselected= '' data-screensizeselected= '1,1,1,1'  countryrule=1 visitorcountryrule=0 onclick="smartredirectLink('','0','2689','1');" style="{{ smartbInnerStyle }} " >
+
+    <div style="; color: transparent; font-size: 14px; line-height: 0px; max-width: 100%; padding: 0px; opacity: 1; background-color: transparent;"  >      
+        <div  class="badgetitle smart-height-adjust"  data-defaultheight= '50' data-mobileheight= '0' data-tabletheight= '0' style="white-space: normal; overflow: hidden; text-align: center;">
+            <img class="smartbImage" src="{{Imagesize}}" alt="badge" style="display:none;max-height:50px;height:unset;" >
+         
+        </div>	   
+    </div>
+</div> 
+{% endif %}{% endif %}{% endif %}	{% endif %}
+	{% comment %} End Badge: 4 {% endcomment %}	
+	
+		
+  	{% comment %} Start Badge: 5 {% endcomment %}
+  	{% if smartbBadgeCounter <= smartbMaxDisplayBadge %}
+  	 {% assign isStartbShowBadge = false %} {% if product.metafields.smart.myordercount != blank %}
+						{% if product.metafields.smart.myordercount.value.ordercount %}
+							{% assign OrderCount = product.metafields.smart.myordercount.value.ordercount | default: 0 %}
+							{% assign RecentSoldCount = product.metafields.smart.myordercount.value.recentcount | default: 0 %}
+						{% else%}
+							{% assign OrderCount = product.metafields.smart.myordercount.ordercount | default: 0 %}
+							{% assign RecentSoldCount = product.metafields.smart.myordercount.recentcount | default: 0 %}
+						{% endif %}
+					{% else  %} 
+						{% assign OrderCount = product.metafields.smart.ordercount | default: 0 %}
+						{% assign RecentSoldCount = product.metafields.smart.recentcount | default: 0 %}
+					{% endif %}{% if true %}{% assign isStartbShowBadge = true %}{% endif %}{% assign smartbUTC 		= "now" | date: "%s" %}
+			{% assign smartbUTC 		= smartbUTC | plus: 0 %}
+			{% assign smartbStartTime = 633870000  %}
+			{% assign smartbEndTime = 2053940400  %}
+			{% if smartbStartTime <= smartbUTC and smartbEndTime >= smartbUTC %}{% assign Image = 'smart_2615.png' %}{% assign ImageHeight = 'x50' %}{% assign Imagesize = Image | asset_img_url: 'master' %}{% if isStartbShowBadge == true %} 
+				{% assign smartbadgeGroup = '1' %} 
+				{% if smartGroup == smartbadgeGroup %}
+				{% assign smartbBadgeCounter = smartbBadgeCounter | plus: 1 %}{% assign lastbstring = '' %}{% assign getlastbstring = 'Badge Text' %}<div class="smartbDesktop {{smartbInnerClass}} smartb-2615   smartbScreenSize "  data-countryselected= '' data-screensizeselected= '1,1,1,1'  countryrule=1 visitorcountryrule=0 onclick="smartredirectLink('','0','2615','1');" style="{{ smartbInnerStyle }} " >
+
+    <div style="; color: transparent; font-size: 14px; line-height: 0px; max-width: 100%; padding: 0px; opacity: 1; background-color: transparent;"  >      
+        <div  class="badgetitle smart-height-adjust"  data-defaultheight= '50' data-mobileheight= '0' data-tabletheight= '0' style="white-space: normal; overflow: hidden; text-align: center;">
+            <img class="smartbImage" src="{{Imagesize}}" alt="badge" style="display:none;max-height:50px;height:unset;" >
+         
+        </div>	   
+    </div>
+</div> 
+{% endif %}{% endif %}{% endif %}	{% endif %}
+	{% comment %} End Badge: 5 {% endcomment %}	
+
+
+
+    </div>
+		
+	{% if HideAssets != '1' %}{% render 'smartb-js' %}{% endif %}
+		

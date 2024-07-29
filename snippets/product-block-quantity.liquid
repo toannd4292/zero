@@ -1,0 +1,94 @@
+{% capture stepper %}
+<div x-data="QuantityStepper">
+  <div class="rounded-input flex items-center">
+    <label class="{{ label_class }} px-2" for="Quantity-{{ section.id }}">{{ 'products.product.quantity' | t }}:</label>
+    <div class="flex items-center border border-scheme-text rounded-r-input rounded-l-input focus-visible:border-l focus:z-10">
+      <button
+        class="px-2 focus:outline-none"
+        aria-label="&minus;"
+        @click.prevent.stop="decreaseQuantity"
+      >
+        <div class="w-4 h-4 m-auto">{% render 'icon-minus' %}</div>
+      </button>
+      <input
+        type="number"
+        x-ref="quantityInput"
+        ...
+        x-model="quantity"
+        size="4"
+        min="1"
+        max="20"
+        class="border-none text-center"
+      >
+      <button
+        class="px-2 focus:outline-none"
+        aria-label="&plus;"
+        @click.prevent.stop="increaseQuantity"
+      >
+        <div class="w-4 h-4 m-auto">{% render 'icon-plus' %}</div>
+      </button>
+    </div>
+  </div>
+</div>
+{% endcapture %}
+
+{% if settings.quantity_style == 'dropdown' %}
+  <div
+    x-data="QuantityDropdown"
+    class="{{ block_base_classes }} js-enabled my-8 group-first:mt-0"
+    data-disable-variance
+    {{ block.shopify_attributes }}
+  >
+    <template x-if="!enableNumberInput">
+      <div>
+        <label class="{{ label_class }}" for="Quantity-{{ section.id }}">{{ 'products.product.quantity' | t }}:</label>
+        <select
+          form="{{ product_form_id }}"
+          x-show="!enableNumberInput"
+          id="Quantity-{{ section.id }}"
+          name="quantity"
+          x-model="dropdownQuantity"
+          class="w-full font-main text-left text-base"
+        >
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+          <option value="6">6</option>
+          <option value="7">7</option>
+          <option value="8">8</option>
+          <option value="9">9</option>
+          <option value="10+">10+</option>
+        </select>
+      </div>
+    </template>
+
+    <template x-if="enableNumberInput">
+      <div x-show="enableNumberInput">
+        {{ stepper }}
+      </div>
+    </template>
+  </div>
+{% else %}
+  <div
+    class="{{ block_base_classes }} js-enabled my-8 group-first:mt-0 flex items-center"
+    {{ block.shopify_attributes }}
+  >
+    {{ stepper }}
+  </div>
+{% endif %}
+
+<noscript>
+  <div class="{{ block_base_classes }} my-8 group-first:mt-0">
+    <input
+      type="number"
+      class="block appearance-none text-center w-full"
+      form="{{ product_form_id }}"
+      id="Quantity-{{ section.id }}"
+      name="quantity"
+      size="4"
+      value="1"
+    >
+  </div>
+</noscript>

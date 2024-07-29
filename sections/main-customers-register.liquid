@@ -1,0 +1,130 @@
+{% liquid
+  assign section_color = 'primary'
+  assign form_id = 'RegisterForm'
+%}
+
+<section
+  class="py-section bg-scheme-background text-scheme-text"
+  data-color-scheme="{{ section_color }}"
+>
+  <div class="max-w-site mx-auto my-10 px-5 md:px-10 min-h-[55vh]">
+    {% form 'create_customer', id: form_id %}
+      <div class="max-w-5xl mx-auto md:grid md:grid-cols-2 md:gap-grid-gutter">
+        <div class="mb-20 md:mb-0">
+          <h1
+            class="font-heading text-heading-standard mb-5 break-word"
+            tabindex="-1"
+            data-should-focus
+          >
+            {{ 'customer.register.title' | t }}
+          </h1>
+        </div>
+        <div>
+          {% if form.errors %}
+            <div class="mb-10 needs-attention" tabindex="-1" data-login-error>
+              {{ form.errors | default_errors }}
+            </div>
+          {% endif %}
+
+          <div class="-my-5">
+            <div class="my-5">
+              <label
+                class="mb-2 block text-theme-basic text-left"
+                for="FirstName"
+              >
+                {{ 'customer.register.first_name' | t }}
+              </label>
+              <input
+                type="text"
+                class="w-full"
+                name="customer[first_name]"
+                id="FirstName"
+                placeholder="{{ 'customer.register.first_name' | t }}"
+                {% unless form.errors %} autofocus {% endunless %}
+                {% if form.first_name %} value="{{ form.first_name }}" {% endif %}
+              />
+            </div>
+
+            <div class="my-5">
+              <label
+                class="mb-2 block text-theme-basic text-left"
+                for="LastName"
+              >
+                {{ 'customer.register.last_name' | t }}
+              </label>
+              <input
+                type="text"
+                class="w-full"
+                name="customer[last_name]"
+                id="LastName"
+                placeholder="{{ 'customer.register.last_name' | t }}"
+                {% if form.last_name %} value="{{ form.last_name }}" {% endif %}
+              />
+            </div>
+
+            <div class="my-5">
+              <label
+                class="mb-2 block text-theme-basic text-left"
+                for="Email"
+              >
+                {{ 'customer.register.email' | t }}
+              </label>
+              <input
+                type="email"
+                name="customer[email]"
+                id="Email"
+                class="w-full {% if form.errors contains 'email' %} border-scheme-error {% endif %}"
+                spellcheck="false"
+                autocomplete="email"
+                autocapitalize="off"
+                placeholder="{{ 'customer.register.email' | t }}"
+                {% if form.email %} value="{{ form.email }}" {% endif %}
+              />
+            </div>
+
+            <div class="my-5">
+              <label
+                class="mb-2 block text-theme-basic text-left"
+                for="CreatePassword"
+              >
+                {{ 'customer.login.password' | t }}
+              </label>
+              <input
+                type="password"
+                name="customer[password]"
+                id="CreatePassword"
+                autocomplete="password"
+                class="w-full {% if form.errors contains 'password' %} border-scheme-error {% endif %}"
+                placeholder="{{ 'customer.register.password' | t }}"
+              />
+            </div>
+
+            <div class="mt-10 mb-5">
+              <button
+                type="submit"
+                class="theme-button theme-button--solid w-full"
+              >
+                {{ 'customer.register.submit' | t }}
+              </button>
+            </div>
+
+            <div class="my-5 -mx-3">
+              <a
+                class="mx-3 text-sm theme-link"
+                href="{{ routes.account_login_url }}"
+              >
+                {{ 'customer.login.sign_in' | t }}
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endform %}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Customer registration"
+}
+{% endschema %}

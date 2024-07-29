@@ -1,0 +1,14 @@
+<aside class="relative -mx-5 px-5 {% if desktop_menu_layout == 'sidebar' %}lg:hidden{% endif %} mb-5 lg:mb-10 lg:-mt-half-section">
+  <div class="bg-gradient-to-l from-scheme-background w-20 absolute top-0 right-0 bottom-0 lg:hidden pointer-events-none"></div>
+  <nav class="overflow-x-auto">
+    <ul class="flex lg:flex-wrap items-center justify-start w-full -mx-2 -mt-2 whitespace-nowrap overflow-auto">
+      {% for link in linklist.links %}
+        <li class="px-2 mt-2 break-word">
+          <a class="theme-link-mono" href="{{ link.url }}">
+            {{- link.title -}}
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+  </nav>
+</aside>

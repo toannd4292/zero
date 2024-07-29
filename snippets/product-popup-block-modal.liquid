@@ -1,0 +1,410 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aloha Smoothie Cleanser</title>
+    <style>
+      /* General Styles */
+      .accordion-container, .vertical-tab-content-container {
+          width: 100%;
+      }
+
+      .accordion-container {
+          background-color: #e2f4ffff;
+      }
+
+      .accordion-button, .smaller-accordion-button {
+          cursor: pointer;
+          padding: 12px;
+          border: 2px solid #2073A0; /* Your preferred border color */
+          border-bottom: none;
+          background-color: inherit;
+          width: 100%;
+          outline: none;
+          transition: background-color 0.3s;
+          display: flex;
+          align-items: center;
+          justify-content: flex-start; /* Align content to the left */
+      }
+
+      .accordion-button::after, .smaller-accordion-button::after {
+          content: '↓';
+          font-size: 15px;
+          transition: transform 0.3s;
+          margin-left: auto; /* Push the arrow to the right */
+      }
+
+      .accordion-button.active, .smaller-accordion-button.active {
+          color: #000000;
+          font-weight: bold;
+          background-color: #e2f4ffff;
+      }
+
+      .accordion-button.active::after, .smaller-accordion-button.active::after {
+          transform: rotate(90deg);
+          color: #000000;
+          font-weight: bold;
+      }
+
+      .accordion-button:last-of-type, .smaller-accordion-button:last-of-type {
+          border-bottom: 2px solid #2073A0;
+      }
+
+      .accordion-button:hover, .smaller-accordion-button:hover {
+          background-color: #2073A0FF;
+      }
+
+      .accordion-content {
+          display: none;
+          padding: 15px;
+          background-color: #e2f4ffff;
+          border-top: 1px solid #e2f4ffff;
+          text-align: left;
+      }
+
+      .tab-icon {
+          margin-right: 10px;
+          flex-shrink: 0; /* Prevent icon from shrinking */
+      }
+
+      .tab-image {
+          display: block;
+          margin-top: 10px;
+          width: 100%; /* Full width */
+          height: auto;
+      }
+
+      .vertical-tab-content {
+          display: none;
+      }
+        /* New styles for smaller tabs with different color */
+      .smaller-accordion-button {
+        padding: 8px; /* 15% smaller padding */
+        font-size: 75%; /* 15% smaller font size */
+        background-color: #D0E9FC; /* Slightly different blue */
+        border-color: #2073A0;
+    </style>
+  </head>
+  <body>
+    <div class="accordion-container">
+      <button class="accordion-button" onclick="toggleAccordion('Tab1')">
+        <img
+          src="https://cdn.shopify.com/s/files/1/0728/9998/5757/files/unik.png?v=1704495296"
+          margin-right="10px;"
+          width="20px"
+          height="20px"
+        >
+        <strong> Därför är Aloha exceptionell</strong>
+      </button>
+      <div id="Tab1" class="accordion-content">
+        <p>
+          Aloha Smoothie Cleanser är ett exemplariskt hudvårdsprodukt som uppfyller höga kvalitetsstandarder. Denna
+          rengöring har en distinkt krämig konsistens och en exklusiv pärlfärgad nyans. Den är särskilt formulerad för
+          att skonsamt rengöra huden samtidigt som den bibehåller hudens naturliga fuktbalans. Vid varje användning
+          efterlämnar den huden silkeslen, ren och väl återfuktad. Den skonsamma surfaktanten som används i Aloha
+          upphöjer hudvårdskvaliteten.<br>
+          <br>
+          Produkten är fri från starka och potentiellt irriterande sulfater, som exempelvis SLS (natriumlaurylsulfat).
+          Istället innehåller den en surfaktant som härstammar från specifika fettsyror i kokosolja, vilken har
+          utvunnits och isolerats. Denna unika surfaktant är högt effektiv och tar bort smink utan att störa hudens
+          fuktbalans, vilket är avgörande för att upprätthålla en hälsosam hudbarriär. Vad som särskiljer Aloha är att
+          dess surfaktant har emulgerats med ämnen som Aloe Vera, Glycerin, CBD och Niacinamide. Denna harmoniska
+          blandning av den skonsamma surfaktanten med andra aktiva ingredienser gör produkten ännu mildare.<br>
+          <br>
+          Aloha innehåller dessutom imponerande 11% aktiva ingredienser, som verkar positivt på huden genom att
+          neutralisera fria radikaler som ROS och RNS, skydda hudens mikrobiom och balansera hudens pH-värde. Denna
+          omfattande vård skulle inte vara möjlig med en vanlig rengöringsprodukt utan aktiva ingredienser och skonsamma
+          surfaktanter. Vi på Zero BS Beauty sätter stort värde på Airless-flaskor. Därför har vi valt att använda
+          Airless-teknologin, som innebär att Aloha förvaras i en vakuumförseglad flaska. Detta säkerställer att luft,
+          föroreningar och bakterier inte har möjlighet att komma i kontakt med produkten. På så sätt strävar vi alltid
+          efter att leverera så färska produkter som möjligt när du använder våra produkter från Zero BS Beauty. Mix&Max
+          och Elixir finns också i Airless-flaskor för att bevara produktkvaliteten vid varje användning.
+        </p>
+      </div>
+
+      <button class="accordion-button" onclick="toggleAccordion('Tab2')">
+        <img
+          src="https://cdn.shopify.com/s/files/1/0728/9998/5757/files/anvandning.png?v=1704495295"
+          margin-right="10px;"
+          width="20px"
+          height="20px"
+        >
+        <strong> Använding</strong>
+      </button>
+      <div id="Tab2" class="accordion-content">
+        <p>
+          För att använda Aloha på bästa sätt, följ dessa steg: Börja med att fukta ditt ansikte med ljummet vatten och
+          massera sedan Aloha på huden i cirka 1 minut. Skölj sedan av med ljummet vatten.
+        </p>
+      </div>
+
+      <button class="accordion-button" onclick="toggleAccordion('Tab3')">
+        <img
+          src="https://cdn.shopify.com/s/files/1/0728/9998/5757/files/inci.png?v=1704495296"
+          margin-right="10px;"
+          width="20px"
+          height="20px"
+        >
+        <strong>Ingredienser</strong>
+      </button>
+      <div id="Tab3" class="accordion-content">
+        <p>
+          Aqua, Sodium Cocoyl Isethionate, Stearic Acid, <b>Niacinamide, Aloe Barbadensis Leaf Extract, Glycerin</b>,
+          Propylene Glycol, Propanediol,
+          <b
+            >Centella Asiatica Leaf Extract, Camellia Sinensis Leaf Extract, Lactobacillus/Wasabia Japonica Root Ferment
+            Extract, Calendula Officinalis Flower Extract, Matricaria Recutita Flower Extract, Tocopheryl Acetate,
+            Cannabis Sativa Seed Extract, Allantoin, Cannabidiol, Chrysanthemum Parthenium Extract</b
+          >, Saccharide Isomerate, Phenylpropanol, Xanthan Gum, Disodium EDTA, Iodopropynyl Butylcarbamate.
+        </p>
+      </div>
+      <button class="accordion-button" onclick="toggleAccordion('Tab4')">
+        <img
+          src="https://cdn.shopify.com/s/files/1/0728/9998/5757/files/lakare_utan_granser.png?v=1704495296"
+          margin-right="10px;"
+          width="20px"
+          height="20px"
+        >
+        <strong>Läkare utan gränser</strong>
+      </button>
+      <div id="Tab4" class="accordion-content">
+        <p>
+          Zero BS Beauty engagerar sig i att bidra till en bättre värld genom att donera 10 kr för varje såld produkt
+          till Läkare Utan Gränser. Om du väljer att köpa vårt Zero BS Skin Set, som inkluderar alla tre av våra
+          produkter, kommer vi att dubbla vår donation till 60kr per sålt set.<br>
+          <br>
+          Läkare Utan Gränser är en medicinsk humanitär organisation som fokuserar på att hjälpa de mest utsatta och
+          sjuka i situationer där ingen annan kan. De agerar snabbt och effektivt i katastrofer och konflikter, och
+          deras insatser inkluderar medicinsk vård, medicin samt livsmedelsdistribution.<br>
+          <br>
+          Det finns människor runt om i världen som varje dag behöver hjälp, och som en del av vårt åtagande kommer Zero
+          BS Beauty att fortsätta att donera pengar för varje såld produkt så länge vårt företag existerar. För mer
+          information om Läkare Utan Gränser och deras arbete, besök deras webbplats
+          <a href="https://lakareutangranser.se/vad-vi-gor/sa-arbetar-vi" target="_blank"> <b>här</b></a
+          >.
+        </p>
+      </div>
+    </div>
+
+    <!-- Break section -->
+    <div class="break-section" style="text-align: center; margin-top: 10px; margin-bottom: 20px;">
+      <img
+        src="https://cdn.shopify.com/s/files/1/0728/9998/5757/files/vetenskap_1.png?v=1704561278"
+        width="80px"
+        height="80px"
+        style="display: block; margin: 0 auto;"
+      >
+      <p>
+        <b
+          >Läs mer om vetenskapen bakom de <br>
+          aktiva ämnen i Aloha!</b
+        >
+      </p>
+    </div>
+
+    <div class="accordion-container">
+      <button class="smaller-accordion-button" onclick="toggleAccordion('Tab5')">
+        <strong>CBD</strong>
+      </button>
+      <div id="Tab5" class="accordion-content">
+        <img
+          src="https://cdn.shopify.com/s/files/1/0728/9998/5757/files/cbd-oil_19596ecb-4222-4bf0-8df6-193840ccb5cc.png?v=1704552259"
+          width="50px"
+          height="50px"
+          style="display: block; margin: 0 auto;"
+        >
+        <p>
+          Lokal applicering av CBD på huden har enligt forskning visat sig minska proinflammatoriska cytokiner så som
+          IL-6 och IL-17. De här cytokinerna framkallar inflammation vilket gör att huden blir irriterad och röd. Flera
+          studier har visat att CBD i hudvård kan minska atopisk dermatit, psoriasis, irritation, akneärr och rödhet.
+          CBD är en laglig ingrediens i Sverige när den används i hudvård. Man blir inte påverkad eller hög av CBD men
+          din hud kommer bli lugnad och reparerad. CBD är 100% laglig att använda i hudvård i Sverige då den inte är
+          psykoaktiv och påverkar inte hjärnan som THC. (1)
+        </p>
+      </div>
+
+      <button class="smaller-accordion-button" onclick="toggleAccordion('Tab6')">
+        <strong>Kamomill, Aloe Vera och Hampafrö extrakt</strong>
+      </button>
+      <div id="Tab6" class="accordion-content">
+        <img
+          src="https://cdn.shopify.com/s/files/1/0728/9998/5757/files/chamomile_23fd2836-31b4-4b86-a139-72b853da3546.png?v=1704552259"
+          width="50px"
+          height="50px"
+          style="display: block; margin: 0 auto;"
+        >
+        <p>
+          De här ingredienserna har visat sig öka hudens fuktnivåer, återställa och reparera hudbarriären samt hjälpa
+          brännskadad hud att läka snabbt med minimal ärrbildning. Dessutom så hålls huden återfuktad länge och
+          kollagenet skyddas från nedbrytning genom att fria radikaler neutraliseras. (2, 3)
+        </p>
+      </div>
+
+      <button class="smaller-accordion-button" onclick="toggleAccordion('Tab7')">
+        <strong>Niacinamide (Vitamin B3)</strong>
+      </button>
+      <div id="Tab7" class="accordion-content">
+        <img
+          src="https://cdn.shopify.com/s/files/1/0728/9998/5757/files/vitamin-b_2b907640-8218-4f41-893c-2a04aca3036a.png?v=1704552258"
+          width="50px"
+          height="50px"
+          style="display: block; margin: 0 auto;"
+        >
+        <p>
+          Niacinamide reducerar den oxidativa stressen som uppstår till följd av ROS, den förbättrar extracellulära
+          matrixet och reparerar hudbarriären. Niacinamide kan dessutom minska hyperpigmenteringarna i huden samtidigt
+          som den reglerar talgproduktionen vilket får porerna att se förminskade ut. (4, 5)
+        </p>
+      </div>
+
+      <button class="smaller-accordion-button" onclick="toggleAccordion('Tab8')">
+        <strong>Centella Asiatica</strong>
+      </button>
+      <div id="Tab8" class="accordion-content">
+        <img
+          src="https://cdn.shopify.com/s/files/1/0728/9998/5757/files/plant_1.png?v=1704553228"
+          width="50px"
+          height="50px"
+          style="display: block; margin: 0 auto;"
+        >
+        <p>
+          Centella Asiatica har många aktiva ämnen, de mest potenta är Madecassoside och Asiaticoside. De finns i en hög
+          koncentration i extraktet av Centella Asiatica som har använts i den här rengöringen. De här två
+          ingredienserna har visat sig ha läkande egenskaper för små sår på huden som till exempel kan uppstå när man
+          får en finne. Förutom det så är de anti-inflammatoriska, barriär-reparerande, lugnande, och har
+          ROS-neutraliserande. De här egenskaperna är associerade med att Madecassoside bland annat leder till minskning
+          av inflammatoriska ämnen i huden så som IL-22, IL-17 och IL-23. (6)
+        </p>
+      </div>
+
+      <button class="smaller-accordion-button" onclick="toggleAccordion('Tab9')">
+        <strong>Allantoin</strong>
+      </button>
+      <div id="Tab9" class="accordion-content">
+        <img
+          src="https://cdn.shopify.com/s/files/1/0728/9998/5757/files/borage_00de5ce0-765f-42e6-bd2d-c8e7a5b26866.png?v=1704552259"
+          width="50px"
+          height="50px"
+          style="display: block; margin: 0 auto;"
+        >
+        <p>
+          Forskning har visat att Allantoin ökar celldelningen av friska hudceller samtidigt som den hämmar
+          inflammationen i huden och i sår. Det innebär att läkning av irriterad hud går snabbare då nya friska
+          hudceller skapas snabbt och inflammationen som skadar huden minskas samtidigt. Detta leder till att sår som
+          uppstår efter en finne försvinner snabbare och blir mindre benägna att lämna ärr efteråt. (7)
+        </p>
+      </div>
+
+      <button class="smaller-accordion-button" onclick="toggleAccordion('Tab16')">
+        <strong>Källor</strong>
+      </button>
+      <div id="Tab16" class="accordion-content">
+        <img
+          src=" https://cdn.shopify.com/s/files/1/0728/9998/5757/files/sources.png?v=1704552260"
+          width="50px"
+          height="50px"
+          style="display: block; margin: 0 auto;"
+        >
+        <p>
+          <b>1.</b> Sivesind, T.E. & Maghfour, J (2022). Cannabinoids for the Treatment of Dermatologic Conditions. DOI:
+          10.1016/j.xjidi.2022.100095. <br>
+          <br>
+
+          <b>2.</b> Hekmatpou, D. et al. (2019). Effect of Aloe Vera Clinical Trials on Skin Wound Healing: A Systematic
+          Review. Iranian Journal of Medical Sciences, 44(1), 1-9.
+          <br>
+          <br>
+
+          <b>3.</b> Ferreira, E. & Reis, P. (2015). Topical effects of Chamomilla Recutita in skin damage: A literature
+          review. Pharmacologyonline, 3, 123. <br>
+          <br>
+
+          <b>4.</b> Boo, Y.C. (2021). Nicotinamide for Skin Aging and Pigmentation. Antioxidants, 10(8), 1315.<br>
+          <br>
+
+          <b>5.</b> Draelos, Z.D., Matsubara, A., & Smiles, K. (2006). Effect of 2% Niacinamide on Facial Sebum
+          Production. doi:10.1080/14764170600717704. PMID: 16766489.<br>
+          <br>
+
+          <b>6.</b> Tan, S.C. & Candasamy, M. (2021). Therapeutic Potential of Madecassoside and Constituents of
+          Centella asiatica. Applied Sciences, 11(18), 8475. doi:10.3390/app11188475. <br>
+          <br>
+
+          <b>7.</b> Amy Paller (June 2017), Northwestern University Feinberg School, An investigation into multifaceted
+          mechanisms of action of allantoin in wound healing. <br>
+          <br>
+        </p>
+      </div>
+    </div>
+
+    <div class="break-section" style="text-align: center; margin-top: 10px; margin-bottom: 1px;">
+      <p><b>Låt våra kunder berätta vad de tycker om Zero BS Beauty!</b></p>
+      <img
+        src="https://cdn.shopify.com/s/files/1/0728/9998/5757/files/19_1.png?v=1704554366"
+        width="160px"
+        height="160px"
+        style="display: block; margin: 0 auto; margin-bottom: 0;"
+      >
+    </div>
+    <script>
+      // Keep track of the last opened tab's top offset and element
+      let lastOpenedTab = {
+        offset: 0,
+        element: null,
+        id: ""
+      };
+
+      function closeTab(accordionContent) {
+        if (accordionContent) {
+          accordionContent.style.display = "none";
+          accordionContent.previousElementSibling.classList.remove("active");
+        }
+      }
+
+      function toggleAccordion(tabId) {
+        // Get the accordion content to toggle
+        var accordionToToggle = document.getElementById(tabId);
+
+        // If clicking the same tab that's already open or its content, close it.
+        if (lastOpenedTab.id === tabId || (lastOpenedTab.element && lastOpenedTab.element.contains(event.target))) {
+          closeTab(lastOpenedTab.element);
+          window.scrollTo(0, lastOpenedTab.offset);
+          lastOpenedTab.element = null;
+          lastOpenedTab.id = "";
+          return;
+        }
+
+        // Close the currently open tab, if any.
+        closeTab(lastOpenedTab.element);
+
+        // Open the new tab and remember its position and ID.
+        accordionToToggle.style.display = "block";
+        accordionToToggle.previousElementSibling.classList.add("active");
+        lastOpenedTab.element = accordionToToggle;
+        lastOpenedTab.offset = window.pageYOffset;
+        lastOpenedTab.id = tabId;
+      }
+
+      // Attach event listeners after the window has loaded
+      window.onload = function () {
+        // Event listener for accordion buttons
+        var accordionButtons = document.querySelectorAll('.accordion-button, .smaller-accordion-button');
+        accordionButtons.forEach(button => {
+          button.onclick = function() {
+            toggleAccordion(this.nextElementSibling.id);
+          }
+        });
+
+        // Event listener for clicking inside the accordion content
+        var accordionContents = document.getElementsByClassName("accordion-content");
+        for (var i = 0; i < accordionContents.length; i++) {
+          accordionContents[i].onclick = function() {
+            toggleAccordion(this.id);
+          }
+        }
+      };
+    </script>
+  </body>
+</html>

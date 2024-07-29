@@ -1,0 +1,218 @@
+{% liquid
+  assign section_color = section.settings.color_scheme
+%}
+
+{% capture blog_posts %}
+  {% paginate blog.articles by section.settings.max_posts %}
+    <ul class="max-w-site mx-auto md:grid md:grid-cols-3 md:gap-grid-gutter">
+      {% for article in blog.articles %}
+        {% render 'article-tile',
+          article: article,
+          tag: 'li',
+          image_crop: section.settings.image_crop,
+          show_author: section.settings.show_author,
+          show_date: section.settings.show_date,
+          show_excerpt: section.settings.show_excerpt,
+          show_comment_count: section.settings.show_comment_count,
+          show_tags: section.settings.show_tags,
+          show_link_text: section.settings.show_link_text,
+          full_width_content: true
+        %}
+      {% endfor %}
+    </div>
+    {% if paginate.pages > 1 %}
+      <div class="my-10">
+        {% render 'pagination',
+          paginate: paginate,
+        %}
+      </div>
+    {% endif %}
+  {% endpaginate %}
+{% endcapture %}
+
+<section class="py-section bg-scheme-background text-scheme-text px-5 lg:px-10" data-color-scheme="{{ section_color }}">
+  <div>
+    <h1 class="font-heading text-heading-standard flex mb-3 md:mb-10 break-word">
+      {{ blog.title | escape }}
+      {% if section.settings.show_subscribe_link %}
+        <a
+          href="{{ shop.url }}{{ blogs[blog.handle].url }}.atom"
+          class="block w-4 h-4 ml-3"
+          title="{{ 'blogs.sidebar.rss' | t }}"
+        >
+          {% render 'icon-rss' %}
+        </a>
+      {% endif %}
+    </h1>
+  </div>
+  {% if section.settings.enable_tag_filter %}
+    <div class="md:grid md:grid-cols-7">
+      <div class="md:col-span-1">
+        <div x-data="{ expanded: false }">
+          <div
+            class="lg:hidden text-theme-basic"
+          >
+            <button
+              class="flex flex-row justify-between items-center"
+              @click="expanded = ! expanded"
+              :aria-expanded="expanded"
+            >
+              <span>{{ 'facets.sorting.filter' | t }}</span>
+              <div class="ml-2">
+                <span class="w-4 h-4 block" x-show="!expanded">{% render 'icon-chevron-down' %}</span>
+                <span class="w-4 h-4 block" x-show="expanded">{% render 'icon-chevron-up' %}</span>
+              </div>
+            </button>
+          </div>
+          <div
+            class="md:block"
+            :class="{ 'hidden' : ! expanded }"
+          >
+            <ul class="mt-5 md:mt-0 text-theme-basic">
+              <li class="mb-3">
+                <a
+                  href="{{ blog.url }}"
+                  class="underline-offset-basic {% unless current_tags %} underline {% else %} hover:underline {% endunless %}"
+                >
+                  {{ 'blogs.sidebar.all_tags' | t }}
+                </a>
+              </li>
+              {% for tag in blog.all_tags %}
+                <li class="mb-3">
+                  <a
+                    href="{{ blog.url }}/tagged/{{ tag | handle }}"
+                    class="underline-offset-basic {% if current_tags contains tag %} underline {% else %} hover:underline {% endif %}"
+                  >
+                    {{ tag }}
+                  </a>
+                </li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="mt-10 md:mt-0 md:col-span-6">
+        {{ blog_posts }}
+      </div>
+    </div>
+  {% else %}
+    {{ blog_posts }}
+  {% endif %}
+</section>
+
+{% schema %}
+{
+  "name": "Blog - grid",
+  "settings": [
+    {
+      "type": "range",
+      "id": "max_posts",
+      "min": 6,
+      "max": 18,
+      "step": 1,
+      "label": "Maximum number of posts per page",
+      "default": 12
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_tag_filter",
+      "label": "Enable filtering by tag",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_subscribe_link",
+      "label": "Show RSS link",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Articles"
+    },
+    {
+      "type": "select",
+      "id": "image_crop",
+      "label": "Image crop",
+      "options": [
+        {
+          "value": "none",
+          "label": "No crop"
+        },
+        {
+          "value": "portrait",
+          "label": "Portrait"
+        },
+        {
+          "value": "square",
+          "label": "Square"
+        },
+        {
+          "value": "landscape",
+          "label": "Landscape"
+        }
+      ],
+      "default": "landscape"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_author",
+      "label": "Show author",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_date",
+      "label": "Show date",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_excerpt",
+      "label": "Show excerpt",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_comment_count",
+      "label": "Show comment count",
+      "info": "Comment count will only show if the blog has comments enabled and the article has comments",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_tags",
+      "label": "Show tags",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_link_text",
+      "label": "Show “Read more” text",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Color"
+    },
+    {
+      "type": "select",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "options": [
+        {
+          "value": "primary",
+          "label": "Primary"
+        },
+        {
+          "value": "secondary",
+          "label": "Secondary"
+        },
+        {
+          "value": "tertiary",
+          "label": "Tertiary"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

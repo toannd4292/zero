@@ -1,0 +1,429 @@
+{% liquid
+  assign section_color = section.settings.color_scheme
+
+  assign aspect_ratio = false
+
+  if section.settings.crop == 'adapt' and section.blocks.size > 1
+    if section.blocks[0].settings.image != null
+      assign aspect_ratio = section.blocks[0].settings.image.aspect_ratio
+    endif
+  endif
+%}
+
+{% if aspect_ratio %}
+  <style>
+    #slideshow-{{ section.id }} {
+      --aspect-ratio: {{ aspect_ratio }};
+      --aspect-ratio-padding: {{ 1.000 | divided_by: aspect_ratio | times: 100.000 }}%;
+    }
+  </style>
+{% endif %}
+
+<section
+  class="{% unless section.settings.remove_top_padding %}pt-section{% endunless %} {% unless section.settings.remove_bottom_padding %}pb-section{% endunless %} text-scheme-text bg-scheme-background {% if section.settings.disable_color_transition %}disable-section-color-transition disable-section-color-transition-source{% endif %}"
+  data-color-scheme="{{ section_color }}"
+>
+  <div
+    {% if section.blocks.size > 1 %}
+      id="slideshow-{{ section.id }}"
+      class="splide splide--slideshow-section"
+    {% endif %}
+  >
+    <div class="splide__track mb-4">
+      <ul class="w-full splide__list" role="list">
+        {% for block in section.blocks %}
+          <li class="block w-3/4 px-5 md:px-10 splide__slide" {{ block.shopify_attributes }}>
+            {% liquid
+              if block.settings.place_content == 'inherit'
+                assign place_content = section.settings.place_content
+              else
+                assign place_content = block.settings.place_content
+              endif
+
+              if block.settings.text_align == 'inherit'
+                assign text_align = section.settings.text_align
+              else
+                assign text_align = block.settings.text_align
+              endif
+
+              if block.settings.block_color_overlay == 'inherit'
+                assign block_color_overlay = section.settings.block_color_overlay
+              else
+                assign block_color_overlay = block.settings.block_color_overlay
+              endif
+            %}
+            {% render 'image-with-text',
+              image: block.settings.image,
+              place_content: place_content,
+              text_align: text_align,
+              color_overlay: block_color_overlay,
+              title: block.settings.title,
+              richtext: block.settings.richtext,
+              cta_url: block.settings.cta_url,
+              cta_text: block.settings.cta_text,
+              aspect_ratio: aspect_ratio,
+            %}
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% if section.blocks.size > 1 %}
+      <div class="splide__arrows px-5 md:px-10">
+        <button class="splide__arrow splide__arrow--prev mr-1 p-1">
+          <span class="sr-only">{{ 'sections.slideshow.previous_slide' | t }}</span>
+          <div class="w-8 h-8">
+            {% render 'icon-previous' %}
+          </div>
+        </button>
+        <button class="splide__arrow splide__arrow--next p-1">
+          <span class="sr-only">{{ 'sections.slideshow.next_slide' | t }}</span>
+          <div class="w-8 h-8">
+            {% render 'icon-next' %}
+          </div>
+        </button>
+      </div>
+    {% endif %}
+  </div>
+
+  {% unless request.design_mode %}
+    <script src="{{ 'modules-slideshow.bundle.min.js' | asset_url }}" type="module"></script>
+  {% endunless %}
+  {{ 'modules-slideshow.bundle.css' | asset_url | stylesheet_tag }}
+</section>
+
+{% schema %}
+{
+  "name": "Slideshow",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Image crop"
+    },
+    {
+      "type": "radio",
+      "id": "crop",
+      "label": "Image crop",
+      "options": [
+        {
+          "value": "adapt",
+          "label": "Adapt to first slide"
+        },
+        {
+          "value": "natural",
+          "label": "No crop"
+        }
+      ],
+      "default": "adapt"
+    },
+    {
+      "type": "header",
+      "content": "Text overlay defaults",
+      "info": "These settings apply to all slides by default but they can be changed on each individual slide"
+    },
+    {
+      "type": "select",
+      "id": "place_content",
+      "label": "Content position",
+      "options": [
+        {
+          "value": "lg:place-content-start-start",
+          "label": "Top left"
+        },
+        {
+          "value": "lg:place-content-start-center",
+          "label": "Top center"
+        },
+        {
+          "value": "lg:place-content-start-end",
+          "label": "Top right"
+        },
+        {
+          "value": "lg:place-content-center-start",
+          "label": "Middle left"
+        },
+        {
+          "value": "lg:place-content-center-center",
+          "label": "Middle center"
+        },
+        {
+          "value": "lg:place-content-center-end",
+          "label": "Middle right"
+        },
+        {
+          "value": "lg:place-content-end-start",
+          "label": "Bottom left"
+        },
+        {
+          "value": "lg:place-content-end-center",
+          "label": "Bottom center"
+        },
+        {
+          "value": "lg:place-content-end-end",
+          "label": "Bottom right"
+        }
+      ],
+      "default": "lg:place-content-center-start"
+    },
+    {
+      "type": "select",
+      "id": "text_align",
+      "label": "Text alignment",
+      "options": [
+        {
+          "value": "text-left",
+          "label": "Left"
+        },
+        {
+          "value": "text-center",
+          "label": "Center"
+        },
+        {
+          "value": "text-right",
+          "label": "Right"
+        }
+      ],
+      "default": "text-left"
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "select",
+      "id": "block_color_overlay",
+      "label": "Text color",
+      "options": [
+        {
+          "value": "lg:text-primary-text",
+          "label": "Primary text"
+        },
+        {
+          "value": "lg:text-secondary-text",
+          "label": "Secondary text"
+        },
+        {
+          "value": "lg:text-tertiary-text",
+          "label": "Tertiary text"
+        },
+        {
+          "value": "lg:text-white",
+          "label": "White"
+        }
+      ]
+    },
+    {
+      "type": "header",
+      "content": "Color"
+    },
+    {
+      "type": "select",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "options": [
+        {
+          "value": "primary",
+          "label": "Primary"
+        },
+        {
+          "value": "secondary",
+          "label": "Secondary"
+        },
+        {
+          "value": "tertiary",
+          "label": "Tertiary"
+        }
+      ]
+    },
+    {
+      "type": "checkbox",
+      "id": "disable_color_transition",
+      "label": "Disable transition",
+      "info": "Overrides section color transitions theme setting."
+    },
+    {
+      "type": "header",
+      "content": "Spacing",
+      "info": "Adjust vertical spacing to visually connect this section to adjacent sections"
+    },
+    {
+      "type": "checkbox",
+      "id": "remove_top_padding",
+      "label": "Remove top padding",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "remove_bottom_padding",
+      "label": "Remove bottom padding",
+      "default": false
+    }
+  ],
+  "blocks": [
+    {
+      "type": "slide",
+      "name": "Slide",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Image"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Heading",
+          "default": "Heading goes here"
+        },
+        {
+          "type": "richtext",
+          "id": "richtext",
+          "label": "Text",
+          "default": "<p>Image with Text Overlay</p>"
+        },
+        {
+          "type": "header",
+          "content": "Call to action"
+        },
+        {
+          "type": "url",
+          "id": "cta_url",
+          "label": "Link"
+        },
+        {
+          "type": "text",
+          "id": "cta_text",
+          "label": "Button text",
+          "default": "Shop now"
+        },
+        {
+          "type": "header",
+          "content": "Text overlay"
+        },
+        {
+          "type": "select",
+          "id": "place_content",
+          "label": "Content position",
+          "options": [
+            {
+              "value": "inherit",
+              "label": "Follow section"
+            },
+            {
+              "value": "lg:place-content-start-start",
+              "label": "Top left"
+            },
+            {
+              "value": "lg:place-content-start-center",
+              "label": "Top center"
+            },
+            {
+              "value": "lg:place-content-start-end",
+              "label": "Top right"
+            },
+            {
+              "value": "lg:place-content-center-start",
+              "label": "Middle left"
+            },
+            {
+              "value": "lg:place-content-center-center",
+              "label": "Middle center"
+            },
+            {
+              "value": "lg:place-content-center-end",
+              "label": "Middle right"
+            },
+            {
+              "value": "lg:place-content-end-start",
+              "label": "Bottom left"
+            },
+            {
+              "value": "lg:place-content-end-center",
+              "label": "Bottom center"
+            },
+            {
+              "value": "lg:place-content-end-end",
+              "label": "Bottom right"
+            }
+          ],
+          "default": "inherit"
+        },
+        {
+          "type": "select",
+          "id": "text_align",
+          "label": "Text alignment",
+          "options": [
+            {
+              "value": "inherit",
+              "label": "Follow section"
+            },
+            {
+              "value": "text-left",
+              "label": "Left"
+            },
+            {
+              "value": "text-center",
+              "label": "Center"
+            },
+            {
+              "value": "text-right",
+              "label": "Right"
+            }
+          ],
+          "default": "inherit"
+        },
+        {
+          "type": "select",
+          "id": "block_color_overlay",
+          "label": "Text color",
+          "options": [
+            {
+              "value": "inherit",
+              "label": "Follow section"
+            },
+            {
+              "value": "lg:text-primary-text",
+              "label": "Primary text"
+            },
+            {
+              "value": "lg:text-secondary-text",
+              "label": "Secondary text"
+            },
+            {
+              "value": "lg:text-tertiary-text",
+              "label": "Tertiary text"
+            },
+            {
+              "value": "lg:text-white",
+              "label": "White"
+            }
+          ],
+          "default": "inherit"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Slideshow",
+      "blocks": [
+        {
+          "type": "slide"
+        },
+        {
+          "type": "slide"
+        },
+        {
+          "type": "slide"
+        }
+      ]
+    }
+  ],
+  "disabled_on": {
+    "groups": [
+      "header",
+      "footer",
+      "aside"
+    ]
+  }
+}
+{% endschema %}

@@ -1,0 +1,122 @@
+{%- liquid
+  if collection.image and section.settings.show_collection_image
+    assign has_image = true
+  endif
+
+  assign sizes = '80vw'
+
+  if has_image and section.settings.collection_image_style == 'full'
+    assign full_bleed = true
+    assign sizes = '100vw'
+  endif
+
+  if section.settings.show_collection_title
+    assign has_title = true
+  endif
+
+  if section.settings.show_collection_description and collection.description != blank
+    assign has_description = true
+  endif
+-%}
+<style>
+  .main-collection-banner + .main-collection .py-section {
+    padding-top: 0;
+  }
+</style>
+<section class="{% if has_image and full_bleed == false %}pt-5{% endif %} main-collection-banner bg-scheme-background text-scheme-text">
+  {% if has_image %}
+    <div class="{% unless full_bleed %}max-w-site w-4/5 mx-auto pt-half-section{% endunless %}{% unless has_title or has_description %} pb-10{% endunless %}">
+      {% if section.settings.collection_image_crop == '' %}
+        {{ collection.image | image_url: width: 2000 | image_tag: loading: 'eager', preload: true, sizes: sizes, class: 'full-w h-auto' }}
+      {% else %}
+        <div class="image-wrapper {{ section.settings.collection_image_crop }}">
+          {{ collection.image | image_url: width: 2000 | image_tag: loading: 'eager', preload: true, sizes: sizes }}
+        </div>
+      {% endif %}
+    </div>
+  {% endif %}
+  {% if has_title or has_description %}
+    <div class="max-w-site mx-auto px-5 lg:px-10 py-section">
+      {%- if has_title -%}
+        <h1 class="font-heading text-4xl xl:text-5xl break-word">
+          {{ collection.title }}
+        </h1>
+      {%- endif -%}
+      {%- if has_description -%}
+        <div class="max-w-xl mr-auto {% if has_title %}mt-5{% endif %}">
+          {{ collection.description }}
+        </div>
+      {%- endif -%}
+    </div>
+  {% endif %}
+</section>
+
+{% schema %}
+{
+  "name": "Collection banner",
+  "class": "main-collection-banner",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "show_collection_title",
+      "label": "Show collection title",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_collection_description",
+      "label": "Show collection description",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Image"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_collection_image",
+      "label": "Show collection image"
+    },
+    {
+      "type": "radio",
+      "id": "collection_image_style",
+      "label": "Collection image style",
+      "default": "full",
+      "options": [
+        {
+          "value": "inset",
+          "label": "Inset"
+        },
+        {
+          "value": "full",
+          "label": "Full width"
+        }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "collection_image_crop",
+      "label": "Collection image crop",
+      "options": [
+        {
+          "value": "",
+          "label": "No crop"
+        },
+        {
+          "value": "aspect-w-4 aspect-h-3",
+          "label": "Landscape"
+        },
+        {
+          "value": "aspect-w-16 aspect-h-9",
+          "label": "Wide"
+        },
+        {
+          "value": "aspect-w-2.35 aspect-h-1",
+          "label": "Very wide"
+        }
+      ],
+      "default": "aspect-w-16 aspect-h-9"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,32 @@
+{%- liquid
+  assign title_wrapper_classes = title_wrapper_classes | default: 'pb-10 pl-5 pr-20 lg:px-0'
+  unless settings.section_titles_position == 'above_content'
+    assign title_area_classes = 'lg:col-span-1'
+    assign title_wrapper_classes = title_wrapper_classes | append: ' lg:pb-0'
+  else
+    assign title_wrapper_classes = title_wrapper_classes | append: ' lg:pb-14'
+  endunless
+-%}
+<div class="{{ title_area_classes }}">
+  <div class="{{ title_wrapper_classes }}">
+    <h1 class="text-heading-standard font-heading empty:hidden break-word" style="font-weight: bold;">
+      {% if title != blank %}
+        {{ title | escape }}
+      {% endif %}
+    </h1>
+
+    {% if subheading != blank %}
+      <div class="rte rte--compact text-base {% if title != blank %}mt-5{% endif %} break-word">
+        {{ subheading }}
+      </div>
+    {% endif %}
+
+    {% if cta_label != blank and cta_link != blank %}
+      <div class="{% if subheading != blank or title != blank %}mt-10{% endif %}">
+        <a class="theme-cta" href="{{ cta_link }}">
+          {{ cta_label }}
+        </a>
+      </div>
+    {% endif %}
+  </div>
+</div>

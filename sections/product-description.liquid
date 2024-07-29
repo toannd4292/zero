@@ -1,0 +1,68 @@
+{%- assign section_color = section.settings.color_scheme | default: 'primary' -%}
+
+<section
+  class="{% unless section.settings.remove_top_padding %}pt-section{% endunless %} {% unless section.settings.remove_bottom_padding %}pb-section{% endunless %} text-scheme-text bg-scheme-background"
+  data-color-scheme="{{ section_color }}"
+  data-product-full-width-description
+>
+  <div class="max-w-site mx-auto px-5 lg:px-10">
+    <div class="rte max-w-3xl mx-auto"  x-data="ThemeUtil_RTE">
+      {{ product.description | replace: '<meta charset="utf-8">', '' }}
+    </div>
+  </div>
+</section>
+
+{% unless request.design_mode %}
+  <script src="{{ 'rte.js' | asset_url }}" type="module"></script>
+{% endunless %}
+
+{% schema %}
+{
+  "name": "Product description",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Color"
+    },
+    {
+      "type": "select",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "options": [
+        {
+          "value": "primary",
+          "label": "Primary"
+        },
+        {
+          "value": "secondary",
+          "label": "Secondary"
+        },
+        {
+          "value": "tertiary",
+          "label": "Tertiary"
+        }
+      ]
+    },
+    {
+      "type": "header",
+      "content": "Spacing",
+      "info": "Adjust vertical spacing to visually connect this section to adjacent sections"
+    },
+    {
+      "type": "checkbox",
+      "id": "remove_top_padding",
+      "label": "Remove top padding",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "remove_bottom_padding",
+      "label": "Remove bottom padding",
+      "default": false
+    }
+  ],
+  "templates": [
+    "product"
+  ]
+}
+{% endschema %}

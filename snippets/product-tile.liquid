@@ -1,0 +1,138 @@
+{%- liquid
+  unless tag
+    assign tag = 'li'
+  endunless
+
+  unless sizes
+    assign sizes = '50vw, (min-width: 768px) 33vw'
+  endunless
+
+  comment
+    On sale
+  endcomment
+
+  assign on_sale = false
+
+  if product.compare_at_price > product.price
+    assign on_sale = true
+  endif
+
+  comment
+    Sold out
+  endcomment
+
+  assign sold_out = true
+
+  if product.available
+    assign sold_out = false
+  endif
+
+  comment
+    Unit prices
+  endcomment
+
+  assign current_variant = product.selected_or_first_available_variant
+
+  comment
+    Set lowest-priced variant as current
+  endcomment
+
+  if product.price_varies and product.variants.size > 1
+    for variant in product.variants
+      if variant.price == product.price_min
+        assign current_variant = variant
+        break
+      endif
+    endfor
+  endif
+
+  assign aspect_ratio = settings.product_tiles_aspect_ratio
+  if aspect_ratio != 'natural'
+    assign image_class = 'absolute inset-0 object-contain w-full h-full'
+    assign hover_class = 'block w-full h-full bg-scheme-background object-center object-contain'
+  else
+    assign image_class = 'block relative object-cover'
+    assign hover_class = 'block w-full h-full bg-scheme-background object-center object-cover'
+  endif
+-%}
+
+<{{ tag }}
+  class="{% if class != blank %}{{ class }}{% endif %}"
+  {% if attributes %}
+    {{ attributes }}
+  {% endif %}
+>
+  <div
+    class="relative group {{ settings.product_tiles_text_transform }} {% if full_width_item_header == '||__cascade-item:full__||' and settings.max_height_full_width_tiles != 'none' %}mx-auto{% endif %}  {% if settings.product_tiles_align == 'center' %}text-center{% endif %}"
+    {% if full_width_item_header == '||__cascade-item:full__||' and settings.max_height_full_width_tiles != 'none' %}
+      style="max-width: calc({{ settings.max_height_full_width_tiles }} * {{ product.featured_media.preview_image.aspect_ratio }} );"
+    {% endif %}
+  >
+    <a
+      class="absolute inset-0 z-10"
+      href="{{ product.url }}"
+    >
+      <span class="sr-only">{{ product.title }}</span>
+    </a>
+    <div class="relative{% if product.media.size == 0 %} pt-10 pb-10{% endif %}">
+      {% liquid
+        if settings.products_show_badges
+          render 'product-badges', product: product, on_sale: on_sale, sold_out: sold_out
+        endif
+      %}
+
+      {% if product.media.size > 0 %}
+        <div
+          class="{% if aspect_ratio != 'natural' %}relative {{ aspect_ratio }}{% endif %}"
+          data-scale-reveal
+        >
+          {{
+            product.featured_media
+            | image_url: width: 2000
+            | image_tag: class: image_class, loading: 'lazy', sizes: sizes
+          }}
+        </div>
+
+        {% if settings.products_show_second_image_on_hover and product.media.size > 1 %}
+          <div class="absolute inset-0 w-full h-full transition-opacity duration-200 opacity-0 group-hover:opacity-100">
+            {{
+              product.media[1]
+              | image_url: width: 2000
+              | image_tag: class: hover_class, loading: 'lazy', sizes: sizes
+            }}
+          </div>
+        {% endif %}
+      {% endif %}
+    </div>
+
+    <div class="mt-5 break-word" aria-hidden="true">
+      {{ product.title }}
+    </div>
+    {% if settings.products_show_vendor and product.vendor != blank %}
+      <div class="my-2 break-word" aria-hidden="true">
+        {{ product.vendor }}
+      </div>
+    {% endif %}
+    <div class="m-0">
+      {%
+        render 'product-price',
+        product: product,
+        on_sale: on_sale,
+        sold_out: sold_out,
+        current_variant: current_variant,
+      %}
+    </div>
+
+    {% if settings.product_tile_star_ratings != 'none' %}
+      <div class="text-sm">
+        <div class="mt-2 star-rating star-rating--product-grid empty:hidden">
+          {%
+            render 'star-rating',
+            type: settings.product_tile_star_ratings,
+            product: product,
+          %}
+        </div>
+      </div>
+    {% endif %}
+  </div>
+</{{ tag }}>

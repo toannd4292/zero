@@ -1,0 +1,100 @@
+<section x-data="ThemeSection_SidebarNav">
+  <template data-should-teleport="#left-drawer-slot">
+    <div
+      x-show="$store.modals.leftDrawer.contents === 'mobile-sidebar-nav'"
+      :data-modal-label="
+        ($store.modals.leftDrawer.contents === 'mobile-sidebar-nav')
+        ?
+        '{{ section.settings.linklist.title | escape }}'
+        : false"
+      class="sidebar-nav py-6"
+    >
+      <div>
+        {% render 'sidebar-nav-mobile', section: section %}
+      </div>
+    </div>
+  </template>
+</section>
+
+<script src="{{ 'sidebar-nav.js' | asset_url }}" type="module"></script>
+
+{% schema %}
+{
+  "name": "Mobile sidebar",
+  "settings": [
+    {
+      "id": "linklist",
+      "type": "link_list",
+      "label": "Main menu",
+      "default": "main-menu",
+      "info": "For best practice select the same navigation menu for both mobile and desktop."
+    },
+    {
+      "id": "auto_expand",
+      "type": "checkbox",
+      "label": "Auto-expand first menu item"
+    },
+    {
+      "id": "showcase_second_level_links",
+      "type": "select",
+      "label": "Showcase second-level links",
+      "info": "Second-level links to products or collections will be showcased if they don’t have any child links",
+      "default": "none",
+      "options": [
+        {
+          "label": "Off",
+          "value": "none"
+        },
+        {
+          "label": "Grid",
+          "value": "grid"
+        },
+        {
+          "label": "Scroll",
+          "value": "scroll"
+        }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "collection_image_crop",
+      "label": "Collection image crop",
+      "info": "This will apply to collection images if collection display above is set to “Grid” or “Scroll”",
+      "options": [
+        {
+          "value": "none",
+          "label": "No crop"
+        },
+        {
+          "value": "portrait",
+          "label": "Portrait"
+        },
+        {
+          "value": "square",
+          "label": "Square"
+        },
+        {
+          "value": "landscape",
+          "label": "Landscape"
+        }
+      ],
+      "default": "landscape"
+    },
+    {
+      "id": "secondary_linklist",
+      "type": "link_list",
+      "label": "Secondary menu"
+    },
+    {
+      "id": "show_search",
+      "type": "checkbox",
+      "label": "Show search"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_social_icons",
+      "label": "Show social media icons"
+    }
+  ]
+}
+{% endschema %}

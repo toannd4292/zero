@@ -1,0 +1,58 @@
+{% if section.settings.enabled or request.design_mode %}
+  <section
+    class="fixed bottom-0 w-full p-5 text-scheme-text bg-scheme-background text-theme-basic grid gap-5 md:grid-cols-[1fr,_auto] items-center"
+    data-color-scheme="{{ settings.modal_color_scheme | default: 'tertiary' }}"
+    x-cloak
+    x-data="Theme_CookiesBanner(
+      {
+        enabled: {{ section.settings.enabled | default: false }},
+        sectionId: '{{ section.id }}'
+      }
+    )"
+    x-show="shown"
+    x-transition:enter="transition ease-gentle duration-[444ms]"
+    x-transition:enter-start="translate-y-full"
+    x-transition:enter-end="translate-y-0"
+    x-transition:leave="transition ease-gentle duration-[444ms]"
+    x-transition:leave-start="translate-y-0"
+    x-transition:leave-end="translate-y-full"
+  >
+    <p class="block md:max-w-[24rem]">
+      {{ 'cookies_banner.message' | t }}
+    </p>
+    <div class="">
+      <button
+        class="theme-button theme-button--solid mr-3"
+        type="button"
+        @click="accept"
+      >
+        {{ 'cookies_banner.accept' | t }}
+      </button>
+      <button
+        class="theme-button"
+        type="button"
+        @click="decline"
+      >
+        {{ 'cookies_banner.decline' | t }}
+      </button>
+    </div>
+  </section>
+{% endif %}
+
+{% unless request.design_mode %}
+  <script src="{{ 'cookies-banner.js' | asset_url }}" type="module"></script>
+{% endunless %}
+
+{% schema %}
+{
+  "name": "Cookies banner",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "enabled",
+      "label": "Enable cookies banner",
+      "info": "This banner uses Shopify’s [Customer Privacy API](https://shopify.dev/api/consent-tracking). If you require showing a banner under different conditions, consider using a dedicated app."
+    }
+  ]
+}
+{% endschema %}

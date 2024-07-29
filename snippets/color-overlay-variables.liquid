@@ -1,0 +1,54 @@
+{%- liquid
+
+  assign background_color = "color_" | append: color_scheme | append: "_background"
+  assign text_color = "color_" | append: color_scheme | append: "_text"
+  assign accent_color = "color_" | append: color_scheme | append: "_accent"
+
+  if settings.solid_button_text_color == 'automatic'
+    assign text_background_contrast = settings[text_color] | color_contrast: settings[background_color]
+    if text_background_contrast > 4.4
+      assign text_overlay = settings[background_color]
+      assign text_inverse_overlay = settings[text_color]
+    else
+      assign text_brightness = settings[text_color] | color_brightness
+      if text_brightness > 127
+        assign text_overlay = '#000000'
+        assign text_inverse_overlay = '#FFFFFF'
+      else
+        assign text_overlay = '#FFFFFF'
+        assign text_inverse_overlay = '#000000'
+      endif
+    endif
+
+    assign accent_background_contrast = settings[accent_color] | color_contrast: settings[background_color]
+    assign accent_text_contrast = settings[accent_color] | color_contrast: settings[text_color]
+    if accent_background_contrast > 4.4
+      assign accent_overlay = settings[background_color]
+    elsif accent_text_contrast > 4.4
+      assign accent_overlay = settings[text_color]
+    else
+      assign accent_brightness = settings[accent_color] | color_brightness
+      if accent_brightness > 127
+        assign accent_overlay = '#000000'
+      else
+        assign accent_overlay = '#FFFFFF'
+      endif
+    endif
+  else
+    if settings.solid_button_text_color == 'background'
+      assign text_overlay = settings[background_color]
+      assign text_inverse_overlay = settings[text_color]
+      assign accent_overlay = settings[background_color]
+    endif
+    if settings.solid_button_text_color == 'text'
+      assign text_overlay = settings[text_color]
+      assign text_inverse_overlay = settings[background_color]
+      assign accent_overlay = settings[text_color]
+    endif
+  endif 
+  
+
+-%}
+    --color-{{ color_scheme }}-text-overlay: {{ text_overlay | color_to_rgb | split: "(" | last | split: ")" | first | replace: ',', ' ' }};
+    --color-{{ color_scheme }}-text-inverse-overlay: {{ text_inverse_overlay | color_to_rgb | split: "(" | last | split: ")" | first }};
+    --color-{{ color_scheme }}-accent-overlay: {{ accent_overlay | color_to_rgb | split: "(" | last | split: ")" | first | replace: ',', ' ' }};

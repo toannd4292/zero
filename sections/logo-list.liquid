@@ -1,0 +1,250 @@
+{%- liquid
+  assign section_color = section.settings.color_scheme | default: 'primary'
+  assign logos = section.blocks | where: "type", "logo"
+
+  assign show_section_title = false
+  if section.settings.title != blank or section.settings.subheading != blank
+    assign show_section_title = true
+  endif
+
+  if show_section_title and settings.section_titles_position == 'left_of_content'
+    assign container_classes = 'lg:grid lg:gap-x-grid-gutter lg:grid-cols-4'
+    assign content_area_classes = 'lg:col-span-3 lg:col-end-last'
+  endif
+
+  if section.settings.invert and settings.enable_section_color_transitions == false
+
+    assign bg_color_address = 'color_' | append: section_color | append: '_background'
+
+    assign bg_color = settings[bg_color_address]
+
+    assign bg_brightness = bg_color | color_brightness
+
+    if bg_brightness < 128
+      assign bg_is_dark = true
+    else
+      assign bg_is_dark = false
+    endif
+  endif
+-%}
+
+<section
+  class="{% unless section.settings.remove_top_padding %}pt-section{% endunless %} {% unless section.settings.remove_bottom_padding %}pb-section{% endunless %} text-scheme-text bg-scheme-background {% if section.settings.disable_color_transition %}disable-section-color-transition disable-section-color-transition-source{% endif %}"
+  data-color-scheme="{{ section_color }}"
+  {% if section.settings.invert and settings.enable_section_color_transitions %}
+    x-data="Theme_LogoList"
+  {% endif %}
+ >
+  <div class="max-w-site mx-auto lg:px-10">
+    <div class="{{ container_classes }}">
+
+      {%- if show_section_title -%}
+        {%- render 'section-title',
+          title: section.settings.title,
+          subheading: section.settings.subheading
+        -%}
+      {%- endif -%}
+
+      <div class="{{ content_area_classes }} has-full-bleed-images">
+        <ul
+          class="
+            flex flex-wrap lg:flex-nowrap items-center justify-center
+            {% if section.settings.grayscale %}
+              grayscale
+            {% endif %}
+            {% if section.settings.luminosity %}
+              mix-blend-luminosity
+            {% endif %}
+            {% if section.settings.invert %}
+              {% if settings.enable_section_color_transitions == false %}
+                {% if bg_is_dark %}
+                  invert
+                {% endif %}
+              {% else %}
+                transition-[filter]
+              {% endif %}
+            {% endif %}
+          "
+          {% if section.settings.invert and settings.enable_section_color_transitions %}
+            :class="{ invert : bgIsDark }"
+          {% endif %}
+        >
+          {% for block in logos %}
+            {% liquid
+              capture image_content
+                if block.settings.image != blank
+                  assign sizes = block.settings.max_width | append: 'px'
+                  echo block.settings.image | image_url: width: 500 | image_tag: loading: 'lazy', sizes: sizes
+                else
+                  echo 'logo' | placeholder_svg_tag: 'w-full h-full bg-scheme-placeholder-background text-scheme-placeholder-foreground fill-current'
+                endif
+             endcapture
+            %}
+            <li
+              class="relative block mt-4 lg:mt-0 mx-5"
+              style="max-width: {{ section.settings.max_width }}px"
+              {{ block.shopify_attributes }}
+            >
+              {%- if block.settings.link != blank -%}
+                <a href="{{ block.settings.link }}" class="block">
+                  {{ image_content }}
+                </a>
+              {%- else -%}
+                {{ image_content }}
+              {%- endif -%}
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% unless request.design_mode %}
+  {% if section.settings.invert and settings.enable_section_color_transitions %}
+    <script src="{{ 'logo-list.js' | asset_url }}" type="module"></script>
+  {% endif %}
+{% endunless %}
+
+{% schema %}
+{
+  "name": "Logo list",
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Heading"
+    },
+    {
+      "id": "subheading",
+      "type": "richtext",
+      "label": "Subheading"
+    },
+    {
+      "type": "range",
+      "id": "max_width",
+      "min": 50,
+      "max": 500,
+      "step": 10,
+      "unit": "px",
+      "label": "Logo max width",
+      "default": 100
+    },
+    {
+      "type": "header",
+      "content": "Logo color"
+    },
+    {
+      "type": "checkbox",
+      "id": "grayscale",
+      "label": "Make grayscale"
+    },
+    {
+      "type": "checkbox",
+      "id": "luminosity",
+      "label": "Blend with background"
+    },
+    {
+      "type": "checkbox",
+      "id": "invert",
+      "label": "Invert on dark background"
+    },
+    {
+      "type": "header",
+      "content": "Color"
+    },
+    {
+      "type": "select",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "options": [
+        {
+          "value": "primary",
+          "label": "Primary"
+        },
+        {
+          "value": "secondary",
+          "label": "Secondary"
+        },
+        {
+          "value": "tertiary",
+          "label": "Tertiary"
+        }
+      ]
+    },
+    {
+      "type": "checkbox",
+      "id": "disable_color_transition",
+      "label": "Disable transition",
+      "info": "Overrides section color transitions theme setting."
+    },
+    {
+      "type": "header",
+      "content": "Spacing",
+      "info": "Adjust vertical spacing to visually connect this section to adjacent sections"
+    },
+    {
+      "type": "checkbox",
+      "id": "remove_top_padding",
+      "label": "Remove top padding",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "remove_bottom_padding",
+      "label": "Remove bottom padding",
+      "default": false
+    }
+  ],
+  "blocks": [
+    {
+      "type": "logo",
+      "name": "Logo",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Image"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "Link",
+          "info": "Optional"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Logo list",
+      "blocks": [
+        {
+          "type": "logo"
+        },
+        {
+          "type": "logo"
+        },
+        {
+          "type": "logo"
+        },
+        {
+          "type": "logo"
+        },
+        {
+          "type": "logo"
+        },
+        {
+          "type": "logo"
+        }
+      ]
+    }
+  ],
+  "disabled_on": {
+    "groups": [
+      "aside",
+      "header"
+    ]
+  }
+}
+{% endschema %}

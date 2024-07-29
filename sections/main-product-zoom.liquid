@@ -1,0 +1,69 @@
+{% liquid
+  assign image_media = product.media | where: 'media_type', 'image'
+%}
+<div class="product-zoom">
+  <div
+    class="snap-y snap-mandatory h-screen overflow-y-auto"
+    @click="$store.modals.close('modal')"
+    x-data="Theme_Zoom"
+  >
+    {% for media in image_media %}
+      <div
+        x-data="Theme_Zoomable"
+        class="
+          snap-center
+          w-[calc(100vw_-_2.5rem)]
+          h-[calc(100vh_-_2.5rem)]
+          m-5
+          overflow-auto
+          flex
+        "
+        @zoom.stop="handleZoom()"
+        @unzoom.document="unZoom()"
+        data-media-id="{{ media.id }}"
+      >
+        <img
+          x-ref="image"
+          src="{{ media | image_url: width: 2000 }}"
+          sizes="100vw"
+          class="block m-auto"
+          width="{{ media.width }}"
+          height="{{ media.height }}"
+          loading="lazy"
+          @click.stop.prevent="handleImageClick()"
+          :class="
+            {
+              'cursor-zoom-in' : ! zoomed,
+              'h-full w-auto' : (! zoomed && viewportIsLandscape),
+              'w-full h-auto' : (! zoomed && ! viewportIsLandscape),
+              'max-w-none cursor-zoom-out' : zoomed,
+              'bg-scheme-text/5' : ! loaded,
+            }
+          "
+          x-intersect:enter.full="imageProxies[{{ forloop.index0 }}].current = true"
+          x-intersect:leave.full="imageProxies[{{ forloop.index0 }}].current = false"
+          data-index="{{ forloop.index0 }}"
+        />
+      </div>
+    {% endfor %}
+    <div class="fixed inset-0 h-screen w-5 flex flex-col justify-center">
+      <div
+        x-ref="proxyContainer"
+        class="bg-scheme-background/50 rounded-lg px-2"
+        :class="{ 'hidden' : willOverflow }"
+      >
+        <template x-for="(proxy, index) in imageProxies">
+          <div
+            class="bg-scheme-text/10 hover:bg-scheme-text/30 w-full rounded-sm my-3 transition-colors cursor-pointer"
+            :class="{
+              'bg-scheme-text/10' : ! proxy.current,
+              'bg-scheme-text/30' : proxy.current
+            }"
+            :style="{ 'aspectRatio' : proxy.ratio }"
+            @click.stop="scrollZoomAreaTo(index)"
+          ></div>
+        </template>
+      </div>
+    </div>
+  </div>
+</div>

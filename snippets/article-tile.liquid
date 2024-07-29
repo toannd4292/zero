@@ -1,0 +1,106 @@
+{% liquid
+  unless tag
+    assign tag = 'li'
+  endunless
+
+  unless sizes
+    assign sizes = '50vw, (min-width: 768px) 33vw'
+  endunless
+
+  if article
+    assign article_title = article.title
+    assign article_author = article.author
+    assign article_date = article.published_at
+    if article.excerpt.size > 0
+      assign article_excerpt = article.excerpt | strip_html
+    else
+      assign article_excerpt = article.content | strip_html | truncatewords: 30
+    endif
+  else
+    assign article_title = 'sections.onboarding.blog_title' | t
+    assign article_author = 'sections.onboarding.blog_author' | t
+    assign article_date = 'now'
+    assign article_excerpt = 'sections.onboarding.blog_excerpt' | t
+  endif
+%}
+{% if article.image != blank or show_image_placeholder %}
+  {%- capture image_content %}
+    <div class="image-wrapper image-wrapper-{{ image_crop | default: 'none' }}" data-scale-reveal>
+      {% liquid
+        if article.image != blank
+          assign aspect_ratio = article.image.aspect_ratio
+          echo article.image | image_url: width: 1000 | image_tag: loading: 'lazy', sizes: '50vw, (min-width: 768px) calc(100vw / 3)'
+        elsif show_image_placeholder
+          assign aspect_ratio = 1
+          echo 'image' | placeholder_svg_tag: 'w-full h-full bg-scheme-placeholder-background text-scheme-placeholder-foreground fill-current'
+        endif
+      %}
+    </div>
+  {% endcapture -%}
+{% endif %}
+
+<{{ tag }} class="relative group {% if class %} {{ class }} {% endif %} {% if full_width_item_header == '||__cascade-item:full__||' and settings.max_height_full_width_tiles != 'none' %}mx-auto{% endif %}"
+  {% if full_width_item_header == '||__cascade-item:full__||' and settings.max_height_full_width_tiles != 'none' %}
+    style="max-width: calc({{ settings.max_height_full_width_tiles }} * {{ aspect_ratio }} );"
+  {% endif %}
+>
+  {% if article %}
+    <a class="absolute inset-0 z-10" href="{{ article.url }}"><span class="sr-only">{{ article.title }}</span></a>
+  {% endif %}
+
+  {% if image_content %}
+    {{ image_content }}
+  {% endif %}
+
+  {% if style == 'minimal' %}
+    <div class="mt-5 text-sm">
+      {{ article_title }}
+    </div>
+  {% else %}
+    <div class="{% unless full_width_content %}{% if enable_cascade_on_mobile %}w-7/8{% endif %} md:w-3/4 mx-auto{% endunless %}">
+      <div class="mt-8 font-heading text-2xl" aria-hidden="true">
+        {{ article_title }}
+      </div>
+
+      {% if show_author or show_date %}
+        <p class="text-scheme-meta mt-2 font-body text-sm">
+          {%- if show_author -%}
+            {{- 'blogs.article.by_author' | t: author: article_author -}}
+            <br/>
+          {%- endif -%}
+          {%- if show_date -%}
+            {{ article_date | time_tag: format: 'month_day_year' }}
+          {%- endif -%}
+        </p>
+      {% endif %}
+
+      {% if show_excerpt %}
+        <div class="mt-2 font-body text-sm">
+          {{ article_excerpt }}
+        </div>
+      {% endif %}
+
+      {% if show_comment_count and blog.comments_enabled? and article.comments_count > 0 %}
+        <div class="mt-2 font-body text-sm">
+          {{ 'blogs.comments.comments_with_count' | t: count: article.comments_count }}
+        </div>
+      {% endif %}
+
+      {% if show_tags %}
+        <ul class="mt-2 font-body text-sm">
+          {% for tag in article.tags %}
+            <a href="{{ blog.url }}/tagged/{{ tag | handle }}">
+              #{{ tag }}{% unless forloop.last %}&nbsp;{% endunless %}
+            </a>
+          {% endfor %}
+        </ul>
+      {% endif %}
+
+      {% if show_link_text %}
+        <div class="mt-2">
+          <span class="theme-link text-sm">{{ 'blogs.article.read_more' | t }}</span>
+        </div>
+      {% endif %}
+    </div>
+  {% endif %}
+</{{ tag }}>

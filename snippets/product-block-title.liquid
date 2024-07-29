@@ -1,0 +1,6 @@
+<div class="{{ block_base_classes }}" {{ block.shopify_attributes }}>
+  <h1 class="font-heading {{ block.settings.text_size }} break-word">{{ product.title | escape }}</h1>             
+</div>
+<!--Smart file default--->
+                            {% render 'smartb', hideAssets:'0', product: product, smartbGroup:'1', smartbOuterClass:'', smartbOuterStyle:'', smartbInnerStyle:'', smartbInnerClass: 'smart-d-inline-block  smart-mb-1' %}
+                            

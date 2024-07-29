@@ -1,0 +1,242 @@
+{%- liquid
+  assign section_color = section.settings.color_scheme | default: 'primary'
+
+  case section.settings.max_posts
+    when '3', '6'
+      assign articles_per_row = 3
+    when '4', '8'
+      assign articles_per_row = 4
+  endcase
+
+  if section.settings.blog != empty
+    if section.settings.blog.articles_count <= 1
+      assign enable_mobile_carousel = false
+      assign enable_desktop_carousel = false
+    else
+      assign enable_mobile_carousel = section.settings.enable_mobile_carousel
+
+      if section.settings.blog.articles_count <= 2
+        assign enable_desktop_carousel = false
+      else
+        assign enable_desktop_carousel = section.settings.enable_desktop_carousel
+      endif
+    endif
+  else
+    assign enable_mobile_carousel = section.settings.enable_mobile_carousel
+    assign enable_desktop_carousel = section.settings.enable_desktop_carousel
+  endif
+
+  if section.settings.heading != blank
+    assign title = section.settings.heading | strip | escape
+  elsif section.settings.blog != empty
+    assign title = section.settings.blog.title | strip | escape
+  else
+    assign title = 'sections.onboarding.blog_section-title' | t
+  endif
+
+  if section.settings.show_blog_link
+    assign cta_link = section.settings.blog.url
+    assign cta_label = 'blogs.general.more_of_blog' | t: blog: section.settings.blog.title
+  endif
+-%}
+
+<section
+  class="text-scheme-text bg-scheme-background {% unless section.settings.remove_top_padding %}pt-section{% endunless %} {% unless section.settings.remove_bottom_padding %}pb-section{% endunless %} {% if section.settings.disable_color_transition %}disable-section-color-transition disable-section-color-transition-source{% endif %}"
+  data-color-scheme="{{ section_color }}"
+>
+  <div class="max-w-site mx-auto lg:px-10">
+    <div class="{% if settings.section_titles_position == 'left_of_content' %}lg:grid lg:gap-x-grid-gutter lg:grid-cols-4{% endif %}">
+      {%- unless title == blank
+        and section.settings.subheading == blank
+        and section.settings.show_blog_link == false
+      -%}
+        {%- render 'section-title',
+          title: title,
+          subheading: section.settings.subheading,
+          cta_link: cta_link,
+          cta_label: cta_label
+        -%}
+      {%- endunless -%}
+
+      {% liquid
+        assign article_tile_class = 'block pb-10 px-5 lg:px-0'
+
+        if enable_mobile_carousel
+          assign article_tile_class = article_tile_class | append: ' w-3/4'
+        endif
+
+        unless enable_desktop_carousel
+          assign article_tile_class = article_tile_class | append: ' lg:w-auto lg:pb-0'
+        else
+          assign article_tile_class = article_tile_class | append: ' lg:w-3/8 lg:pb-14'
+        endunless
+
+        assign list_classes = 'lg:grid lg:gap-y-14 lg:gap-x-grid-gutter lg:grid-cols-' | append: articles_per_row
+
+        if enable_mobile_carousel or enable_desktop_carousel
+          assign article_tile_class = article_tile_class | append: ' splide__slide'
+        endif
+
+        if section.settings.blog.articles_count == 1
+          assign article_tile_class = article_tile_class | append: ' lg:max-w-3/4 text-lg lg:text-xl leading-7 lg:leading-8'
+        else
+          assign article_tile_class = article_tile_class | append: ' text-theme-basic'
+        endif
+
+        capture image_sizes
+          echo '@media (min-width: 990px) calc((100vw - 5rem) / ' | append: articles_per_row | append: '), 75vw'
+        endcapture
+
+        capture article_tiles
+          if section.settings.blog != empty
+            for article in section.settings.blog.articles limit: section.settings.max_posts
+              render 'article-tile', article: article, class: article_tile_class, sizes: image_sizes, style: 'minimal'
+            endfor
+          else
+            for i in (1..section.settings.max_posts)
+              render 'article-tile', class: article_tile_class, show_image_placeholder: true, style: 'minimal'
+            endfor
+          endif
+        endcapture
+      %}
+
+      {% render 'section-content',
+        enable_mobile_carousel: enable_mobile_carousel,
+        enable_desktop_carousel: enable_desktop_carousel,
+        slideshow_id: section.id,
+        list_classes: list_classes,
+        content: article_tiles,
+        show_section_title: true
+      %}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Blog posts",
+  "class": "section-blog",
+  "settings": [
+    {
+      "id": "heading",
+      "type": "text",
+      "label": "Heading",
+      "info": "If left blank, name of blog will be used."
+    },
+    {
+      "type": "blog",
+      "id": "blog",
+      "label": "Blog"
+    },
+    {
+      "type": "select",
+      "id": "max_posts",
+      "options": [
+        {
+          "value": "3",
+          "label": "3 posts"
+        },
+        {
+          "value": "4",
+          "label": "4 posts"
+        },
+        {
+          "value": "6",
+          "label": "6 posts"
+        },
+        {
+          "value": "8",
+          "label": "8 posts"
+        }
+      ],
+      "label": "Posts to show"
+    },
+    {
+      "id": "subheading",
+      "type": "richtext",
+      "label": "Subheading",
+      "default": "<p>Use this text to share information about your brand with your customers.</p>"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_blog_link",
+      "label": "Show link to blog",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Carousel"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_mobile_carousel",
+      "label": "Enable on mobile",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_desktop_carousel",
+      "label": "Enable on desktop",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "Color"
+    },
+    {
+      "type": "select",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "options": [
+        {
+          "value": "primary",
+          "label": "Primary"
+        },
+        {
+          "value": "secondary",
+          "label": "Secondary"
+        },
+        {
+          "value": "tertiary",
+          "label": "Tertiary"
+        }
+      ]
+    },
+    {
+      "type": "checkbox",
+      "id": "disable_color_transition",
+      "label": "Disable transition",
+      "info": "Overrides section color transitions theme setting."
+    },
+    {
+      "type": "header",
+      "content": "Spacing",
+      "info": "Adjust vertical spacing to visually connect this section to adjacent sections"
+    },
+    {
+      "type": "checkbox",
+      "id": "remove_top_padding",
+      "label": "Remove top padding",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "remove_bottom_padding",
+      "label": "Remove bottom padding",
+      "default": false
+    }
+  ],
+  "presets": [
+    {
+      "name": "Blog posts"
+    }
+  ],
+  "disabled_on": {
+    "groups": [
+      "header",
+      "footer",
+      "aside"
+    ]
+  }
+}
+{% endschema %}

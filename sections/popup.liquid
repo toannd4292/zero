@@ -1,0 +1,46 @@
+<div x-data>
+  <template x-teleport="body">
+    <div
+      x-show="$store.modals.popup.open"
+      @keydown.escape.prevent.stop="$store.modals.close('popup')"
+      @click="$store.modals.close('popup')"
+      class="fixed inset-0 z-110"
+      data-color-scheme="{{ settings.modal_color_scheme | default: 'tertiary' }}"
+      id="modals-popup"
+      @popup-is-open.window="setTimeout(() => { $focus.first() }, 120)"
+    >
+      <div
+        x-show="$store.modals.popup.open"
+        x-transition:enter.opacity.duration.200ms
+        x-transition:leave.opacity.duration.225ms.delay.125ms
+        class="fixed inset-0 bg-scheme-text/50"
+      >
+        <!-- Overlay -->
+      </div>
+      <div
+        x-show="$store.modals.popup.open"
+        class="h-full w-full flex"
+      >
+        <div
+          @click.stop
+          x-show="$store.modals.popup.open"
+          x-transition:enter="transition ease-gentle duration-[300ms] delay-75"
+          x-transition:enter-start="translate-y-4 scale-[0.99] opacity-0"
+          x-transition:enter-end="translate-y-0 opacity-100"
+          x-transition:leave="transition ease-gentle duration-[300ms]"
+          x-transition:leave-start="scale-100 opacity-100"
+          x-transition:leave-end="scale-[0.925] opacity-0"
+          x-trap.noscroll.inert="$store.modals.popup.open"
+          class="relative w-9/12 h-5/6 px-5 md:px-5 lg:px-10 bg-scheme-background text-scheme-text m-auto overflow-y-auto"
+          id="popup-slot"
+          role="dialog"
+          aria-modal="true"
+          :aria-label="getModalLabel('popup', $el)"
+          tabindex="-1"
+        >
+          <!-- Modal content is teleported here -->
+        </div>
+      </div>
+    </div>
+  </template>
+</div>

@@ -1,0 +1,268 @@
+{% paginate search.results by 12 %}
+  {%- liquid
+    assign section_color = section.settings.color_scheme | default: 'primary'
+
+    assign show_sort = section.settings.enable_sorting
+    assign show_filters = section.settings.enable_filtering
+
+    assign sort_by = search.sort_by | default: search.default_sort_by
+
+    if search.performed
+      if search.results_count == 0
+        assign heading_text = 'general.search.no_results' | t: terms: search.terms
+      else
+        assign heading_text = 'general.search.results_with_count' | t: terms: search.terms, count: search.results_count
+      endif
+    else
+      assign heading_text = 'general.search.title' | t
+    endif
+
+    assign product_results = search.results | where: 'object_type', 'product'
+    assign article_results = search.results | where: 'object_type', 'article'
+    assign page_results = search.results | where: 'object_type', 'page'
+
+    capture product_results_content
+      for item in product_results
+        render 'product-tile', product: item
+      endfor
+    endcapture
+
+    capture article_results_content
+      for item in article_results
+        render 'article-tile', style: 'minimal', article: item
+      endfor
+    endcapture
+
+    capture page_results_content
+      for item in page_results
+        echo '<li>'
+        echo '<a href="' | append: item.url | append: '" class="theme-link">'
+        echo item.title
+        echo '</a>'
+        echo '</li>'
+      endfor
+    endcapture
+  -%}
+
+  <section
+    class="py-section text-scheme-text bg-scheme-background min-h-[90vh]"
+    data-color-scheme="{{ section_color }}"
+    {% if show_filters or show_sort %}
+      x-data="ThemeSection_filterable('{{ section.id }}')"
+    {% endif %}
+  >
+    <div
+      id="facets-filterable"
+      class="max-w-site mx-auto px-5 lg:px-10 lg:grid lg:grid-cols-4 lg:gap-x-grid-gutter"
+    >
+      <div class="pb-10 lg:pb-0">
+        <h1 class="font-heading text-2xl mb-5 break-word">
+          {{ heading_text }}
+        </h1>
+        <form action="{{ routes.search_url }}" method="get" role="search">
+          <label for="search" class="sr-only">{{ 'general.search.submit' | t }}</label>
+          <div class="relative">
+            <input
+              type="search"
+              name="q"
+              class="border-scheme-text/0 border-b border-b-scheme-text pl-0 pr-8 w-full focus:border rounded-[0]"
+              value="{{ search.terms | escape }}"
+              placeholder="{{ 'general.search.placeholder' | t }}"
+            />
+            <button
+              type="submit"
+              class="flex justify-center items-center absolute top-0 right-0 bottom-0 left-auto h-full"
+              aria-label="{{ 'general.search.submit' | t }}"
+            >
+              <div class="w-6 h-6">
+                {% render 'icon-search' %}
+              </div>
+            </button>
+          </div>
+        </form>
+        {% if show_filters %}
+          <div class="hidden" id="facets-results-count">
+            {%- if collection.products_count == 1 -%}
+              {{ 'general.search.results_with_count.one' | t: count: collection.products_count }}
+            {%- else -%}
+              {{ 'general.search.results_with_count.other' | t: count: collection.products_count }}
+            {%- endif -%}
+          </div>
+          <div class="sw-hidden lg:block lg:sticky lg:top-header-height-with-buffer lg:h-min mt-10">
+            {% render 'filters-desktop',
+              results: search,
+              enable_color_swatch_filters: section.settings.enable_color_swatch_filters,
+              expand_filters: section.settings.expand_filters,
+              capitalize_filters: section.settings.capitalize_filters,
+              show_filter_count: section.settings.show_filter_count,
+              show_filters: show_filters
+            %}
+          </div>
+        {% endif %}
+      </div>
+      <div
+        class="lg:col-span-3"
+      >
+        {% if search.performed %}
+          {% if show_filters or show_sort %}
+            {%- liquid
+              assign total_active_values = 0
+              for filter in search.filters
+                assign total_active_values = total_active_values | plus: filter.active_values.size
+                if filter.type == 'price_range'
+                  if filter.max_value.value or filter.min_value.value
+                    assign total_active_values = total_active_values | plus: 1
+                  endif
+                endif
+              endfor
+            -%}
+            <div class="flex justify-between items-center">
+              <div class="mr-auto my-5 lg:hidden">
+                <button type="button" @click="$store.modals.open('filters')">
+                  <span class="inline-block align-middle h-5 w-5 mr-2">
+                    {% render 'icon-filter' %}
+                  </span>
+                  <span class="inline-block align-middle">
+                    {{ 'facets.filters.title_tags' | t }}
+                    {% if total_active_values > 0 %}({{ total_active_values }}){% endif %}
+                  </span>
+                </button>
+              </div>
+              {% if show_sort %}
+                <div class="ml-auto mt-5 mb-5 lg:mt-0 lg:mb-8 flex items-center">
+                  <label class="font-secondary text-sm mr-4 border-b border-transparent sr-only lg:not-sr-only lg:mr-4" for="Search-Sort">{{ 'facets.sorting.title' | t }}</label>
+                  <select
+                    form="Facet-Filters-Form"
+                    id="Search-Sort"
+                    name="sort_by"
+                    @input.debounce="filterFormSubmit"
+                    class="inline-block font-secondary text-sm pr-12 h-full">
+                    {%- for option in search.sort_options -%}
+                      <option
+                        value="{{ option.value | escape }}"
+                        {% if option.value == sort_by %}selected="selected"{% endif %}
+                      >
+                          {{ option.name | escape }}
+                      </option>
+                    {% endfor %}
+                  </select>
+                </div>
+              {% endif %}
+            </div>
+          {% endif %}
+
+          <div id="facets-results">
+            {% if product_results_content != blank %}
+              <ul class="grid md:grid-cols-2 lg:grid-cols-3 gap-10">
+                {{ product_results_content }}
+              </ul>
+            {% endif %}
+
+            {% if article_results_content != blank %}
+              <h2 class="font-heading text-2xl mb-5">
+                {{ 'general.search.articles' | t }}
+              </h2>
+              <ul class="grid md:grid-cols-2 gap-10">
+                {{ article_results_content }}
+              </ul>
+            {% endif %}
+
+            {% if page_results_content != blank %}
+              <h2 class="font-heading text-2xl mb-5">
+                {{ 'general.search.pages' | t }}
+              </h2>
+              <ul class="grid md:grid-cols-2 gap-10">
+                {{ page_results_content }}
+              </ul>
+            {% endif %}
+
+            {% if paginate.pages > 1 %}
+              <div class="my-20">
+                {% render 'pagination', paginate: paginate %}
+              </div>
+            {% endif %}
+          </div>
+        {% endif %}
+      </div>
+      {% if show_filters %}
+        {% render 'filters-mobile',
+          results: search,
+          enable_color_swatch_filters: section.settings.enable_color_swatch_filters,
+          expand_filters: section.settings.expand_filters,
+          capitalize_filters: section.settings.capitalize_filters,
+          show_filter_count: section.settings.show_filter_count,
+          linklist: linklist,
+          show_filters: show_filters
+        %}
+      {% endif %}
+    </div>
+  </section>
+{% endpaginate %}
+
+{% if show_filters or show_sort %}
+  <script src="{{ 'filterable.js' | asset_url }}" type="module"></script>
+{% endif %}
+
+{% schema %}
+{
+  "name": "Search",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Filtering and sorting"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_filtering",
+      "label": "Enable filtering",
+      "info": "[Customize filters](/admin/menus)"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_sorting",
+      "label": "Enable sorting"
+    },
+    {
+      "type": "checkbox",
+      "id": "expand_filters",
+      "label": "Expand filters by default",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_filter_count",
+      "label": "Show filter counts",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_color_swatch_filters",
+      "label": "Enable color swatch filters",
+      "info": "[Learn how to set up swatches](https://support.switchthemes.co/article/232-color-swatches)"
+    },
+    {
+      "type": "header",
+      "content": "Color"
+    },
+    {
+      "type": "select",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "options": [
+        {
+          "value": "primary",
+          "label": "Primary"
+        },
+        {
+          "value": "secondary",
+          "label": "Secondary"
+        },
+        {
+          "value": "tertiary",
+          "label": "Tertiary"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,414 @@
+{% liquid
+  assign section_color = section.settings.color_scheme
+  assign text_color = section.settings.text_color
+%}
+
+<section
+  class="
+    {%- if text_color != 'color_scheme' -%}
+      {{ text_color }}
+    {%- else -%}
+      text-scheme-text
+    {%- endif %}
+    bg-scheme-background has-full-bleed-images
+    {% if section.settings.disable_color_transition %}disable-section-color-transition disable-section-color-transition-source{% endif %}"
+  data-color-scheme="{{ section_color }}"
+>
+  {% render 'media-with-text-overlay',
+      media_type: 'image_split',
+      content_below_on_mobile: section.settings.content_below_on_mobile,
+      section: section
+  %}
+</section>
+
+{% schema %}
+{
+  "name": "Image split with overlay",
+  "class": "banner-section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "First image"
+    },
+    {
+      "id": "first_image",
+      "type": "image_picker",
+      "label": "Image"
+    },
+    {
+      "type": "select",
+      "id": "first_image_width",
+      "label": "Width on desktop",
+      "default": "lg:col-span-6 | lg:col-span-6",
+      "options": [
+        {
+          "value": "lg:col-span-4 | lg:col-span-8",
+          "label": "One third"
+        },
+        {
+          "value": "lg:col-span-5 | lg:col-span-7",
+          "label": "Two fifths"
+        },
+        {
+          "value": "lg:col-span-6 | lg:col-span-6",
+          "label": "One half"
+        },
+        {
+          "value": "lg:col-span-7 | lg:col-span-5",
+          "label": "Three fifths"
+        },
+        {
+          "value": "lg:col-span-8 | lg:col-span-4",
+          "label": "Two thirds"
+        }
+      ]
+    },
+    {
+      "type": "checkbox",
+      "id": "indent_first_image",
+      "label": "Indent image",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "first_image_color_scheme",
+      "label": "Indent background color",
+      "options": [
+        {
+          "value": "follow",
+          "label": "Follow section color scheme"
+        },
+        {
+          "value": "primary",
+          "label": "Primary background"
+        },
+        {
+          "value": "secondary",
+          "label": "Secondary background"
+        },
+        {
+          "value": "tertiary",
+          "label": "Tertiary background"
+        }
+      ],
+      "default": "follow"
+    },
+    {
+      "type": "header",
+      "content": "Second image"
+    },
+    {
+      "id": "second_image",
+      "type": "image_picker",
+      "label": "Image"
+    },
+    {
+      "type": "checkbox",
+      "id": "indent_second_image",
+      "label": "Indent image",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "second_image_color_scheme",
+      "label": "Indent background color",
+      "options": [
+        {
+          "value": "follow",
+          "label": "Follow section color scheme"
+        },
+        {
+          "value": "primary",
+          "label": "Primary background"
+        },
+        {
+          "value": "secondary",
+          "label": "Secondary background"
+        },
+        {
+          "value": "tertiary",
+          "label": "Tertiary background"
+        }
+      ],
+      "default": "follow"
+    },
+    {
+      "type": "header",
+      "content": "Content"
+    },
+    {
+      "id": "title",
+      "type": "text",
+      "label": "Heading",
+      "default": "Image split"
+    },
+    {
+      "type": "radio",
+      "id": "text_size",
+      "label": "Text size",
+      "options": [
+        {
+          "value": "text-heading-feature",
+          "label": "Feature heading"
+        },
+        {
+          "value": "text-heading-standard",
+          "label": "Standard heading"
+        }
+      ],
+      "default": "text-heading-feature"
+    },
+    {
+      "type": "richtext",
+      "id": "text",
+      "label": "Text"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_arrow",
+      "label": "Show scroll down arrow",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "select",
+      "id": "crop",
+      "label": "Aspect ratio – mobile:",
+      "options": [
+        {
+          "value": "full-screen",
+          "label": "Full screen"
+        },
+        {
+          "value": "natural",
+          "label": "Natural"
+        }
+      ],
+      "default": "full-screen"
+    },
+    {
+      "type": "select",
+      "id": "crop_desktop",
+      "label": "Aspect ratio – desktop:",
+      "options": [
+        {
+          "value": "four-three",
+          "label": "Classic (4:3)"
+        },
+        {
+          "value": "widescreen",
+          "label": "Widescreen (16:9)"
+        },
+        {
+          "value": "cinematic",
+          "label": "Cinematic (2.35:1)"
+        },
+        {
+          "value": "full-screen",
+          "label": "Full screen"
+        }
+      ],
+      "default": "widescreen"
+    },
+    {
+      "type": "select",
+      "id": "place_content",
+      "label": "Content position",
+      "options": [
+        {
+          "value": "place-content-center-start",
+          "label": "Middle left"
+        },
+        {
+          "value": "place-content-center-center",
+          "label": "Middle center"
+        },
+        {
+          "value": "place-content-center-end",
+          "label": "Middle right"
+        },
+        {
+          "value": "place-content-end-start",
+          "label": "Bottom left"
+        },
+        {
+          "value": "place-content-end-center",
+          "label": "Bottom center"
+        },
+        {
+          "value": "place-content-end-end",
+          "label": "Bottom right"
+        }
+      ],
+      "default": "place-content-center-center"
+    },
+    {
+      "type": "select",
+      "id": "text_align",
+      "label": "Text alignment",
+      "options": [
+        {
+          "value": "text-left",
+          "label": "Left"
+        },
+        {
+          "value": "text-center",
+          "label": "Center"
+        },
+        {
+          "value": "text-right",
+          "label": "Right"
+        }
+      ],
+      "default": "text-center"
+    },
+    {
+      "type": "checkbox",
+      "id": "content_below_on_mobile",
+      "label": "Display content below image on mobile"
+    },
+    {
+      "type": "header",
+      "content": "Color"
+    },
+    {
+      "type": "select",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "options": [
+        {
+          "value": "primary",
+          "label": "Primary"
+        },
+        {
+          "value": "secondary",
+          "label": "Secondary"
+        },
+        {
+          "value": "tertiary",
+          "label": "Tertiary"
+        }
+      ]
+    },
+    {
+      "type": "checkbox",
+      "id": "disable_color_transition",
+      "label": "Disable transition",
+      "info": "Overrides section color transitions theme setting."
+    },
+    {
+      "type": "select",
+      "id": "text_color",
+      "label": "Text color",
+      "options": [
+        {
+          "value": "color_scheme",
+          "label": "Follow color scheme"
+        },
+        {
+          "value": "text-white",
+          "label": "White"
+        },
+        {
+          "value": "text-black",
+          "label": "Black"
+        }
+      ]
+    }
+  ],
+  "blocks": [
+    {
+      "type": "button",
+      "name": "Button",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "url",
+          "id": "link",
+          "label": "Link"
+        },
+        {
+          "type": "text",
+          "id": "text",
+          "label": "Text",
+          "default": "Shop now"
+        },
+        {
+          "type": "radio",
+          "id": "style",
+          "label": "Style",
+          "options": [
+            {
+              "value": "solid",
+              "label": "Solid"
+            },
+            {
+              "value": "border-only",
+              "label": "Border only"
+            }
+          ],
+          "default": "solid"
+        }
+      ]
+    },
+    {
+      "type": "color",
+      "name": "Color",
+      "limit": 1,
+      "settings": [
+        {
+          "id": "color",
+          "type": "color",
+          "label": "Color",
+          "default": "#000000"
+        },
+        {
+          "id": "opacity",
+          "type": "range",
+          "label": "Opacity",
+          "min": 1,
+          "max": 100,
+          "step": 1,
+          "default": 80
+        }
+      ]
+    },
+    {
+      "type": "color_background",
+      "name": "CSS background",
+      "limit": 1,
+      "settings": [
+        {
+          "id": "color_background",
+          "type": "color_background",
+          "label": "CSS Background"
+        },
+        {
+          "id": "opacity",
+          "type": "range",
+          "label": "Opacity",
+          "min": 1,
+          "max": 100,
+          "step": 1,
+          "default": 80
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Image split with overlay"
+    }
+  ],
+  "disabled_on": {
+    "groups": [
+      "header",
+      "footer",
+      "aside"
+    ]
+  }
+}
+{% endschema %}

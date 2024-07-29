@@ -1,0 +1,1137 @@
+{% comment %}theme-check-disable TemplateLength{% endcomment %}
+{%- liquid
+  assign predictive_search_enabled = settings.predictive_search_enabled
+
+  assign font_class = settings.header_font | append: ' ' | append: settings.header_text_transform
+
+  assign close_text = 'general.accessibility.close_modal'
+
+  if section.settings.show_search
+    assign close_text = 'general.search.clear'
+  endif
+
+  if predictive_search_enabled and section.settings.show_search
+    assign search_resources = ''
+
+    if settings.search_products
+      assign search_resources = ' product'
+    endif
+    if settings.search_collections
+      assign search_resources = search_resources | append: ' collection'
+    endif
+    if settings.search_articles
+      assign search_resources = search_resources | append: ' article'
+    endif
+    if settings.search_pages
+      assign search_resources = search_resources | append: ' page'
+    endif
+    if settings.search_suggestions
+      assign search_resources = search_resources | append: ' query'
+    endif
+    assign search_resources = search_resources | strip | split: ' ' | join: ','
+  endif
+
+  if section.settings.enable_overlay_on_homepage and template == 'index'
+    assign enable_overlay = true
+  endif
+
+  if section.settings.enable_overlay_on_collection_template and template.name == 'collection'
+    assign enable_overlay = true
+  endif
+
+  if section.settings.enable_overlay_on_product_template and template == 'product'
+    assign enable_overlay = true
+  endif
+
+  if section.settings.enable_overlay_on_classic_product_template and template == 'product.classic'
+    assign enable_overlay = true
+  endif
+
+  if section.settings.enable_overlay_on_split_product_template and template == 'product.split'
+    assign enable_overlay = true
+  endif
+
+  assign menu_items_display = section.settings.menu_items_display
+
+  assign header_layout_mobile = section.settings.header_layout_mobile
+  assign header_layout_desktop = section.settings.header_layout_desktop
+
+  assign enable_sidebar_nav_on_desktop = section.settings.enable_sidebar_nav_on_desktop
+
+  assign use_separate_desktop_layout = true
+
+  if header_layout_desktop == header_layout_mobile
+    if enable_sidebar_nav_on_desktop == true
+      assign use_separate_desktop_layout = false
+    endif
+  endif
+-%}
+
+{% if predictive_search_enabled %}
+  <style>
+    .predictive-search-form li[aria-selected='true'],
+    .predictive-search-form [aria-selected='true'] button {
+      box-shadow: 0 0 0 2px currentColor;
+    }
+  </style>
+{% endif %}
+
+{% if section.settings.show_search %}
+  {%- capture search_form -%}
+    <form
+      class="predictive-search-form flex flex-col h-screen"
+      x-ref="searchForm"
+      action="{{ routes.search_url }}"
+      method="get"
+      role="search"
+      {% if predictive_search_enabled %}
+        @submit="onFormSubmit"
+      {% endif %}
+      @search-is-open.window="setTimeout(() => { $focus.first() }, 150)"
+    >
+      <div class="px-2.5 lg:px-5">
+        <div class="relative mt-5 py-4">
+          <input
+            id="header-search" type="search"
+            name="q" value=""
+            class="header-search-input pl-9 py-2 placeholder-current font-secondary w-full shadow-none border-none"
+            x-ref="input"
+            placeholder="{{ 'general.search.placeholder' | t }}"
+            {%- if predictive_search_enabled -%}
+              :aria-expanded="results ? 'true' : 'false'"
+              aria-owns="predictive-search-results-list"
+              aria-controls="predictive-search-results-list"
+              aria-autocomplete="list"
+              autocorrect="off" autocomplete="off" autocapitalize="off"
+              spellcheck="false"
+              x-model="rawQuery"
+              @input.debounce.300="onChange"
+              @focus="onFocus"
+            {%- endif -%}
+          >
+          <label class="sr-only" for="header-search">{{ 'general.search.placeholder' | t }}</label>
+          <input type="hidden" name="options[prefix]" value="last">
+          {%- if predictive_search_enabled == false and settings.search_products or settings.search_articles or settings.search_pages -%}
+            <input type="hidden" name="type" value="{% if settings.search_products %}product{% endif %}{% if settings.search_articles %},article{% endif %}{% if settings.search_pages %},page{% endif %}">
+          {%- endif -%}
+          <button
+            class="absolute top-0 bottom-0 left-0 right-auto h-full flex items-center justify-center pr-2"
+            aria-label="{{ 'general.search.submit' | t }}"
+          >
+            <span class="inline-block w-6 h-6">{% render 'icon-search' %}</span>
+          </button>
+          <button
+            x-cloak
+            {% if predictive_search_enabled %}
+              @click="close(true,true)"
+            {% else %}
+              @click="closeSearch()"
+            {% endif %}
+            class="absolute top-0 bottom-0 right-0 left-auto h-full flex items-center justify-center pl-2" type="button"
+          >
+            <span class="sr-only">{{ close_text | t }}</span>
+            <span class="inline-block w-6 h-6">{% render 'icon-close' %}</span>
+          </button>
+        </div>
+      </div>
+      {%- if predictive_search_enabled -%}
+        {% render 'predictive-search-results-slot' %}
+      {%- endif -%}
+    </form>
+  {%- endcapture -%}
+
+  <div
+    x-data="$store.modals.register('search', 'rightDrawer'); initTeleport($root);"
+    x-cloak
+  >
+    <template data-should-teleport="#right-drawer-slot">
+      <div
+        class="px-2.5 lg:px-5"
+        :data-modal-label="$store.modals.rightDrawer.contents === 'search' ? '{{ 'general.search.title' | t | escape }}' : false"
+        x-show="$store.modals.rightDrawer.contents === 'search'"
+      >
+        <div
+          {% if predictive_search_enabled %}
+            x-data='ThemeComponent_PredictiveSearch({{ search_resources | json }})'
+            @keyup="onKeyup"
+            @keydown="onKeydown"
+          {% else %}
+            class="px-2.5 lg:px-5"
+          {% endif %}
+        >
+          {{ search_form }}
+        </div>
+      </div>
+    </template>
+  </div>
+{% endif %}
+
+{% if section.settings.sticky_header == true %}
+  <style>
+    #shopify-section-{{ section.id }} {
+      position: -webkit-sticky;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+  </style>
+{% endif %}
+
+<script type="module">
+  document.documentElement.style.setProperty(
+    '--header-height',
+    `${document.getElementById('{{ section.id }}').offsetHeight}px`
+  );
+</script>
+
+{% if enable_overlay %}
+  <script>
+    document
+      .getElementById('shopify-section-{{ section.id }}')
+      .classList.add('has-no-height');
+  </script>
+
+  {% unless section.settings.sticky_header == true %}
+    <style>
+      #shopify-section-{{ section.id }} {
+        position: relative;
+        top: 0;
+      }
+    </style>
+  {% endunless %}
+{% endif %}
+
+{% if section.settings.sticky_header == true %}
+  <div
+    x-data
+    x-init="document.body.insertBefore($root.firstElementChild, document.getElementById('shopify-section-{{ section.id }}')); $root.remove();"
+  >
+    <div
+      id="HeaderSentinel"
+      x-data="{ header: document.getElementById('shopify-section-{{ section.id }}') }"
+      x-intersect:leave="header.classList.add('is-stuck'); $dispatch('header-stick')"
+      x-intersect:enter="header.classList.remove('is-stuck'); $dispatch('header-unstick')"
+    ></div>
+  </div>
+{% endif %}
+
+{%- liquid
+  assign has_advanced_logo_block = false
+
+  assign advanced_logo_block = section.blocks | where: 'type', 'logo_advanced' | first
+
+  if advanced_logo_block != blank
+    assign has_advanced_logo_block = true
+  endif
+
+  assign meta_items = ''
+
+  comment
+    meta_items legend:
+    a - account link
+    l - login link
+    s - search link
+    c - cart button (opens modal)
+    k - cart link
+  endcomment
+
+  if shop.customer_accounts_enabled
+    if customer
+      assign meta_items = meta_items | append: 'a'
+    else
+      assign meta_items = meta_items | append: 'l'
+    endif
+  endif
+
+  if section.settings.show_search
+    assign meta_items = meta_items | append: 's'
+  endif
+
+  if settings.cart_type == 'drawer' and template != 'cart'
+    assign meta_items = meta_items | append: 'c'
+  else
+    assign meta_items = meta_items | append: 'k'
+  endif
+-%}
+
+{% style %}
+  {% if enable_overlay %}
+    {% assign overlay_header_color = section.settings.overlay_header_color %}
+
+    [data-color-scheme="header"] {
+      --color-scheme-text: var(--color-{{ overlay_header_color }}-text);
+      --color-scheme-text-overlay: var(--color-{{ overlay_header_color }}-text-overlay);
+      --color-scheme-background: transparent;
+      --color-scheme-accent: var(--color-{{ overlay_header_color }}-accent);
+      --color-scheme-accent-overlay: var(--color-{{ overlay_header_color }}-accent-overlay);
+      --color-scheme-meta: var(--color-{{ overlay_header_color }}-meta);
+    }
+
+    .is-stuck [data-color-scheme="header"] {
+      --color-scheme-text: var(--color-{{ section.settings.detached_header_color }}-text);
+      --color-scheme-text-overlay: var(--color-{{ section.settings.detached_header_color }}-text-overlay);
+      --color-scheme-background: var(--color-{{ section.settings.detached_header_color }}-background);
+      --color-scheme-accent: var(--color-{{ section.settings.detached_header_color }}-accent);
+      --color-scheme-accent-overlay: var(--color-{{ section.settings.detached_header_color }}-accent-overlay);
+      --color-scheme-meta: var(--color-{{ section.settings.detached_header_color }}-meta);
+    }
+  {% else %}
+      [data-color-scheme="header"] {
+        --color-scheme-text: var(--color-{{ section.settings.detached_header_color }}-text);
+        --color-scheme-text-overlay: var(--color-{{ section.settings.detached_header_color }}-text-overlay);
+        --color-scheme-background: var(--color-{{ section.settings.detached_header_color }}-background);
+        --color-scheme-accent: var(--color-{{ section.settings.detached_header_color }}-accent);
+        --color-scheme-accent-overlay: var(--color-{{ section.settings.detached_header_color }}-accent-overlay);
+        --color-scheme-meta: var(--color-{{ section.settings.detached_header_color }}-meta);
+      }
+  {% endif %}
+
+  {% if section.settings.transparent_when_sticky %}
+    .is-stuck [data-color-scheme="header"] {
+      --tw-bg-opacity: 0;
+    }
+  {% endif %}
+{% endstyle %}
+
+<section
+  id="{{ section.id }}"
+  {% if enable_overlay %}
+    class="absolute top-0 left-0 w-full z-20"
+  {% endif %}
+  x-data="
+    {
+      isStuck: false,
+      {% if section.settings.show_search %}
+        searchOpen: false,
+        openSearch() {
+          this.searchOpen = true;
+          let input = document.querySelector('.header-search-input');
+          setTimeout(() => {
+            input.focus();
+          }, 100);
+        },
+        closeSearch() {
+          this.searchOpen = false;
+          this.$refs.search.focus();
+        }
+      {% endif %}
+    }
+  "
+  x-init="
+    initTeleport($root);
+    {% unless enable_sidebar_nav_on_desktop %}
+      $store.modals.register('desktop-sidebar-nav', 'leftDrawer');
+    {% endunless %}
+  "
+  @header-stick.window="isStuck = true"
+  @header-unstick.window="isStuck = false"
+>
+  <div
+    class="
+      {{ font_class }} text-scheme-text bg-scheme-background grid gap-x-4
+      {% if header_layout_mobile == 'n_l_m' %}
+        grid-cols-[minmax(min-content,_1fr)_auto_minmax(min-content,_1fr)]
+      {% elsif header_layout_mobile == 'nl__m' %}
+        grid-cols-[auto_auto_minmax(min-content,_1fr)]
+      {% elsif header_layout_mobile == 'l__nm' %}
+        grid-cols-[minmax(min-content,_1fr)_auto_auto]
+      {% endif %}
+      {% if use_separate_desktop_layout %}
+        {% if header_layout_desktop == 'n_l_m' %}
+          md:grid-cols-[minmax(min-content,_1fr)_auto_minmax(min-content,_1fr)]
+        {% elsif header_layout_desktop == 'nl__m' %}
+          {% if enable_sidebar_nav_on_desktop %}
+            md:grid-cols-[auto_auto_minmax(min-content,_1fr)]
+          {% else %}
+            md:grid-cols-[auto_minmax(min-content,_1fr)_auto]
+          {% endif %}
+        {% elsif header_layout_desktop == 'l__nm' %}
+          {% if enable_sidebar_nav_on_desktop %}
+            md:grid-cols-[minmax(min-content,_1fr)_auto_auto]
+          {% else %}
+            md:grid-cols-[auto_minmax(min-content,_1fr)_auto]
+          {% endif %}
+        {% endif %}
+      {% endif %}
+      {{ section.settings.section_padding }}
+      px-5 lg:px-10
+      motion-reduce:transition-none
+    "
+    {% if section.settings.sticky_header %}
+      :data-sticky-header="isStuck"
+    {% endif %}
+    data-color-scheme="header"
+    x-data
+  >
+    <div
+      class="
+        w-full flex justify-start items-center
+        {% if header_layout_mobile == 'l__nm' %}
+          order-last
+        {% endif %}
+        {% if use_separate_desktop_layout %}
+          {% if header_layout_desktop == 'l__nm' and enable_sidebar_nav_on_desktop %}
+            md:order-last
+          {% else %}
+            md:order-none
+          {% endif %}
+          {% if header_layout_desktop == 'nl__m' and enable_sidebar_nav_on_desktop == false %}
+            md:pl-4
+          {% endif %}
+        {% endif %}
+      "
+    >
+      {% capture menu_button_content %}
+        {% if menu_items_display == 'icons' %}
+          <span class="sr-only">{{ 'layout.navigation.menu' | t }}</span>
+          <div class="w-6 h-6">
+            {% render 'icon-menu' %}
+          </div>
+        {% else %}
+          {{ 'layout.navigation.menu' | t }}
+        {% endif %}
+      {% endcapture %}
+      {% if enable_sidebar_nav_on_desktop %}
+        <button
+          class="block js-enabled"
+          type="button"
+          @click="$store.modals.open('mobile-sidebar-nav')"
+        >
+          {{ menu_button_content }}
+        </button>
+      {% else %}
+        <div class="sw-hidden md:block js-enabled w-full">
+          <nav>
+            <ul class="flex justify-start items-center flex-wrap max-w-full -mx-2 -my-1 {% if use_separate_desktop_layout and header_layout_desktop == 'l__nm' %} md:justify-end md:mr-0 {% endif %}">
+              {% for link in section.settings.linklist.links %}
+                <li class="mx-2 my-1">
+                  {% if link.links.size > 0 %}
+                    <button
+                      type="button"
+                      class="text-left"
+                      @click="$store.nav.currentIndex = {{ forloop.index }}; $store.modals.open('desktop-sidebar-nav');"
+                    >
+                      <div class="flex items-center">
+                        {{- link.title -}}
+                        <div class="w-4 h-4 ml-1">
+                          {% render 'icon-chevron-down' %}
+                        </div>
+                      </div>
+                    </button>
+                  {% else %}
+                    <a class="break-word" href="{{ link.url }}">
+                      {{- link.title -}}
+                    </a>
+                  {% endif %}
+                </li>
+              {% endfor %}
+            </ul>
+          </nav>
+          <div x-data>
+            <div>
+              {% render 'sidebar-nav-desktop', section: section %}
+            </div>
+          </div>
+        </div>
+        <div class="md:hidden js-enabled">
+          <button
+            class="block"
+            type="button"
+            @click="$store.modals.open('mobile-sidebar-nav')"
+          >
+            {{ menu_button_content }}
+          </button>
+        </div>
+      {% endif %}
+      {% render 'noscript-nav',
+        menu_button_content: menu_button_content,
+        section: section
+      %}
+    </div>
+
+    <div
+      class="
+        w-full flex
+        {% if header_layout_mobile == 'l__nm' or header_layout_mobile == 'nl__m' %}
+          justify-start text-left
+        {% else %}
+          justify-center text-center
+        {% endif %}
+
+        {% if use_separate_desktop_layout %}
+          {% if header_layout_desktop == 'l__nm' or header_layout_desktop == 'nl__m' %}
+            {% unless enable_sidebar_nav_on_desktop %}
+              md:order-first
+            {% endunless %}
+            md:justify-start md:text-left
+          {% else %}
+            md:justify-center md:text-center
+          {% endif %}
+        {% endif %}
+
+        align-center
+      "
+    >
+      <h1
+        class="my-auto break-word"
+      >
+        <a href="{{ routes.root_url }}">
+          {% unless has_advanced_logo_block %}
+            {%
+              render 'logo',
+              section: section,
+              enable_overlay: enable_overlay,
+            %}
+          {% else %}
+            {%
+              render 'logo-advanced',
+              block: advanced_logo_block,
+              section: section,
+            %}
+          {% endunless %}
+        </a>
+      </h1>
+    </div>
+
+    <div class="flex justify-end items-center">
+      <div class="flex justify-end items-center -mx-2 -my-1">
+        {% if menu_items_display == 'icons' %}
+          {% if meta_items contains 'a' %}
+            <a
+              class="mx-2 my-1 {% if header_layout_mobile == 'n_l_m' %} sw-hidden md:block {% endif %}"
+              href="{{ routes.account_url }}"
+              aria-label="{{ 'layout.customer.account' | t }}"
+            >
+              <div class="w-6 h-6">
+                {% render 'icon-account' %}
+              </div>
+            </a>
+          {% elsif meta_items contains 'l' %}
+            <a
+              class="mx-2 my-1 {% if header_layout_mobile == 'n_l_m' %} sw-hidden md:block {% endif %}"
+              href="{{ routes.account_login_url }}"
+              aria-label="{{ 'layout.customer.log_in' | t }}"
+            >
+              <div class="w-6 h-6">
+                {% render 'icon-account' %}
+              </div>
+            </a>
+          {% endif %}
+
+          {% if meta_items contains 's' %}
+            <a
+              class="mx-2 my-1 {% if header_layout_mobile == 'n_l_m' %} sw-hidden md:block {% else %} block {% endif %}"
+              data-open-search
+              x-ref="search"
+              @click.prevent="$store.modals.open('search')"
+              @keydown.space="$store.modals.open('search')"
+              href="{{ routes.search_url }}"
+              :role="'button'"
+              aria-label="{{ 'general.search.submit' | t }}"
+            >
+              <div class="w-6 h-6">
+                {% render 'icon-search' %}
+              </div>
+            </a>
+          {% endif %}
+
+          {% if meta_items contains 'c' %}
+            <button
+              class="mx-2 my-1 flex items-center relative"
+              type="button"
+              id="CartButton"
+              @click.prevent="$store.modals.open('cart')"
+              aria-label="{{ 'layout.cart.title' | t }}"
+            >
+              <div class="w-6 h-6">
+                {%- if settings.cart_icon == 'cart' -%}
+                  {%- render 'icon-cart' -%}
+                {%- else -%}
+                  {%- render 'icon-bag' -%}
+                {%- endif -%}
+              </div>
+              <span
+                x-show="$store.cart_count.count > 0"
+                class="tracking-normal absolute -bottom-1.5 -right-1 w-5 h-5 bg-scheme-text text-scheme-text-overlay rounded-full text-[0.625rem] flex items-center justify-center"
+                {% if cart.item_count == 0 %}
+                  style="display: none;"
+                {% endif %}
+                x-text="$store.cart_count.count"
+              >
+                {{- cart.item_count -}}
+              </span>
+            </button>
+          {% elsif meta_items contains 'k' %}
+            <a
+              class="mx-2 my-1 flex items-center relative"
+              href="{{ routes.cart_url }}"
+              aria-label="{{ 'layout.cart.title' | t }}"
+            >
+              <div class="w-6 h-6">
+                {%- if settings.cart_icon == 'cart' -%}
+                  {%- render 'icon-cart' -%}
+                {%- else -%}
+                  {%- render 'icon-bag' -%}
+                {%- endif -%}
+              </div>
+              <span
+                x-show="$store.cart_count.count > 0"
+                class="tracking-normal absolute -bottom-1.5 -right-1 w-5 h-5 bg-scheme-text text-scheme-background rounded-full text-[0.625rem] flex items-center justify-center"
+                x-text="$store.cart_count.count"
+              >
+                {{- cart.item_count -}}
+              </span>
+            </a>
+          {% endif %}
+        {% elsif menu_items_display == 'text' %}
+          {% if meta_items contains 'a' %}
+            <a
+              class="mx-2 my-1 {% if header_layout_mobile == 'n_l_m' %} sw-hidden md:block {% endif %}"
+              href="{{ routes.account_url }}"
+            >
+              {{ 'layout.customer.account' | t }}
+            </a>
+          {% elsif meta_items contains 'l' %}
+            <a
+              class="mx-2 my-1 {% if header_layout_mobile == 'n_l_m' %} sw-hidden md:block {% endif %}"
+              href="{{ routes.account_login_url }}"
+            >
+              {{ 'layout.customer.log_in' | t }}
+            </a>
+          {% endif %}
+
+          {% if meta_items contains 's' %}
+            <a
+              class="mx-2 my-1 {% if header_layout_mobile == 'n_l_m' %} sw-hidden md:block {% else %} block {% endif %}"
+              data-open-search
+              x-ref="search"
+              @click.prevent="$store.modals.open('search')"
+              @keydown.space="$store.modals.open('search')"
+              href="{{ routes.search_url }}"
+              :role="'button'"
+            >
+              {{ 'general.search.submit' | t }}
+            </a>
+          {% endif %}
+
+          {% if meta_items contains 'c' %}
+            <a
+              class="mx-2 my-1"
+              href="{{ routes.cart_url }}"
+              role="button"
+              id="CartButton"
+              @click.prevent="$store.modals.open('cart')"
+            >
+              {{ 'layout.cart.title' | t }}
+              (<span x-text="$store.cart_count.count">
+                {{- cart.item_count -}}</span
+              >)
+            </a>
+          {% elsif meta_items contains 'k' %}
+            <a
+              class="mx-2 my-1"
+              href="{{ routes.cart_url }}"
+            >
+              {{ 'layout.cart.title' | t }}
+              (<span x-text="$store.cart_count.count">
+                {{- cart.item_count -}}</span
+              >)
+            </a>
+          {% endif %}
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+
+<script src="{{ 'cart-count.js' | asset_url }}" type="module"></script>
+{%- if predictive_search_enabled and request.design_mode == false -%}
+  <script src="{{ 'predictive-search.js' | asset_url }}" type="module"></script>
+{%- endif -%}
+{% comment %}theme-check-enable TemplateLength{% endcomment %}
+
+{% schema %}
+{
+  "name": "Header",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Logo"
+    },
+    {
+      "type": "paragraph",
+      "content": "The primary logo for your store – use blocks to add logos for specific cases like for mobile users and for the header’s sticky mode"
+    },
+    {
+      "id": "logo",
+      "type": "image_picker",
+      "label": "Logo"
+    },
+    {
+      "id": "logo_max_width",
+      "type": "range",
+      "label": "Logo maximum width",
+      "min": 2,
+      "max": 9,
+      "step": 0.5,
+      "unit": "rem",
+      "default": 7
+    },
+    {
+      "type": "header",
+      "content": "Navigation"
+    },
+    {
+      "id": "linklist",
+      "type": "link_list",
+      "label": "Main menu",
+      "default": "main-menu"
+    },
+    {
+      "type": "header",
+      "content": "Color scheme"
+    },
+    {
+      "type": "paragraph",
+      "content": "Applies when header is not overlaid or when header is sticky"
+    },
+    {
+      "type": "select",
+      "id": "detached_header_color",
+      "label": "Color scheme",
+      "options": [
+        {
+          "value": "primary",
+          "label": "Primary"
+        },
+        {
+          "value": "secondary",
+          "label": "Secondary"
+        },
+        {
+          "value": "tertiary",
+          "label": "Tertiary"
+        }
+      ]
+    },
+    {
+      "type": "header",
+      "content": "Sticky header"
+    },
+    {
+      "type": "checkbox",
+      "id": "sticky_header",
+      "label": "Sticky header",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "transparent_when_sticky",
+      "label": "Transparent when sticky",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Overlay header"
+    },
+    {
+      "type": "paragraph",
+      "content": "When enabled header will be transparent and positioned over first section."
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_overlay_on_homepage",
+      "label": "Enable on home page",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_overlay_on_collection_template",
+      "label": "Enable on collection template",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_overlay_on_product_template",
+      "label": "Enable on default product template",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_overlay_on_classic_product_template",
+      "label": "Enable on classic product template",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_overlay_on_split_product_template",
+      "label": "Enable on split product template",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "overlay_header_color",
+      "label": "Overlay header color",
+      "options": [
+        {
+          "value": "primary",
+          "label": "Primary"
+        },
+        {
+          "value": "secondary",
+          "label": "Secondary"
+        },
+        {
+          "value": "tertiary",
+          "label": "Tertiary"
+        },
+        {
+          "value": "white-text",
+          "label": "White"
+        },
+        {
+          "value": "black-text",
+          "label": "Black"
+        }
+      ],
+      "default": "white-text"
+    },
+    {
+      "id": "overlay_logo",
+      "type": "image_picker",
+      "label": "Overlay logo"
+    },
+    {
+      "type": "header",
+      "content": "Layout and items"
+    },
+    {
+      "id": "header_layout_mobile",
+      "type": "select",
+      "label": "Mobile layout",
+      "options": [
+        {
+          "value": "n_l_m",
+          "label": "Menu on the left, centered logo"
+        },
+        {
+          "value": "nl__m",
+          "label": "Menu and logo on the left"
+        },
+        {
+          "value": "l__nm",
+          "label": "Logo on the left, menu on the right"
+        }
+      ]
+    },
+    {
+      "id": "header_layout_desktop",
+      "type": "select",
+      "label": "Desktop layout",
+      "options": [
+        {
+          "value": "n_l_m",
+          "label": "Menu on the left, centered logo"
+        },
+        {
+          "value": "nl__m",
+          "label": "Menu and logo on the left"
+        },
+        {
+          "value": "l__nm",
+          "label": "Logo on the left, menu on the right"
+        }
+      ]
+    },
+    {
+      "id": "enable_sidebar_nav_on_desktop",
+      "type": "checkbox",
+      "label": "Use mobile menu on desktop",
+      "info": "When enabled, use the “Sidebar” section’s settings to make adjustments"
+    },
+    {
+      "id": "show_search",
+      "type": "checkbox",
+      "label": "Show search"
+    },
+    {
+      "id": "menu_items_display",
+      "type": "radio",
+      "label": "Display menu items as",
+      "options": [
+        {
+          "value": "icons",
+          "label": "Icons"
+        },
+        {
+          "value": "text",
+          "label": "Text"
+        }
+      ],
+      "default": "icons"
+    },
+    {
+      "id": "section_padding",
+      "type": "radio",
+      "label": "Section padding",
+      "options": [
+        {
+          "value": "py-4",
+          "label": "Small"
+        },
+        {
+          "value": "py-8",
+          "label": "Large"
+        }
+      ],
+      "default": "py-8"
+    },
+    {
+      "type": "header",
+      "content": "Featured links"
+    },
+    {
+      "id": "showcase_second_level_links",
+      "type": "select",
+      "label": "Showcase second-level links",
+      "info": "Second-level links to products or collections will be showcased if they don’t have any child links",
+      "default": "none",
+      "options": [
+        {
+          "label": "Off",
+          "value": "none"
+        },
+        {
+          "label": "Grid",
+          "value": "grid"
+        },
+        {
+          "label": "Scroll",
+          "value": "scroll"
+        }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "collection_image_crop",
+      "label": "Collection image crop",
+      "info": "This will apply to collection images if collection display above is set to “Grid” or “Scroll”",
+      "options": [
+        {
+          "value": "none",
+          "label": "No crop"
+        },
+        {
+          "value": "portrait",
+          "label": "Portrait"
+        },
+        {
+          "value": "square",
+          "label": "Square"
+        },
+        {
+          "value": "landscape",
+          "label": "Landscape"
+        }
+      ],
+      "default": "landscape"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "logo_sticky",
+      "name": "Logo for sticky header",
+      "limit": 1,
+      "settings": [
+        {
+          "id": "image",
+          "type": "image_picker",
+          "label": "Logo"
+        },
+        {
+          "id": "max_width",
+          "type": "range",
+          "label": "Logo maximum width",
+          "min": 2,
+          "max": 9,
+          "step": 0.5,
+          "unit": "rem",
+          "default": 7
+        }
+      ]
+    },
+    {
+      "type": "logo_mobile",
+      "name": "Logo for mobile",
+      "limit": 1,
+      "settings": [
+        {
+          "id": "image",
+          "type": "image_picker",
+          "label": "Mobile logo"
+        },
+        {
+          "id": "max_width",
+          "type": "range",
+          "label": "Logo maximum width",
+          "min": 0.5,
+          "max": 4,
+          "step": 0.1,
+          "unit": "rem",
+          "default": 2
+        },
+        {
+          "id": "image_overlay",
+          "type": "image_picker",
+          "label": "Logo when header is overlaid"
+        },
+        {
+          "type": "header",
+          "content": "Logo for sticky header on mobile"
+        },
+        {
+          "id": "image_sticky",
+          "type": "image_picker",
+          "label": "Sticky mobile logo"
+        },
+        {
+          "id": "max_width_sticky",
+          "type": "range",
+          "label": "Logo maximum width",
+          "min": 0.5,
+          "max": 4,
+          "step": 0.1,
+          "unit": "rem",
+          "default": 2
+        },
+        {
+          "type": "header",
+          "content": "Breakpoint"
+        },
+        {
+          "type": "paragraph",
+          "content": "Set the target screen width at which the logo changes from mobile to desktop"
+        },
+        {
+          "id": "breakpoint",
+          "type": "range",
+          "label": "Logo breakpoint",
+          "min": 512,
+          "max": 1024,
+          "step": 8,
+          "unit": "px",
+          "default": 768
+        }
+      ]
+    },
+    {
+      "type": "logo_nudge",
+      "name": "Logo – fine adjust",
+      "limit": 1,
+      "settings": [
+        {
+          "id": "nudge_x",
+          "type": "range",
+          "label": "Horizontal",
+          "min": -0.5,
+          "max": 0.5,
+          "step": 0.1,
+          "unit": "rem",
+          "default": 0
+        },
+        {
+          "id": "nudge_y",
+          "type": "range",
+          "label": "Vertical",
+          "min": -0.5,
+          "max": 0.5,
+          "step": 0.1,
+          "unit": "rem",
+          "default": 0
+        },
+        {
+          "type": "header",
+          "content": "Mobile"
+        },
+        {
+          "id": "enable_mobile_nudge",
+          "type": "checkbox",
+          "label": "Apply different adjustments on mobile",
+          "info": "Requires mobile logo block"
+        },
+        {
+          "id": "nudge_mobile_x",
+          "type": "range",
+          "label": "Horizontal",
+          "min": -0.5,
+          "max": 0.5,
+          "step": 0.1,
+          "unit": "rem",
+          "default": 0
+        },
+        {
+          "id": "nudge_mobile_y",
+          "type": "range",
+          "label": "Vertical",
+          "min": -0.5,
+          "max": 0.5,
+          "step": 0.1,
+          "unit": "rem",
+          "default": 0
+        }
+      ]
+    },
+    {
+      "type": "logo_advanced",
+      "name": "Logo – advanced",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "paragraph",
+          "content": "Use this block to make logos with text or HTML. When this block is added, all other logo settings and blocks are ignored. The contents of this block are output inside an H1 tag. [Learn more](https://help.switchthemes.co/TODO:Link)"
+        },
+        {
+          "id": "liquid",
+          "type": "liquid",
+          "label": "Liquid",
+          "info": "This code will be used everywhere unless more specific versions are provided below",
+          "default": "<span class=\"font-heading text-lg\">{{ shop.name }}</span>"
+        },
+        {
+          "type": "header",
+          "content": "Sticky header"
+        },
+        {
+          "id": "liquid_sticky",
+          "type": "liquid",
+          "label": "Liquid for sticky header"
+        },
+        {
+          "type": "header",
+          "content": "Mobile"
+        },
+        {
+          "id": "liquid_mobile",
+          "type": "liquid",
+          "label": "Liquid for mobile"
+        },
+        {
+          "id": "liquid_mobile_sticky",
+          "type": "liquid",
+          "label": "Liquid for sticky header on mobile"
+        },
+        {
+          "id": "breakpoint",
+          "type": "range",
+          "label": "Logo breakpoint",
+          "min": 512,
+          "max": 1024,
+          "step": 8,
+          "unit": "px",
+          "default": 768
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

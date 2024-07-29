@@ -1,0 +1,57 @@
+{% liquid
+  assign item_separator = '||__cascade-item-end__||'
+  assign sizes = '75vw (min-width: 768px), 50vw'
+
+  case block.type
+    when 'product_list'
+      assign product_list = block.settings.product_list
+
+      if product_list != blank
+        for product in product_list
+          if forloop.first
+            assign attributes = shopify.block_attributes
+          else
+            assign attributes = ''
+          endif
+
+          render 'product-tile', product: product, tag: 'div', attributes: attributes
+
+          unless forloop.last
+            echo item_separator
+          endunless
+        endfor
+      endif
+    when 'collection_list'
+      assign placeholder_key = 'collection-1'
+      assign text_scheme = block.settings.text_scheme
+
+      if block.settings.show_collection_link
+        assign cta_text = block.settings.cta_text
+      else
+        assign cta_text = ''
+      endif
+
+
+      assign collection_list = block.settings.collection_list
+
+      if collection_list != blank
+        for collection in collection_list
+          if forloop.first
+            assign attributes = shopify.block_attributes
+          else
+            assign attributes = ''
+          endif
+
+          assign image = collection.image
+          assign text = collection.title
+          assign cta_url = collection.url
+
+          render 'image-or-collection-item', attributes: attributes, sizes: sizes, placeholder_key: placeholder_key, image: image, text: text, cta_url: cta_url, cta_text: cta_text, text_scheme: text_scheme
+
+          unless forloop.last
+            echo item_separator
+          endunless
+        endfor
+      endif
+  endcase
+%}

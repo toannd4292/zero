@@ -1,0 +1,33 @@
+<div
+  x-ref="resultsSlot"
+  class="relative flex-grow scroll-py-2.5"
+  :class="{
+    'overflow-y-auto': ! loading,
+    'overflow-y-hidden': loading,
+  }"
+>
+  <div
+    id="predictiveSearchResults"
+    tabindex="-1"
+  >
+    <div
+      x-ref="results"
+      hidden
+    ></div>
+  </div>
+  <span class="predictive-search-status sr-only" role="status" aria-hidden="true"></span>
+  <template x-if="loading">
+    <div class="sticky inset-0 w-full h-full flex bg-scheme-background/80 z-10">
+      <div class="w-6 h-6 py-section m-auto">
+        <div class="loading opacity-60"></div>
+      </div>
+    </div>
+  </template>
+</div>
+<template x-if="showViewAll">
+  <div x-ref="viewAll" class="text-center py-3 px-1.5 lg:px-3 mt-auto bg-scheme-background/50 pb-safe-bottom" role="option" id="predictive-search-option-search-keywords">
+    <button class="px-2 py-1" class="theme-link">
+      {{ 'general.search.view_all' | t }}
+    </button>
+  </div>
+</template>

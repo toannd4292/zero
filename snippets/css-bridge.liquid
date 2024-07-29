@@ -1,0 +1,534 @@
+{%- liquid
+  assign main_font = settings.type_main_font
+  assign main_font_bold = main_font | font_modify: 'weight', 'bold'
+  assign heading_font = settings.type_heading_font
+
+
+  case settings.vertical_spacing_between_sections
+    when 'extra_small'
+      assign spacing_section = '--space-1'
+      assign lg_spacing_section = '--space-2'
+    when 'small'
+      assign spacing_section = '--space-2'
+      assign lg_spacing_section = '--space-3'
+    when 'medium'
+      assign spacing_section = '--space-3'
+      assign lg_spacing_section = '--space-4'
+    when 'large'
+      assign spacing_section = '--space-4'
+      assign lg_spacing_section = '--space-5'
+  endcase
+-%}
+<style>
+  :root {
+    font-size: {{ settings.base_font_size | times: 6.25 }}%;
+
+    --base-font-size-from-settings: {{ settings.base_font_size }};
+
+    --space-1: 0.625rem; /* .py-3 */
+    --space-2: 1.25rem; /* .py-5 */
+    --space-3: 2.5rem; /* .py-10 */
+    --space-4: 5rem; /* .py-20 */
+    --space-5: 7rem; /* .py-28 */
+
+    --font-size-ratio-xs: 0.8408965;
+    --font-size-ratio-sm: 0.8908985;
+    --font-size-ratio-base: 1;
+    --font-size-ratio-md: 1.189207;
+    --font-size-ratio-lg: 1.33484;
+    --font-size-ratio-xl: 1.498307;
+    --font-size-ratio-2xl: 1.781797;
+    --font-size-ratio-3xl: 2.244924;
+    --font-size-ratio-4xl: 2.519842;
+    --font-size-ratio-5xl: 2.828428;
+    --font-size-ratio-6xl: 3.563594;
+    --font-size-ratio-7xl: 4;
+
+    --font-size-xs: calc(var(--font-size-ratio-xs) * 1rem);
+    --font-size-sm: calc(var(--font-size-ratio-sm) * 1rem);
+    --font-size-base: calc(var(--font-size-ratio-base) * 1rem);
+    --font-size-md: calc(var(--font-size-ratio-md) * 1rem);
+    --font-size-lg: calc(var(--font-size-ratio-lg) * 1rem);
+    --font-size-xl: calc(var(--font-size-ratio-xl) * 1rem);
+    --font-size-2xl: calc(var(--font-size-ratio-2xl) * 1rem);
+    --font-size-3xl: calc(var(--font-size-ratio-3xl) * 1rem);
+    --font-size-4xl: calc(var(--font-size-ratio-4xl) * 1rem);
+    --font-size-5xl: calc(var(--font-size-ratio-5xl) * 1rem);
+    --font-size-6xl: calc(var(--font-size-ratio-6xl) * 1rem);
+    --font-size-7xl: calc(var(--font-size-ratio-7xl) * 1rem);
+
+    --base-line-height: {{ settings.base_line_height }};
+
+    --font-size-theme-basic: var(--font-size-base);
+    --line-height-theme-basic: var(--base-line-height);
+
+    --font-size-heading: var(--font-size-3xl);
+    --line-height-heading: 1.122462;
+
+
+    --gutter: 30px;
+    --grid-gutter: 60px;
+
+    --spacing-section: var({{ spacing_section }});
+    --max-site-width: 1820px;
+
+    --cascade-product-form-width: 19rem;
+    --cascade-product-cascade-width: min(
+      calc(100vw - var(--cascade-product-form-width)),
+      calc((100vw - var(--cascade-product-form-width)) + (var(--max-site-width) - 100vw))
+    );
+
+    --section-carousel-padding: 2.5rem;
+
+    --icon-thickness: {{ settings.icon_thickness }};
+    --icon-svg-select: url({{ 'icon-select.svg' | asset_url }});
+    --icon-svg-select-primary: url({{ 'icon-select-primary.svg' | asset_url }});
+    --icon-svg-select-secondary: url({{ 'icon-select-secondary.svg' | asset_url }});
+    --icon-svg-select-tertiary: url({{ 'icon-select-tertiary.svg' | asset_url }});
+
+    --icon-svg-arrow-right: url({{ 'icon-arrow-right.svg' | asset_url }});
+    --icon-svg-arrow-right-primary: url({{ 'icon-arrow-right-primary.svg' | asset_url }});
+    --icon-svg-arrow-right-secondary: url({{ 'icon-arrow-right-secondary.svg' | asset_url }});
+    --icon-svg-arrow-right-tertiary: url({{ 'icon-arrow-right-tertiary.svg' | asset_url }});
+
+    --timing-func-energetic: cubic-bezier(1,0,0.4,1);
+    --timing-func-gentle: cubic-bezier(0.5,0,0.4,1);
+    --timing-func-neutral: cubic-bezier(0.46,0.03,0.52,0.96);
+
+    --button-border-radius: {{ settings.button_border_radius }};
+    --input-border-radius: {% if settings.button_border_radius == '9999px' %}1rem{% else %}{{ settings.button_border_radius }}{% endif %};
+  }
+
+  @media (min-width: 1200px) {
+    :root {
+      --cascade-product-form-width: 24rem;
+    }
+  }
+
+  :root {
+    text-decoration-thickness: 1px;
+  }
+
+  .text-dynamic-large {
+    --min-font-size: calc(
+      var(--font-size-ratio-xl) * {{ settings.base_font_size }}
+    );
+    --max-font-size: calc(
+      var(--font-size-ratio-5xl) * {{ settings.base_font_size }}
+    );
+    --min-threshold: 640;
+    --max-threshold: 1440;
+    --min-font-size-in-px: calc(var(--min-font-size) * 1px);
+    --max-font-size-in-px: calc(var(--max-font-size) * 1px);
+    --min-threshold-in-px: calc(var(--min-threshold) * 1px);
+    --dynamic-font-size: calc(
+      var(--min-font-size-in-px) + (var(--max-font-size) - var(--min-font-size)) *
+        (100vw - var(--min-threshold-in-px)) /
+        (var(--max-threshold) - var(--min-threshold))
+    );
+    font-size: clamp(
+      var(--min-font-size-in-px),
+      var(--dynamic-font-size),
+      var(--max-font-size-in-px)
+    );
+    line-height: var(--line-height-heading);
+  }
+
+  .text-dynamic-xlarge {
+    --min-font-size: calc(
+      var(--font-size-ratio-3xl) * {{ settings.base_font_size }}
+    );
+    --max-font-size: calc(
+      var(--font-size-ratio-7xl) * {{ settings.base_font_size }}
+    );
+    --min-threshold: 640;
+    --max-threshold: 1440;
+    --min-font-size-in-px: calc(var(--min-font-size) * 1px);
+    --max-font-size-in-px: calc(var(--max-font-size) * 1px);
+    --min-threshold-in-px: calc(var(--min-threshold) * 1px);
+    --dynamic-font-size: calc(
+      var(--min-font-size-in-px) + (var(--max-font-size) - var(--min-font-size)) *
+        (100vw - var(--min-threshold-in-px)) /
+        (var(--max-threshold) - var(--min-threshold))
+    );
+    font-size: clamp(
+      var(--min-font-size-in-px),
+      var(--dynamic-font-size),
+      var(--max-font-size-in-px)
+    );
+    line-height: var(--line-height-heading);
+  }
+
+  @media (min-width: 990px) {
+    :root {
+      --spacing-section: var({{ lg_spacing_section }});
+    }
+  }
+
+  @media (min-width: 1400px) {
+    :root {
+      --grid-gutter: 80px;
+
+      --font-size-theme-basic: var(--font-size-base);
+      /*--line-height-theme-basic: var(--base-line-height);*/
+
+      --font-size-heading: var(--font-size-4xl);
+    }
+  }
+</style>
+{% style %}
+  {{ main_font | font_face: font_display: 'swap' }}
+  {{ heading_font | font_face: font_display: 'swap' }}
+
+  {%- liquid
+    assign main_font_bolder = main_font | font_modify: 'weight', 'bolder'
+    assign main_font_italic = main_font | font_modify: 'style', 'italic'
+    assign main_font_bold_italic = main_font_bold | font_modify: 'style', 'italic'
+  -%}
+
+  {% if main_font_bold %}
+    {{ main_font_bold | font_face: font_display: 'swap' }}
+  {% endif %}
+
+  {% if main_font_italic %}
+    {{ main_font_italic | font_face: font_display: 'swap' }}
+  {% endif %}
+
+  {% if main_font_bold_italic %}
+    {{ main_font_bold_italic | font_face: font_display: 'swap' }}
+  {% endif %}
+
+  {% if main_font_bolder %}
+    {{ main_font_bolder | font_face: font_display: 'swap' }}
+  {% endif %}
+
+  :root {
+    --main-font-stack: {{ main_font.family }}, {{ main_font.fallback_families }};
+    --main-font-weight: {{ main_font.weight }};
+    --main-font-style: {{ main_font.style }};
+    --heading-font-stack: {{ heading_font.family }}, {{ heading_font.fallback_families }};
+    --heading-font-weight: {{ heading_font.weight }};
+    --heading-font-style: {{ heading_font.style }};
+    --heading-text-transform: {{ settings.heading_text_transform }};
+  }
+
+  /*
+  Typography sizes
+  */
+
+  :root {
+    --standard-heading-size: var(--font-size-{{ settings.standard_heading_size | split: ":" | first }});
+    --feature-heading-size: var(--font-size-{{ settings.feature_heading_size | split: ":" | first }});
+    --secondary-heading-size: var(--font-size-{{ settings.secondary_heading_size | split: ":" | first }});
+  }
+
+  @media (min-width: 990px) {
+    :root {
+      --standard-heading-size: var(--font-size-{{ settings.standard_heading_size | split: ":" | last }});
+      --feature-heading-size: var(--font-size-{{ settings.feature_heading_size | split: ":" | last }});
+      --secondary-heading-size: var(--font-size-{{ settings.secondary_heading_size | split: ":" | last }});
+    }
+  }
+
+  .heading-standard {
+    font-size: var(--standard-heading-size);
+  }
+
+  .heading-feature {
+    font-size: var(--feature-heading-size);
+  }
+
+  .heading-secondary {
+    font-size: var(--secondary-heading-size);
+  }
+
+  :root {
+    --color-primary-text: {{ settings.color_primary_text.red }} {{ settings.color_primary_text.green }} {{ settings.color_primary_text.blue }};
+    --color-primary-background: {{ settings.color_primary_background.red }} {{ settings.color_primary_background.green }} {{ settings.color_primary_background.blue }};
+    --color-primary-accent: {{ settings.color_primary_accent.red }} {{ settings.color_primary_accent.green }} {{ settings.color_primary_accent.blue }};
+    --color-primary-meta: {{ settings.color_primary_meta.red }} {{ settings.color_primary_meta.green }} {{ settings.color_primary_meta.blue }};
+
+    {% render 'color-overlay-variables', color_scheme: 'primary' %}
+
+    --color-primary-solid-button-background: var(--color-primary-{{ settings.button_color }});
+    --color-primary-solid-button-text: var(--color-primary-{{ settings.button_color }}-overlay);
+    --color-primary-solid-button-background-hover: var(--color-primary-{% if settings.button_color == 'text' %}accent{% else %}text{% endif %});
+    --color-primary-solid-button-text-hover: var(--color-primary-{% if settings.button_color == 'text' %}accent-overlay{% else %}text-overlay{% endif %});
+
+
+    --color-secondary-text: {{ settings.color_secondary_text.red }} {{ settings.color_secondary_text.green }} {{ settings.color_secondary_text.blue }};
+    --color-secondary-background: {{ settings.color_secondary_background.red }} {{ settings.color_secondary_background.green }} {{ settings.color_secondary_background.blue }};
+    --color-secondary-accent: {{ settings.color_secondary_accent.red }} {{ settings.color_secondary_accent.green }} {{ settings.color_secondary_accent.blue }};
+    --color-secondary-meta: {{ settings.color_secondary_meta.red }} {{ settings.color_secondary_meta.green }} {{ settings.color_secondary_meta.blue }};
+
+    {% render 'color-overlay-variables', color_scheme: 'secondary' %}
+
+    --color-secondary-solid-button-background: var(--color-secondary-{{ settings.button_color }});
+    --color-secondary-solid-button-text: var(--color-secondary-{{ settings.button_color }}-overlay);
+    --color-secondary-solid-button-background-hover: var(--color-secondary-{% if settings.button_color == 'text' %}accent{% else %}text{% endif %});
+    --color-secondary-solid-button-text-hover: var(--color-secondary-{% if settings.button_color == 'text' %}accent-overlay{% else %}text-overlay{% endif %});
+
+    --color-tertiary-text: {{ settings.color_tertiary_text.red }} {{ settings.color_tertiary_text.green }} {{ settings.color_tertiary_text.blue }};
+    --color-tertiary-background: {{ settings.color_tertiary_background.red }} {{ settings.color_tertiary_background.green }} {{ settings.color_tertiary_background.blue }};
+    --color-tertiary-accent: {{ settings.color_tertiary_accent.red }} {{ settings.color_tertiary_accent.green }} {{ settings.color_tertiary_accent.blue }};
+    --color-tertiary-meta: {{ settings.color_tertiary_meta.red }} {{ settings.color_tertiary_meta.green }} {{ settings.color_tertiary_meta.blue }};
+
+    {% render 'color-overlay-variables', color_scheme: 'tertiary' %}
+
+    --color-tertiary-solid-button-background: var(--color-tertiary-{{ settings.button_color }});
+    --color-tertiary-solid-button-text: var(--color-tertiary-{{ settings.button_color }}-overlay);
+    --color-tertiary-solid-button-background-hover: var(--color-tertiary-{% if settings.button_color == 'text' %}accent{% else %}text{% endif %});
+    --color-tertiary-solid-button-text-hover: var(--color-tertiary-{% if settings.button_color == 'text' %}accent-overlay{% else %}text-overlay{% endif %});
+
+    --color-white-text-text: 255 255 255;
+    --color-white-text-text-overlay: 0 0 0;
+
+    --color-black-text-text: 0 0 0;
+    --color-black-text-text-overlay: 255 255 255;
+
+
+  }
+
+
+  {% if settings.round_images %}
+    img,
+    svg[class*="placeholder"],
+    model-viewer,
+    shopify-model-viewer-ui,
+    video,
+    iframe[src*="youtube"] {
+      border-radius: 0.8rem;
+    }
+
+    .has-full-bleed-images img,
+    .has-full-bleed-images svg[class*="placeholder"],
+    .has-full-bleed-images model-viewer,
+    .has-full-bleed-images shopify-model-viewer-ui,
+    .has-full-bleed-images video,
+    .has-full-bleed-images iframe[src*="youtube"] {
+      border-radius: unset;
+    }
+  {% endif %}
+{% endstyle %}
+<style>
+  body {
+    background-color: rgb(var(--color-primary-background));
+    color: rgb(var(--color-primary-text));
+    font-family: var(--main-font-stack);
+    font-weight: var(--main-font-weight);
+    font-style: var(--main-font-style);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  :root {
+    --color-scheme-error: 245, 0, 0;
+    --color-scheme-success: 0, 215, 0;
+  }
+
+  @media (prefers-color-scheme: light) {
+    :root {
+      --color-os-background: 255, 255, 255;
+    }
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --color-os-background: 0, 0, 0;
+    }
+  }
+
+  [data-color-scheme] {
+    --color-scheme-button-text-hover: var(--color-scheme-accent);
+    --color-scheme-button-background-hover: var(--color-scheme-background);
+  }
+
+  [data-color-scheme="primary"] {
+    --color-scheme-text: var(--color-primary-text);
+    --color-scheme-text-overlay: var(--color-primary-text-overlay);
+    --color-scheme-background: var(--color-primary-background);
+    --color-scheme-accent: var(--color-primary-accent);
+    --color-scheme-accent-overlay: var(--color-primary-accent-overlay);
+    --color-scheme-meta: var(--color-primary-meta);
+    --color-scheme-solid-button-background: var(--color-primary-solid-button-background);
+    --color-scheme-solid-button-text: var(--color-primary-solid-button-text);
+    --color-scheme-solid-button-background-hover: var(--color-primary-solid-button-background-hover);
+    --color-scheme-solid-button-text-hover: var(--color-primary-solid-button-text-hover);
+  }
+
+  [data-color-scheme="primary-overlay"] {
+    --color-scheme-text: var(--color-primary-text-inverse-overlay);
+    --color-scheme-background: var(--color-primary-text-overlay);
+    --color-scheme-accent: var(--color-primary-accent);
+    --color-scheme-meta: var(--color-primary-meta);
+  }
+
+  [data-color-scheme="primary-overlay-inverse"] {
+    --color-scheme-text: var(--color-primary-text-overlay);
+    --color-scheme-background: var(--color-primary-text-inverse-overlay);
+    --color-scheme-accent: var(--color-primary-accent);
+    --color-scheme-meta: var(--color-primary-meta);
+  }
+
+  [data-color-scheme="secondary"] {
+    --color-scheme-text: var(--color-secondary-text);
+    --color-scheme-text-overlay: var(--color-secondary-text-overlay);
+    --color-scheme-background: var(--color-secondary-background);
+    --color-scheme-accent: var(--color-secondary-accent);
+    --color-scheme-accent-overlay: var(--color-secondary-accent-overlay);
+    --color-scheme-meta: var(--color-secondary-meta);
+    --color-scheme-solid-button-background: var(--color-secondary-solid-button-background);
+    --color-scheme-solid-button-text: var(--color-secondary-solid-button-text);
+    --color-scheme-solid-button-background-hover: var(--color-secondary-solid-button-background-hover);
+    --color-scheme-solid-button-text-hover: var(--color-secondary-solid-button-text-hover);
+  }
+
+  [data-color-scheme="secondary-overlay"] {
+    --color-scheme-text: var(--color-secondary-text-inverse-overlay);
+    --color-scheme-background: var(--color-secondary-text-overlay);
+    --color-scheme-accent: var(--color-secondary-accent);
+    --color-scheme-meta: var(--color-secondary-meta);
+  }
+
+  [data-color-scheme="secondary-overlay-inverse"] {
+    --color-scheme-text: var(--color-secondary-text-overlay);
+    --color-scheme-background: var(--color-secondary-text-inverse-overlay);
+    --color-scheme-accent: var(--color-secondary-accent);
+    --color-scheme-meta: var(--color-secondary-meta);
+  }
+
+  [data-color-scheme="tertiary"] {
+    --color-scheme-text: var(--color-tertiary-text);
+    --color-scheme-text-overlay: var(--color-tertiary-text-overlay);
+    --color-scheme-background: var(--color-tertiary-background);
+    --color-scheme-accent: var(--color-tertiary-accent);
+    --color-scheme-accent-overlay: var(--color-tertiary-accent-overlay);
+    --color-scheme-meta: var(--color-tertiary-meta);
+    --color-scheme-solid-button-background: var(--color-tertiary-solid-button-background);
+    --color-scheme-solid-button-text: var(--color-tertiary-solid-button-text);
+    --color-scheme-solid-button-background-hover: var(--color-tertiary-solid-button-background-hover);
+    --color-scheme-solid-button-text-hover: var(--color-tertiary-solid-button-text-hover);
+  }
+
+  [data-color-scheme="tertiary-overlay"] {
+    --color-scheme-text: var(--color-tertiary-text-inverse-overlay);
+    --color-scheme-background: var(--color-tertiary-text-overlay);
+    --color-scheme-accent: var(--color-tertiary-accent);
+    --color-scheme-meta: var(--color-tertiary-meta);
+  }
+
+  [data-color-scheme="tertiary-overlay-inverse"] {
+    --color-scheme-text: var(--color-tertiary-text-overlay);
+    --color-scheme-background: var(--color-tertiary-text-inverse-overlay);
+    --color-scheme-accent: var(--color-tertiary-accent);
+    --color-scheme-meta: var(--color-tertiary-meta);
+  }
+
+  [data-color-scheme="white-text"] {
+    --color-scheme-text: 255 255 255;
+    --color-scheme-text-overlay: 0 0 0;
+    --color-scheme-background: 0 0 0;
+    /* These will fall back to the parent section’s accent and accent overlay colours or, failing that, the primary accent and accent overlay colours */
+    --color-scheme-button-text-hover: var(--color-scheme-accent, var(--color-primary-accent));
+    --color-scheme-button-background-hover: var(--color-scheme-accent-overlay, var(--color-primary-accent-overlay));
+    --color-scheme-solid-button-background: 255 255 255;
+    --color-scheme-solid-button-text: 0 0 0;
+    --color-scheme-solid-button-background-hover: var(--color-scheme-accent, var(--color-primary-accent));
+    --color-scheme-solid-button-text-hover: var(--color-scheme-accent-overlay, var(--color-primary-accent-overlay));
+  }
+
+  [data-color-scheme="black-text"] {
+    --color-scheme-text: 0 0 0;
+    --color-scheme-text-overlay: 255 255 255;
+    --color-scheme-background: 255 255 255;
+    /* These will fall back to the parent section’s accent and accent overlay colours or, failing that, the primary accent and accent overlay colours */
+    --color-scheme-button-text-hover: var(--color-scheme-accent, var(--color-primary-accent));
+    --color-scheme-button-background-hover: var(--color-scheme-accent-overlay, var(--color-primary-accent-overlay));
+    --color-scheme-solid-button-background: 0 0 0;
+    --color-scheme-solid-button-text: 255 255 255;
+    --color-scheme-solid-button-background-hover: var(--color-scheme-accent, var(--color-primary-accent));
+    --color-scheme-solid-button-text-hover: var(--color-scheme-accent-overlay, var(--color-primary-accent-overlay));
+  }
+
+  @keyframes marquee {
+    0% {
+      transform: translateX(0);
+      -webkit-transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-100%);
+      -webkit-transform: translateX(-100%);
+    }
+  }
+</style>
+
+{% if settings.enable_section_color_transitions %}
+  <style>
+    :root:root section[data-color-scheme]:not(.disable-section-color-transition),
+    :root:root [data-sticky-header][data-color-scheme]:not(.disable-section-color-transition) {
+      --color-scheme-text: var(--color-scheme-text-override);
+      --color-scheme-text-overlay: var(--color-scheme-text-overlay-override);
+      --color-scheme-background: var(--color-scheme-background-override);
+      --color-scheme-accent: var(--color-scheme-accent-override);
+      --color-scheme-accent-overlay: var(--color-scheme-accent-overlay-override);
+      --color-scheme-meta: var(--color-scheme-meta-override);
+      --color-scheme-solid-button-background: var(--color-scheme-solid-button-background-override);
+      --color-scheme-solid-button-text: var(--color-scheme-solid-button-text-override);
+      --color-scheme-solid-button-background-hover: var(--color-scheme-solid-button-background-hover-override);
+      --color-scheme-solid-button-text-hover: var(--color-scheme-solid-button-text-hover-override);
+      --icon-svg-select: var(--icon-svg-select-override);
+      --icon-svg-arrow-right: var(--icon-svg-arrow-right-override);
+    }
+  </style>
+  <script src="{{ 'section-color-transitions.js' | asset_url }}" defer></script>
+{% endif %}
+
+{% render 'critical-css' %}
+<style id="manual-critical-css">
+  [x-cloak] {
+    display: none;
+  }
+
+  html.no-js [x-cloak].no-js-undo-cloak {
+    display: initial;
+  }
+
+  body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+</style>
+{% comment %} theme-check-disable AssetPreload {% endcomment %}
+{% comment %}
+  preload_tag does not currently accept font_url but AssetPreload still flags this as an offense
+
+  https://github.com/Shopify/theme-check/issues/634
+{% endcomment %}
+{% unless heading_font.system? %}
+  <link rel="preload" as="font" href="{{ heading_font | font_url }}" type="font/woff2" crossorigin>
+{% endunless %}
+{% unless main_font.system? %}
+  <link rel="preload" as="font" href="{{ main_font | font_url }}" type="font/woff2" crossorigin>
+{% endunless %}
+{% comment %} theme-check-enable AssetPreload {% endcomment %}
+
+
+{% if settings.product_tile_star_ratings == 'spr' %}
+  {{ 'spr-ratings.css' | asset_url | stylesheet_tag }}
+{% elsif settings.product_tile_star_ratings == 'native' %}
+  {{ 'ratings.css' | asset_url | stylesheet_tag }}
+{% endif %}
+
+{% style %}
+  {% if settings.product_tile_star_ratings != 'none' %}
+    .star-rating {
+      --star-rating-star-color: var(--color-scheme-{{ settings.product_tile_star_color }});
+      --star-rating-star-background-color: rgb(var(--color-scheme-text) / 0.1);
+      --star-rating-caption-color: rgb(var(--color-scheme-text));
+    }
+  {% endif %}
+{% endstyle %}
+
+{{ 'loading.css' | asset_url | stylesheet_tag }}

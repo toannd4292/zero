@@ -1,0 +1,8 @@
+<div
+  {% unless block.settings.suppress_default_block_spacing %}
+    class="{{ block_base_classes }} my-8"
+  {% endunless %}
+  {{ block.shopify_attributes }}
+>
+  {{ block.settings.liquid }}
+</div>

@@ -1,0 +1,175 @@
+{% liquid
+  assign text_size_class = section.settings.text_size
+  assign speed_number = section.settings.speed | plus: 0
+  assign link = section.settings.link
+  assign text = section.settings.text
+  assign font = section.settings.font
+  assign section_color = section.settings.color_scheme
+  assign direction = section.settings.direction
+  assign repeat_text = section.settings.repeat_text
+%}
+
+<section
+  class="{% unless section.settings.remove_top_padding %}pt-section{% endunless %} {% unless section.settings.remove_bottom_padding %}pb-section{% endunless %} text-scheme-text bg-scheme-background {% if section.settings.disable_color_transition %}disable-section-color-transition disable-section-color-transition-source{% endif %}"
+  data-color-scheme="{{ section_color }}"
+>
+  {% render 'scrolling-text',
+    id: section.id
+    text_size_class: text_size_class,
+    speed_number: speed_number,
+    link: link,
+    text: text,
+    font: font,
+    section_color: section_color,
+    direction: direction,
+    repeat_text: repeat_text
+  %}
+</section>
+
+{% schema %}
+{
+  "name": "Scrolling text",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "If a user has reduced motion enabled the marquee will not animate and display as a static banner as a fallback."
+    },
+    {
+      "type": "text",
+      "id": "text",
+      "label": "Text",
+      "default": "Use this text to share information about your brand with your customers. Describe a product, share announcements, or welcome customers to your store."
+    },
+    {
+      "type": "checkbox",
+      "id": "repeat_text",
+      "default": true,
+      "label": "Repeat text",
+      "info": "Automatically repeat text to create an infinity effect."
+    },
+    {
+      "type": "url",
+      "id": "link",
+      "label": "Link"
+    },
+    {
+      "type": "radio",
+      "id": "text_size",
+      "label": "Text size",
+      "options": [
+        {
+          "value": "text-heading-feature",
+          "label": "Feature heading"
+        },
+        {
+          "value": "text-heading-standard",
+          "label": "Standard heading"
+        },
+        {
+          "value": "text-base",
+          "label": "Base font"
+        }
+      ],
+      "default": "text-heading-feature"
+    },
+    {
+      "type": "radio",
+      "id": "font",
+      "label": "Font",
+      "options": [
+        {
+          "value": "heading",
+          "label": "Heading"
+        },
+        {
+          "value": "body",
+          "label": "Body"
+        }
+      ],
+      "default": "heading"
+    },
+    {
+      "type": "range",
+      "id": "speed",
+      "min": 10,
+      "max": 400,
+      "step": 10,
+      "unit": "sec",
+      "label": "Speed",
+      "default": 120
+    },
+    {
+      "type": "radio",
+      "id": "direction",
+      "label": "Direction",
+      "options": [
+        {
+          "value": "",
+          "label": "Right to left"
+        },
+        {
+          "value": "reverse",
+          "label": "Left to right"
+        }
+      ],
+      "default": ""
+    },
+    {
+      "type": "header",
+      "content": "Color"
+    },
+    {
+      "type": "select",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "options": [
+        {
+          "value": "primary",
+          "label": "Primary"
+        },
+        {
+          "value": "secondary",
+          "label": "Secondary"
+        },
+        {
+          "value": "tertiary",
+          "label": "Tertiary"
+        }
+      ]
+    },
+    {
+      "type": "checkbox",
+      "id": "disable_color_transition",
+      "label": "Disable transition",
+      "info": "Overrides section color transitions theme setting."
+    },
+    {
+      "type": "header",
+      "content": "Spacing",
+      "info": "Adjust vertical spacing to visually connect this section to adjacent sections"
+    },
+    {
+      "type": "checkbox",
+      "id": "remove_top_padding",
+      "label": "Remove top padding",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "remove_bottom_padding",
+      "label": "Remove bottom padding",
+      "default": false
+    }
+  ],
+  "presets": [
+    {
+      "name": "Scrolling text"
+    }
+  ],
+  "disabled_on": {
+    "groups": [
+      "aside"
+    ]
+  }
+}
+{% endschema %}

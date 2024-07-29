@@ -1,0 +1,245 @@
+{%- liquid
+  assign section_color = section.settings.color_scheme | default: 'primary'
+
+  assign text_align = section.settings.text_alignment
+  case section.settings.desktop_width
+    when 'two_thirds'
+      assign desktop_width = 'lg:w-3/4'
+    when 'half'
+      assign desktop_width = 'lg:w-1/2'
+    else
+      assign desktop_width = 'lg:w-full'
+  endcase
+
+  case section.settings.desktop_alignment
+    when 'left'
+      assign desktop_alignment = 'justify-start'
+    when 'right'
+      assign desktop_alignment = 'justify-end'
+    else
+      assign desktop_alignment = 'justify-center'
+  endcase
+-%}
+
+<section class="{% unless section.settings.remove_top_padding %}pt-section{% endunless %} {% unless section.settings.remove_bottom_padding %}pb-section{% endunless %} text-scheme-text bg-scheme-background {% if section.settings.disable_color_transition %}disable-section-color-transition disable-section-color-transition-source{% endif %}" data-color-scheme="{{ section_color }}">
+  <div class="max-w-site mx-auto px-5 lg:px-10">
+    <div class="flex {{ text_align }} {{ desktop_alignment }}">
+      <div class="w-full {{ desktop_width }}">
+
+        {% if section.settings.title != blank %}
+          <h2 class="font-heading text-heading-standard {{ section.settings.title_text_align }} break-word">
+            {{ section.settings.title | strip }}
+          </h2>
+        {% endif %}
+    
+        {% if section.settings.richtext != blank %}
+          <div class="rte rte--compact {% if section.settings.title != blank %}mt-10{% endif %} {{ section.settings.font }} {{ section.settings.text_size }} {% if section.settings.text_size != 'text-base' %}[&_a[href]]:underline-offset-hair{% else %}[&_a[href]]:underline-offset-basic{% endif %} [&_a[href]]:underline break-word">
+            {{ section.settings.richtext }}
+          </div>
+        {%- endif -%}
+    
+        {% if section.settings.cta_link %}
+        <div class="{% if section.settings.richtext != blank %}mt-10{% endif %}">
+          <a class="theme-cta" href="{{ section.settings.cta_link }}" >
+            {{ section.settings.cta_label }}
+          </a>
+        </div>
+        {% endif %}
+
+      </div>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Rich text",
+  "settings": [
+    {
+      "id": "title",
+      "type": "text",
+      "label": "Heading",
+      "default": "Heading"
+    },
+    {
+      "id": "richtext",
+      "type": "richtext",
+      "label": "Text",
+      "default": "<p>Use this text to share information about your brand with your customers. Describe a product, share announcements, or welcome customers to your store.</p>"
+    },
+    {
+      "type": "radio",
+      "id": "font",
+      "label": "Text font",
+      "options": [
+        {
+          "value": "font-body",
+          "label": "Body"
+        },
+        {
+          "value": "font-heading",
+          "label": "Heading"
+        }
+      ],
+      "default": "font-body"
+    },
+    {
+      "type": "radio",
+      "id": "text_size",
+      "label": "Text size",
+      "options": [
+        {
+          "value": "text-heading-feature",
+          "label": "Feature heading"
+        },
+        {
+          "value": "text-heading-standard",
+          "label": "Standard heading"
+        },
+        {
+          "value": "text-base",
+          "label": "Base font"
+        }
+      ],
+      "default": "text-heading-feature"
+    },
+    {
+      "type": "select",
+      "id": "text_alignment",
+      "label": "Text alignment",
+      "options": [
+        {
+          "value": "text-left",
+          "label": "Left"
+        },
+        {
+          "value": "text-center",
+          "label": "Center"
+        },
+        {
+          "value": "text-right",
+          "label": "Right"
+        }
+      ],
+      "default": "text-left"
+    },
+    {
+      "type": "header",
+      "content": "Call to action"
+    },
+    {
+      "type": "url",
+      "id": "cta_link",
+      "label": "Link"
+    },
+    {
+      "type": "text",
+      "id": "cta_label",
+      "label": "Label"
+    },
+    {
+      "type": "header",
+      "content": "Desktop layout"
+    },
+    {
+      "type": "select",
+      "id": "desktop_width",
+      "label": "Width",
+      "options": [
+        {
+          "value": "full",
+          "label": "Full"
+        },
+        {
+          "value": "two_thirds",
+          "label": "Two thirds"
+        },
+        {
+          "value": "half",
+          "label": "Half"
+        }
+      ],
+      "default": "two_thirds"
+    },
+    {
+      "type": "select",
+      "id": "desktop_alignment",
+      "label": "Position",
+      "options": [
+        {
+          "value": "left",
+          "label": "Left"
+        },
+        {
+          "value": "center",
+          "label": "Center"
+        },
+        {
+          "value": "right",
+          "label": "Right"
+        }
+      ],
+      "default": "left",
+      "info": "Does not apply when width is set to full."
+    },
+    {
+      "type": "header",
+      "content": "Color"
+    },
+    {
+      "type": "select",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "options": [
+        {
+          "value": "primary",
+          "label": "Primary"
+        },
+        {
+          "value": "secondary",
+          "label": "Secondary"
+        },
+        {
+          "value": "tertiary",
+          "label": "Tertiary"
+        }
+      ]
+    },
+    {
+      "type": "checkbox",
+      "id": "disable_color_transition",
+      "label": "Disable transition",
+      "info": "Overrides section color transitions theme setting."
+    },
+    {
+      "type": "header",
+      "content": "Spacing",
+      "info": "Adjust vertical spacing to visually connect this section to adjacent sections"
+    },
+    {
+      "type": "checkbox",
+      "id": "remove_top_padding",
+      "label": "Remove top padding",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "remove_bottom_padding",
+      "label": "Remove bottom padding",
+      "default": false
+    }
+  ],
+  "presets": [
+    {
+      "name": "Rich text"
+    }
+  ],
+  "disabled_on": {
+    "groups": [
+      "header",
+      "footer",
+      "aside"
+    ]
+  }
+}
+{% endschema %}

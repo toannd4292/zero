@@ -1,0 +1,12 @@
+<ul class="{% unless has_two_linklists %} flex flex-wrap {% endunless %} -my-1 -mx-2 text-theme-basic">
+  {% for link in linklist.links %}
+    <li class="my-1 mx-2 break-word">
+      <a
+        href="{{ link.url }}"
+        class="underline-offset-basic hover:underline"
+      >
+        {{ link.title }}
+      </a>
+    </li>
+  {% endfor %}
+</ul>

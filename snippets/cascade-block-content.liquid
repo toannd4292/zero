@@ -1,0 +1,238 @@
+{%- assign media_blocks = 'image,image_with_text_overlay,collection,video,product' | split: ',' -%}
+<div
+  class="relative"
+  {% if media_blocks contains block.type %}
+  data-media-item
+  {% endif %}
+  {% if request.design_mode %}
+    x-data="
+      {
+        blockAttributes: {
+          {% for attribute in block.shopify_attributes %}
+            ':{{ attribute | strip | split: '=' | first }}': `blockRootShown ? '{{ attribute | strip | split: '=' | last | replace: '"', '' | replace: "'", '' }}' : null`{% unless forloop.last %},{% endunless %}
+          {% endfor %}
+        }
+      }
+    "
+    x-bind="blockAttributes"
+  {% endif %}
+>
+  {% liquid
+    assign sizes = '75vw (min-width: 768px), 50vw'
+  %}
+  {% case block.type %}
+    {% when 'image' %}
+      {% liquid
+        assign image = block.settings.image
+        assign url = block.settings.url
+      %}
+      {% capture image_content %}
+        <div class="mx-auto" data-scale-reveal>
+          {% unless image == blank %}
+            {{ image | image_url: width: 2000 | image_tag: loading: 'lazy', sizes: sizes }}
+          {% else %}
+            {%- assign ratios = ' aspect-w-1 aspect-h-1: aspect-w-4 aspect-h-3 : aspect-w-3 aspect-h-4 ' | split: ':' -%}
+            {%- assign ratio = index | modulo: 3 -%}
+            <div class="text-scheme-placeholder-foreground relative {{ ratios[ratio] | strip }}">
+            {{ 'image' | placeholder_svg_tag: 'bg-scheme-placeholder-background  text-scheme-placeholder-foreground fill-current absolute inset-0 h-full w-full' }}
+            </div>
+          {% endunless %}
+        </div>
+      {% endcapture %}
+      {% if url != blank %}
+        <a href="{{ url }}">
+          {{ image_content }}
+        </a>
+      {% else %}
+        {{ image_content }}
+      {% endif %}
+    {% when 'image_with_text_overlay' or 'collection' %}
+      {% liquid
+        if block.type == 'collection'
+          assign placeholder_key = 'collection-1'
+          assign image = block.settings.collection.image | default: block.settings.collection.products.first.featured_image
+          assign placeholder_title = 'sections.onboarding.collection_title' | t
+          assign text = block.settings.collection.title | default: placeholder_title
+          assign text_size = block.settings.text_size
+          assign text_scheme = block.settings.text_scheme
+          assign link = block.settings.collection.url
+        else
+          assign placeholder_key = 'image'
+          assign image = block.settings.image
+          assign text = block.settings.text
+          assign text_size = block.settings.text_size
+          assign link = block.settings.link
+          assign text_scheme = block.settings.text_scheme
+        endif
+        render 'image-or-collection-item', sizes: sizes, placeholder_key: placeholder_key, image: image, text: text, text_size: text_size, link: link, text_scheme: text_scheme
+      %}
+    {% when 'heading' or 'text' or 'heading_with_text' %}
+      {% liquid
+        assign text_align = block.settings.text_align
+        assign heading_font_size = block.settings.text_size | default: 'text-heading-standard'
+
+        if heading_font_size == 'heading-feature'
+          assign block_classes = 'md:w-3/4 lg:w-2/3 max-w-[50rem]'
+          if enable_cascade_on_mobile
+            assign block_classes = block_classes | prepend: 'w-9/10 '
+          endif
+        else
+          assign block_classes = ' md:w-3/4 lg:w-2/3 max-w-[40rem]'
+          if enable_cascade_on_mobile
+            assign block_classes = block_classes | prepend: 'w-7/8 '
+          endif
+        endif
+        
+
+      %}
+      <div class="mx-auto {{ block_classes }} {{ text_align }}" data-disable-variance data-opacity-reveal>
+        {% if block.settings.heading != blank %}
+          <h3 class="font-heading {{ heading_font_size }} break-word" style="font-weight: bold;">
+            {{- block.settings.heading | strip -}}
+          </h3>
+        {% endif %}
+        {% if block.settings.rich_text != blank %}
+          <div class="rte rte--compact {% if block.settings.heading != blank %} mt-5{% endif %} break-word">
+            {{ block.settings.rich_text }}
+          </div>
+        {% endif %}
+        {% if block.settings.cta_url != blank and block.settings.cta_text != blank %}
+          <div class="mt-5">
+            <a href="{{ block.settings.cta_url }}" class="theme-link break-word">
+              {{- block.settings.cta_text -}}
+            </a>
+          </div>
+        {% endif %}
+      </div>
+    {% when 'testimonial' %}
+      <div class="mx-auto {{ block.settings.text_align }} {% if enable_cascade_on_mobile %}w-7/8{% endif %} md:w-3/4 lg:w-2/3 text-left my-5 relative" data-disable-variance data-opacity-reveal>
+        {% if block.settings.image and block.settings.image_style == 'photo' %}
+          {{ block.settings.image | image_url: width: 600 | image_tag: loading: 'lazy', sizes: '5rem', class: 'inline-block w-[5rem] aspect-1 rounded-full object-cover object-center mb-5' }}
+        {% endif %}
+        <blockquote>
+          {%- if block.settings.rating != 'none' -%}
+            {%- assign stars = block.settings.rating | split: '_' | first | plus: 0 -%}
+            <div class="{{ block.settings.text_align }} mb-5 tracking-[0.1rem]">
+              {%- for i in (1..stars) -%}★{%- endfor -%}
+            </div>
+          {%- endif -%}
+          <div class="rte rte rte--compact quotes-container">
+            {{ block.settings.quote }}
+          </div>
+          {% if block.settings.source != blank %}
+            <footer class="mt-5">&mdash; {{ block.settings.source | strip }}</footer>
+          {% endif %}
+        </blockquote>
+        {% if block.settings.image and block.settings.image_style == 'logo' %}
+          {{ block.settings.image | image_url: width: 600 | image_tag: loading: 'lazy', sizes: '4rem', class: 'inline-block max-w-[4rem] h-auto mt-3' }}
+        {% endif %}
+      </div>
+    {% when 'video' %}
+      {% liquid
+        assign video_modal_id = 'video-modal-' | append: section.id | append: '-' | append: block.id | replace: '_', '-' | handleize
+        assign video_url = block.settings.video_url
+        assign use_high_res_image = block.settings.use_high_res_image
+
+       if video_url.type == 'youtube'
+          assign base_url_webp = 'https://i.ytimg.com/vi_webp/' | append: video_url.id
+          assign base_url_jpg = 'https://i.ytimg.com/vi/' | append: video_url.id
+
+          assign image_url_mq_webp =  base_url_webp | append: '/mqdefault.webp'
+          assign image_url_mq_jpg =  base_url_jpg | append: '/mqdefault.jpg'
+
+          if use_high_res_image
+            assign image_url_max_webp = base_url_webp | append: '/maxresdefault.webp'
+            assign image_url_max_jpg = base_url_jpg | append: '/maxresdefault.jpg'
+          else
+            assign image_url_max_jpg = base_url_jpg | append: '/hqdefault.jpg'
+          endif
+        endif
+      %}
+      <a
+        class="block relative cursor-pointer"
+        href="{{ video_url }}"
+        :role="`button`"
+        title="{{ 'general.video.play' | t }}, {{ block.settings.alt_text | escape }}"
+        @click.prevent="$store.modals.open('{{ video_modal_id }}')"
+      >
+        <div data-scale-reveal>
+          {% if block.settings.image %}
+            {{ block.settings.image | image_url: width: 1000 | image_tag: class: 'w-full h-full aspect-w-16 aspect-h-9 object-cover', sizes: '50vw', loading: 'lazy' }}
+          {% elsif video_url %}
+            {% if video_url.type == 'youtube' %}
+              <picture class="w-full h-full aspect-w-16 aspect-h-9 object-cover">
+                {% if use_high_res_image %}
+                  <source
+                    type="image/webp"
+                    media="all"
+                    srcset="{{ image_url_mq_webp }} 320w, {{ image_url_max_webp }}"
+                  >
+                {% endif %}
+                <source
+                  type="image/jpeg"
+                  media="all"
+                  srcset="{{ image_url_mq_jpg }} 320w, {{ image_url_max_jpg }}"
+                >
+                <img
+                  src="{{ image_url_mq_jpg }}"
+                  width="1600"
+                  height="900"
+                  loading="lazy"
+                >
+              </picture>
+            {% else %}
+              <img
+                x-data="{ vimeo_thumbnail_src: null, width: 0, height: 0 }"
+                x-init="fetch(`https://vimeo.com/api/v2/video/{{ video_url.id }}.json`)
+                    .then(res => res.json())
+                    .then(
+                      data => {
+                        width = data[0].width;
+                        height = data[0].height;
+                        vimeo_thumbnail_src = data[0].thumbnail_large;
+                      }
+                    );"
+                :src="vimeo_thumbnail_src"
+                :class="{ 'invisible' : ! vimeo_thumbnail_src }"
+                :width="width"
+                :height="height"
+                loading="lazy"
+              >
+            {% endif %}
+          {% else %}
+            {{ 'lifestyle-2' | placeholder_svg_tag: 'aspect-w-16 aspect-h-9 bg-scheme-placeholder-background text-scheme-placeholder-foreground fill-current' }}
+          {% endif %}
+        </div>
+        <div class="absolute inset-0 w-full h-full flex items-center justify-center">
+          <div class="w-16 h-16 p-4 rounded-full bg-scheme-background">
+            {% render 'icon-play' %}
+          </div>
+        </div>
+      </a>
+    {% when 'product' %}
+      {% liquid
+        assign product = block.settings.product
+        if product != empty
+         render 'product-tile', product: product, tag: 'div', full_width_item_header: full_width_item_header
+       else
+         render 'product-tile-placeholder', placeholder_name: 'product-1', tag: 'div', full_width_item_header: full_width_item_header
+       endif
+      %}
+    {% when 'article' %}
+      {% liquid
+        assign show_excerpt = block.settings.show_excerpt
+
+        if block.settings.article != empty
+          render 'article-tile', article: block.settings.article, show_excerpt: show_excerpt, sizes: '50vw', tag: 'div', full_width_item_header: full_width_item_header
+        else
+          render 'article-tile', show_image_placeholder: true, show_excerpt: show_excerpt, tag: 'div', full_width_item_header: full_width_item_header
+        endif
+      %}
+    {% when 'custom_html' %}
+      {% liquid
+        if block.settings.html != blank
+          echo block.settings.html
+        endif 
+      %}
+  {% endcase %}
+</div>

@@ -1,0 +1,23 @@
+{%- liquid
+  comment
+    Requires a parent with position: relative
+  endcomment
+
+  if object.featured_media
+    assign image_source = object.featured_media
+  else
+    assign image_source = object
+  endif
+
+  assign image = image_source | image_url: width: 2000 | image_tag: sizes: '(min-width: 990px) 50vw, 100vw', loading: 'lazy'
+-%}
+
+<a class="absolute inset-0 z-[1]" href="{{ object.url }}"><span class="sr-only">{{ object.title }}</a>
+{% if image %}
+  <div class="image-wrapper image-wrapper-{{ crop }} {{ image_wrapper_class }}">
+    {{ image }}
+  </div>
+{% endif %}
+<div class="{% if image %}mt-2{% else %}h-full flex flex-col justify-center text-center{% endif %} break-words" aria-hidden="true">
+  {{ object.title }}
+</div>

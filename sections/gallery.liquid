@@ -1,0 +1,224 @@
+{%- liquid
+  assign section_color = section.settings.color_scheme | default: 'primary'
+
+  assign show_section_title = false
+  if section.settings.title != blank or section.settings.subheading != blank
+    assign show_section_title = true
+  elsif section.settings.cta_link != blank and section.settings.cta_label != blank
+    assign show_section_title = true
+  endif
+
+  if show_section_title and settings.section_titles_position == 'left_of_content'
+    assign container_classes = 'lg:grid lg:gap-x-grid-gutter lg:grid-cols-4'
+    assign content_class = 'lg:col-span-3'
+  endif
+-%}
+
+<section class="{% unless section.settings.remove_top_padding %}pt-section{% endunless %} {% unless section.settings.remove_bottom_padding %}pb-section{% endunless %} text-scheme-text bg-scheme-background {% if section.settings.disable_color_transition %}disable-section-color-transition disable-section-color-transition-source{% endif %}" data-color-scheme="{{ section_color }}">
+  <div class="max-w-site mx-auto px-5 lg:px-10">
+    <div class="{{ container_classes }}">
+
+      {%- if show_section_title -%}
+        {%- render 'section-title',
+          title: section.settings.title,
+          subheading: section.settings.subheading,
+          cta_link: section.settings.cta_link,
+          cta_label: section.settings.cta_label,
+          title_wrapper_classes: 'pb-10 pr-20 lg:px-0'
+        -%}
+      {%- endif -%}
+
+      <div class="{{ content_class }}">
+        <ul class="grid grid-cols-2 md:grid-cols-3 gap-5 md:gap-grid-gutter">
+          {% for block in section.blocks %}
+            {% capture image_content %}
+              <div class="image-wrapper image-wrapper-{{ section.settings.crop }}">
+                {% liquid
+                  if block.settings.image != blank
+                    echo block.settings.image | image_url: width: 1000 | image_tag: loading: 'lazy', sizes: '50vw, (min-width: 768px) calc(100vw / 3)'
+                  else
+                    echo 'image' | placeholder_svg_tag: 'w-full h-full bg-scheme-placeholder-background text-scheme-placeholder-foreground fill-current'
+                  endif
+                %}
+              </div>
+            {% endcapture %}
+            <li {{ block.shopify_attributes }}>
+              {% if block.settings.url != blank %}
+                <a href="{{ block.settings.url }}">
+                  {{ image_content }}
+                </a>
+              {% else %}
+                {{ image_content }}
+              {% endif %}
+
+              {% if block.settings.caption != blank %}
+                <div class="mt-5 text-base">
+                  {{ block.settings.caption }}
+                </div>
+              {% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Gallery",
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Heading",
+      "default": "Gallery"
+    },
+    {
+      "id": "subheading",
+      "type": "richtext",
+      "label": "Subheading",
+      "default": "<p>Use this text to share information about your brand with your customers.</p>"
+    },
+    {
+      "type": "select",
+      "id": "crop",
+      "label": "Crop images",
+      "options": [
+        {
+          "value": "none",
+          "label": "No crop"
+        },
+        {
+          "value": "landscape",
+          "label": "Landscape"
+        },
+        {
+          "value": "square",
+          "label": "Square"
+        },
+        {
+          "value": "portrait",
+          "label": "Portrait"
+        }
+      ],
+      "default": "square"
+    },
+    {
+      "type": "header",
+      "content": "Call to action"
+    },
+    {
+      "type": "url",
+      "id": "cta_link",
+      "label": "Link"
+    },
+    {
+      "type": "text",
+      "id": "cta_label",
+      "label": "Label"
+    },
+    {
+      "type": "header",
+      "content": "Color"
+    },
+    {
+      "type": "select",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "options": [
+        {
+          "value": "primary",
+          "label": "Primary"
+        },
+        {
+          "value": "secondary",
+          "label": "Secondary"
+        },
+        {
+          "value": "tertiary",
+          "label": "Tertiary"
+        }
+      ]
+    },
+    {
+      "type": "checkbox",
+      "id": "disable_color_transition",
+      "label": "Disable transition",
+      "info": "Overrides section color transitions theme setting."
+    },
+    {
+      "type": "header",
+      "content": "Spacing",
+      "info": "Adjust vertical spacing to visually connect this section to adjacent sections"
+    },
+    {
+      "type": "checkbox",
+      "id": "remove_top_padding",
+      "label": "Remove top padding",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "remove_bottom_padding",
+      "label": "Remove bottom padding",
+      "default": false
+    }
+  ],
+  "blocks": [
+    {
+      "type": "image",
+      "name": "Image",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Image"
+        },
+        {
+          "type": "text",
+          "id": "caption",
+          "label": "Caption (optional)"
+        },
+        {
+          "type": "url",
+          "id": "url",
+          "label": "Link (optional)"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Gallery",
+      "blocks": [
+        {
+          "type": "image"
+        },
+        {
+          "type": "image"
+        },
+        {
+          "type": "image"
+        },
+        {
+          "type": "image"
+        },
+        {
+          "type": "image"
+        },
+        {
+          "type": "image"
+        }
+      ]
+    }
+  ],
+  "disabled_on": {
+    "groups": [
+      "header",
+      "footer",
+      "aside"
+    ]
+  }
+}
+{% endschema %}

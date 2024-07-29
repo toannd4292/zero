@@ -1,0 +1,35 @@
+<div class="lg:relative">
+  <div
+  {% if aspect_ratio %}
+    class="image-wrapper-aspect-ratio"
+  {% endif %}
+  >
+    {% if image != blank %}
+      {{ image | image_url: width: 2000 | image_tag: sizes: '100vw', loading: 'lazy' }}
+    {% else %}
+      <div class="bg-scheme-placeholder-background p-12" {{ block.shopify_attributes }}>
+        {{ 'lifestyle-1' | placeholder_svg_tag: 'block text-scheme-placeholder-foreground fill-current' }}
+      </div>
+    {% endif %}
+  </div>
+  <div
+    class="mt-10 lg:mt-0 lg:absolute lg:inset-0 lg:w-full lg:h-full lg:p-20 xl:p-28 z-10 lg:grid {{ place_content }} md:{{ text_align }} {{ color_overlay }}"
+  >
+    {% if title != blank %}
+      <h2 class="font-heading text-heading-standard m-0 break-word">
+        {{ title | escape }}
+      </h2>
+    {% endif %}
+    {% if richtext != blank %}
+      <div class="rte rte--compact break-word text-base mt-5">
+        {{ richtext }}
+      </div>
+    {% endif %}
+
+    {% if cta_url != blank and cta_text != blank %}
+      <a class="mt-5 mb-1 inline-block text-base text-current theme-cta break-word" href="{{ cta_url }}">
+        {{ cta_text }}
+      </a>
+    {% endif %}
+  </div>
+</div>

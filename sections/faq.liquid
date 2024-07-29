@@ -1,0 +1,266 @@
+{%- liquid
+  assign section_color = section.settings.color_scheme | default: 'primary'
+
+  if section.settings.heading != blank
+    assign title = section.settings.heading | strip | escape
+    assign show_section_title = true
+  endif
+
+  assign question_font = section.settings.question_font
+  assign question_size = section.settings.question_size
+
+  if question_size == 'text-heading-standard'
+    assign spacing = 'my-5 pb-5'
+    assign chevron_size = 'w-5 h-5'
+  else
+    assign spacing = 'my-3 pb-3'
+    assign chevron_size = 'w-4 h-4'
+  endif
+
+  if settings.section_titles_position == 'left_of_content'
+    if show_section_title
+      assign content_area_classes = 'lg:col-span-3 lg:col-end-last'
+    else
+      assign content_area_classes = 'lg:col-span-full'
+    endif
+  endif
+
+  assign two_columns_desktop = section.settings.two_columns_desktop
+-%}
+
+<section class="{% unless section.settings.remove_top_padding %}pt-section{% endunless %} {% unless section.settings.remove_bottom_padding %}pb-section{% endunless %} text-scheme-text bg-scheme-background {% if section.settings.disable_color_transition %}disable-section-color-transition disable-section-color-transition-source{% endif %}" data-color-scheme="{{ section_color }}">
+    <div class="max-w-site mx-auto lg:px-10">
+      <div class="{% if settings.section_titles_position == 'left_of_content' %}lg:grid lg:gap-x-grid-gutter lg:grid-cols-4{% endif %}">
+        {%- unless title == blank -%}
+          {%- render 'section-title',
+              title: title
+          -%}
+        {%- endunless -%}
+
+        <div class="px-5 lg:px-0 {{ content_area_classes }}{% if two_columns_desktop %} lg:grid lg:grid-cols-2 lg:gap-x-10{% endif %}">
+          {% liquid
+            assign half_size = section.blocks.size | divided_by: 2
+            assign extra_blocks = section.blocks.size | modulo: 2
+
+            assign first_col_last_index = half_size | floor | plus: extra_blocks
+            assign second_col_first_index = first_col_last_index | plus: 1
+          %}
+
+          {% for block in section.blocks %}
+            {% if two_columns_desktop %}
+              {% if forloop.first or forloop.index == second_col_first_index %}
+                <div>
+              {% endif %}
+            {% endif %}
+            <div {{ block.shopify_attributes }}>
+              <div
+                x-data="{ expanded: false }"
+                class="
+                  border-b
+                  {% if forloop.last %}
+                    border-b-transparent
+                    {% if two_columns_desktop %}
+                      lg:border-b-scheme-text/20
+                    {% endif %}
+                  {% else %}
+                    border-b-scheme-text/20
+                  {% endif %}
+                "
+              >
+                <h2 class="{{ spacing | split: ' ' | first }} {{ question_font }} {{ question_size }} break-word">
+                  <button
+                    type="button"
+                    @click="expanded = ! expanded"
+                    aria-controls="answer-{{ section.id }}-{{ block.id }}"
+                    :aria-expanded="expanded ? true : 'false'"
+                    class="text-left cursor-pointer flex justify-between items-center w-full"
+                  >
+                    {{ block.settings.question | strip }}
+                    <span
+                      class="inline-block ml-auto {{ chevron_size }} shrink-0 transition-transform ease-gentle duration-[280ms]"
+                      :class="{ '-rotate-180' : expanded, 'rotate-0' : ! expanded }"
+                      x-cloak
+                    >
+                      {%- render 'icon-chevron-down' %}
+                    </span>
+                  </button>
+                </h2>
+                <div
+                  id="answer-{{ section.id }}-{{ block.id }}"
+                  x-show="expanded"
+                  x-collapse
+                  x-cloak
+                >
+                  <div class="{{ spacing | split: ' ' | last }} rte rte--compact text-base break-word">
+                    {{ block.settings.answer }}
+                  </div>
+                </div>
+              </div>
+            </div>
+            {% if two_columns_desktop %}
+              {% if forloop.index == first_col_last_index or forloop.last %}
+                </div>
+              {% endif %}
+            {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+</section>
+
+{% schema %}
+{
+  "name": "FAQ",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "FAQs"
+    },
+    {
+      "type": "radio",
+      "id": "question_font",
+      "label": "Question font",
+      "options": [
+        {
+          "value": "font-body",
+          "label": "Body"
+        },
+        {
+          "value": "font-heading",
+          "label": "Heading"
+        }
+      ],
+      "default": "font-body"
+    },
+    {
+      "type": "radio",
+      "id": "question_size",
+      "label": "Question text size",
+      "options": [
+        {
+          "value": "text-heading-standard",
+          "label": "Standard heading"
+        },
+        {
+          "value": "text-base",
+          "label": "Base font"
+        }
+      ],
+      "default": "text-heading-standard"
+    },
+    {
+      "type": "checkbox",
+      "id": "two_columns_desktop",
+      "default": true,
+      "label": "Two columns on desktop"
+    },
+    {
+      "type": "header",
+      "content": "Color"
+    },
+    {
+      "type": "select",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "options": [
+        {
+          "value": "primary",
+          "label": "Primary"
+        },
+        {
+          "value": "secondary",
+          "label": "Secondary"
+        },
+        {
+          "value": "tertiary",
+          "label": "Tertiary"
+        }
+      ]
+    },
+    {
+      "type": "checkbox",
+      "id": "disable_color_transition",
+      "label": "Disable transition",
+      "info": "Overrides section color transitions theme setting."
+    },
+    {
+      "type": "header",
+      "content": "Spacing",
+      "info": "Adjust vertical spacing to visually connect this section to adjacent sections"
+    },
+    {
+      "type": "checkbox",
+      "id": "remove_top_padding",
+      "label": "Remove top padding",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "remove_bottom_padding",
+      "label": "Remove bottom padding",
+      "default": false
+    }
+  ],
+  "blocks": [
+    {
+      "name": "Question",
+      "type": "question",
+      "settings": [
+        {
+          "type": "text",
+          "id": "question",
+          "label": "Question",
+          "default": "Frequently asked question"
+        },
+        {
+          "type": "richtext",
+          "id": "answer",
+          "label": "Answer",
+          "default": "<p>Use this text to share the answer to the question with your customers.</p>"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "FAQ",
+      "blocks": [
+        {
+          "type": "question"
+        },
+        {
+          "type": "question"
+        },
+        {
+          "type": "question"
+        },
+        {
+          "type": "question"
+        },
+        {
+          "type": "question"
+        },
+        {
+          "type": "question"
+        },
+        {
+          "type": "question"
+        },
+        {
+          "type": "question"
+        }
+      ]
+    }
+  ],
+  "disabled_on": {
+    "groups": [
+      "header",
+      "footer",
+      "aside"
+    ]
+  }
+}
+{% endschema %}

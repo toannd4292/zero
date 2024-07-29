@@ -1,0 +1,10 @@
+{% if on_sale or sold_out %}
+  <div class="absolute top-0 right-0 pt-5 pr-5 z-10">
+    {% if on_sale and sold_out != true %}
+      <div class="p-2 text-sm bg-scheme-accent text-scheme-accent-overlay">{{ 'products.product.on_sale' | t }}</div>
+    {% endif %}
+    {% if sold_out %}
+      <div class="p-2 text-sm bg-scheme-text text-scheme-text-overlay">{{ 'products.product.sold_out' | t }}</div>
+    {% endif %}
+  </div>
+{% endif %}

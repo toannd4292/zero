@@ -1,0 +1,21 @@
+{% liquid
+  unless tag
+    assign tag = 'li'
+  endunless
+%}
+<{{ tag }} class="relative group {% if class != blank %}{{ class }}{% endif %} {{ settings.product_tiles_text_transform }}  {% if full_width_item_header == '||__cascade-item:full__||' and settings.max_height_full_width_product_tiles != 'none' %}mx-auto{% endif %}"
+
+  {% if full_width_item_header == '||__cascade-item:full__||' and settings.max_height_full_width_product_tiles != 'none' %}
+    style="max-width: calc({{ settings.max_height_full_width_product_tiles }} * 1 );"
+  {% endif %}
+>
+  <span class="absolute inset-0 z-10" class="cursor-pointer"><span class="sr-only">{{ 'sections.onboarding.product_title' | t }}</span></span>
+  <div class="relative">
+    <div class="block relative">
+      {{ placeholder_name | default: 'product-1' | placeholder_svg_tag: 'bg-scheme-placeholder-background text-scheme-placeholder-foreground fill-current' }}
+    </div>
+  </div>
+  <div class="mt-2" aria-hidden="true">
+    {{ 'sections.onboarding.product_title' | t }}
+  </div>
+</{{ tag }}>

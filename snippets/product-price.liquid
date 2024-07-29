@@ -1,0 +1,42 @@
+{% assign first_variant = product.variants.first %}
+
+<p class="{% if first_variant.compare_at_price > first_variant.price %} text-scheme-accent{% else %} text-scheme-text{% endif %} m-0 text-theme-basic" style="font-weight: bold;"> <!-- Bold style applied here -->
+  {% if first_variant.available == false %}
+    <span class="text-scheme-meta">
+      {{ 'products.product.sold_out' | t }}
+    </span>
+  {% else %}
+    <span class="price{% if first_variant.compare_at_price > first_variant.price %} discounted-price{% endif %}" style="font-weight: bold;"> <!-- Bold style applied here -->
+      {% if settings.currency_code_enable %}
+        {{ first_variant.price | money_with_currency }}
+      {% else %}
+        {{ first_variant.price | money }}
+      {% endif %}
+    </span>
+
+    {% if first_variant.compare_at_price > first_variant.price %}
+      <s class="original-price" style="font-weight: bold;"> <!-- Bold style applied here -->
+        {% if settings.currency_code_enable %}
+          {{ first_variant.compare_at_price | money_with_currency }}
+        {% else %}
+          {{ first_variant.compare_at_price | money }}
+        {% endif %}
+      </s>
+    {% endif %}
+  {% endif %}
+</p>
+
+<!-- Additional CSS for bold styling -->
+<style>
+  .discounted-price, .original-price {
+    font-weight: bold; 
+    color: #A90606; 
+  }
+
+  .original-price {
+    font-size: 1em; 
+    color: #42535C; 
+    font-weight: bold;  /* Ensuring boldness is explicitly defined */
+    text-decoration: line-through;
+  }
+</style>

@@ -1,0 +1,81 @@
+{%- liquid
+  assign section_color = section.settings.color_scheme | default: 'primary'
+-%}
+
+{{ 'modules-spr.bundle.css' | asset_url | stylesheet_tag }}
+
+<section class="text-scheme-text bg-scheme-background" data-color-scheme="{{ section_color }}">
+  <div class="max-w-site mx-auto px-5 lg:px-10">
+    <div
+      id="shopify-product-reviews"
+      class="product__spr"
+      data-id="{{ product.id }}"
+      data-star-color="{{ section.settings.star_color }}"
+    >
+      {{ product.metafields.spr.reviews }}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Product reviews",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "To show reviews here, install [Shopify Product Reviews](https://apps.shopify.com/product-reviews)."
+    },
+    {
+      "type": "header",
+      "content": "Styling"
+    },
+    {
+      "type": "radio",
+      "id": "star_color",
+      "label": "Star color",
+      "default": "accent",
+      "options": [
+        {
+          "value": "text",
+          "label": "Text"
+        },
+        {
+          "value": "accent",
+          "label": "Accent"
+        }
+      ]
+    },
+    {
+      "type": "header",
+      "content": "Color"
+    },
+    {
+      "type": "select",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "options": [
+        {
+          "value": "primary",
+          "label": "Primary"
+        },
+        {
+          "value": "secondary",
+          "label": "Secondary"
+        },
+        {
+          "value": "tertiary",
+          "label": "Tertiary"
+        }
+      ]
+    }
+  ],
+  "templates": [
+    "product"
+  ],
+  "presets": [
+    {
+      "name": "Product reviews"
+    }
+  ]
+}
+{% endschema %}

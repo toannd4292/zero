@@ -1,0 +1,187 @@
+{% assign section_color = 'primary' %}
+
+<section
+  class="py-section bg-scheme-background text-scheme-text"
+  data-color-scheme="{{ section_color }}"
+  x-data="ThemeSection_login"
+>
+  <div class="max-w-site mx-auto my-10 px-5 md:px-10 min-h-[55vh]">
+    <div
+      x-show="state === 'login'"
+      data-state="login"
+    >
+      {% form 'customer_login', data-login-focus: true, tabindex: '-1' %}
+        <div class="max-w-5xl mx-auto md:grid md:grid-cols-2 md:gap-grid-gutter">
+          <div class="mb-20 md:mb-0">
+            <h1
+              class="font-heading text-heading-standard mb-5"
+              tabindex="-1"
+              data-should-focus
+            >
+              {{ 'customer.login.title' | t }}
+            </h1>
+            <p class="text-theme-basic">
+              <a class="theme-link" href="{{ routes.root_url }}">
+                {{ 'customer.login.cancel' | t }}
+              </a>
+            </p>
+          </div>
+          <div>
+            {% if form.errors %}
+              <div class="mb-10 needs-attention" tabindex="-1" data-login-error>
+                {{ form.errors | default_errors }}
+              </div>
+            {% endif %}
+
+            <div class="-my-5">
+              <div class="my-5">
+                <label
+                  class="mb-2 block text-theme-basic text-left"
+                  for="CustomerEmail"
+                >
+                  {{ 'customer.login.email' | t }}
+                </label>
+                <input
+                  type="email"
+                  name="customer[email]"
+                  id="CustomerEmail"
+                  class="w-full {% if form.errors contains 'email' %} border-scheme-error {% endif %}"
+                  spellcheck="false"
+                  autocomplete="email"
+                  autocapitalize="off"
+                  placeholder="{{ 'customer.login.email' | t }}"
+                  {% unless form.errors %} autofocus {% endunless %}
+                />
+              </div>
+
+              {% if form.password_needed %}
+                <div class="my-5">
+                  <label
+                    class="mb-2 block text-theme-basic text-left"
+                    for="CustomerPassword"
+                  >
+                    {{ 'customer.login.password' | t }}
+                  </label>
+                  <input
+                    type="password"
+                    name="customer[password]"
+                    id="CustomerPassword"
+                    autocomplete="password"
+                    class="w-full {% if form.errors contains 'password' %} border-scheme-error {% endif %}"
+                    placeholder="{{ 'customer.login.password' | t }}"
+                  />
+                </div>
+              {% endif %}
+
+              <div class="mt-10 mb-5">
+                <button
+                  type="submit"
+                  class="theme-button theme-button--solid w-full"
+                >
+                  {{ 'customer.login.sign_in' | t }}
+                </button>
+              </div>
+
+              <div class="my-5 -mx-3">
+                <a
+                  class="mx-3 text-sm theme-link"
+                  href="{{ routes.account_register_url }}"
+                >
+                  {{ 'layout.customer.create_account' | t }}
+                </a>
+                {% if form.password_needed %}
+                  <a
+                    role="button"
+                    @click="state = 'recover'"
+                    class="mx-3 mt-3 text-sm theme-link">
+                    {{ 'customer.login.forgot_password' | t }}
+                  </a>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endform %}
+    </div>
+
+    <div
+      x-show="state === 'recover'"
+      data-state="recover"
+      x-cloak
+    >
+      {% form 'recover_customer_password' %}
+        <div class="max-w-5xl mx-auto md:grid md:grid-cols-2 md:gap-grid-gutter">
+          <div class="mb-20 md:mb-0">
+            <h1 class="font-heading text-heading-standard mb-5">
+              {{ 'customer.recover_password.title' | t }}
+            </h1>
+            {% unless form.posted_successfully? %}
+              <p>
+                {{ 'customer.recover_password.subtext' | t }}
+              </p>
+            {% endunless %}
+          </div>
+          <div>
+            {% if form.errors %}
+              <div class="mb-10 needs-attention" tabindex="-1" data-login-error>
+                {{ form.errors | default_errors }}
+              </div>
+            {% endif %}
+
+            {% if form.posted_successfully? %}
+              <p data-recover-success>
+                {{ 'customer.recover_password.success' | t }}
+              </p>
+            {% else %}
+              <div class="-my-5">
+                <div class="my-5">
+                  <label
+                    class="mb-2 block text-theme-basic text-left"
+                    for="RecoverEmail"
+                  >
+                    {{ 'customer.login.email' | t }}
+                  </label>
+                  <input
+                    type="email"
+                    name="customer[email]"
+                    id="RecoverEmail"
+                    class="w-full"
+                    spellcheck="false"
+                    autocomplete="email"
+                    autocapitalize="off"
+                    placeholder="{{ 'customer.login.email' | t }}"
+                  />
+                </div>
+
+                <div class="mt-10 mb-5">
+                  <button
+                    type="submit"
+                    class="theme-button theme-button--solid w-full"
+                  >
+                    {{ 'customer.recover_password.submit' | t }}
+                  </button>
+                  <div class="mt-5 w-full text-left">
+                    <a
+                      role="button"
+                      @click="state = 'login'"
+                      class="text-sm">
+                      {{ 'customer.recover_password.cancel' | t }}
+                    </a>
+                  </div>
+                </div>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      {% endform %}
+    </div>
+  </div>
+</section>
+
+<script src="{{ 'login.js' | asset_url }}" type="module"></script>
+
+{% schema %}
+{
+  "name": "Customer login"
+}
+{% endschema %}

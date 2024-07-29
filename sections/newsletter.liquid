@@ -1,0 +1,159 @@
+{% assign section_color = section.settings.color_scheme | default: 'primary' %}
+
+{% assign show_section_title = false %}
+{% if section.settings.title != blank %}
+  {% assign show_section_title = true %}
+{% endif %}
+
+{% if show_section_title and settings.section_titles_position == 'left_of_content' %}
+  {% assign container_classes = 'lg:grid lg:gap-x-grid-gutter lg:grid-cols-4' %}
+  {% assign content_area_classes = 'lg:col-span-0 lg:col-end-last' %}
+{% endif %}
+
+<section class="{% unless section.settings.remove_top_padding %}pt-section{% endunless %} {% unless section.settings.remove_bottom_padding %}pb-section{% endunless %} text-scheme-text bg-scheme-background {% if section.settings.disable_color_transition %}disable-section-color-transition disable-section-color-transition-source{% endif %}" data-color-scheme="{{ section_color }}">
+  <div class="max-w-site mx-auto lg:px-10">
+    <div class="{{ container_classes }}">
+
+      {%- if show_section_title -%}
+        {%- render 'section-title',
+          title: section.settings.title
+        -%}
+      {%- endif -%}
+
+      <div class="{{ content_area_classes }} {% if section.settings.richtext != blank %} lg:grid lg:grid-cols-3 gap-x-10 {% endif %}">
+        {% if section.settings.richtext != blank %}
+          <div class="px-5 lg:px-0 mb-5 lg:mb-0 rte rte--compact text-theme-basic break-word lg:col-span-1">
+            {{ section.settings.richtext }}
+          </div>
+        {% endif %}
+        <div class="px-2 lg:px-0 {% if section.settings.richtext != blank %} lg:col-span-1 {% endif %}">
+          {% assign form_id = 'customer-form-' | append: section.id %}
+          {% form 'customer', id: form_id %}
+            {% if form.posted_successfully? %}
+              <p class="text-theme-basic" id="Newsletter-success--{{ section.id }}">
+                Tack för att du har anmält dig till vårt nyhetsbrev
+              </p>
+            {% endif %}
+            {% if form.errors %}
+              <p class="text-theme-basic text-scheme-error" id="Newsletter-error--{{ section.id }}">
+                {{ form.errors.translated_fields['email'] | capitalize }} {{ form.errors.messages['email'] }}
+              </p>
+            {% endif %}
+              <div class="input-group">
+                <input type="hidden" name="contact[tags]" value="newsletter">
+                <label for="NewsletterForm-{{ section.id }}" class="sr-only">
+                  E-post för nyhetsbrev
+                </label>
+                <input
+                  id="NewsletterForm-{{ section.id }}"
+                  type="email"
+                  name="contact[email]"
+                  class="input-group-field bg-transparent border text-scheme-text {% if form.errors %} border-scheme-error {% else %} border-scheme-text {% endif %}"
+                  value="{{ form.email }}"
+                  autocorrect="off"
+                  autocapitalize="off"
+                  autocomplete="email"
+                  {% if form.errors %}
+                    autofocus
+                    aria-invalid="true"
+                    aria-describedby="Newsletter-error--{{ section.id }}"
+                  {% elsif form.posted_successfully? %}
+                    aria-describedby="Newsletter-success--{{ section.id }}"
+                  {% endif %}
+                  placeholder="E-postadress"
+                  required
+                >
+                <div class="input-group-button">
+                  <button type="submit" class="theme-button theme-button--solid" name="commit" id="Subscribe-{{ section.id }}">
+                    Prenumerera
+                  </button>
+                </div>
+              </div>
+          {% endform %}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Nyhetsbrev",
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Rubrik",
+      "default": "Anmäl dig till vårt nyhetsbrev"
+    },
+    {
+      "type": "richtext",
+      "id": "richtext",
+      "label": "Text",
+      "default": "<p>Få specialerbjudanden och första titt på nya produkter.</p>"
+    },
+    {
+      "type": "paragraph",
+      "content": "Kunder som prenumererar kommer att ha sin e-postadress tillagd i den \"accepterar marknadsföring\" [kundlistan](/admin/customers?query=&accepts_marketing=1)."
+    },
+    {
+      "type": "header",
+      "content": "Färg"
+    },
+    {
+      "type": "select",
+      "id": "color_scheme",
+      "label": "Färgscheman",
+      "options": [
+        {
+          "value": "primary",
+          "label": "Primär"
+        },
+        {
+          "value": "secondary",
+          "label": "Sekundär"
+        },
+        {
+          "value": "tertiary",
+          "label": "Tertiär"
+        }
+      ]
+    },
+    {
+      "type": "checkbox",
+      "id": "disable_color_transition",
+      "label": "Inaktivera övergång",
+      "info": "Åsidosätter temats inställning för sektionens färgövergång."
+    },
+    {
+      "type": "header",
+      "content": "Avstånd",
+      "info": "Justera det vertikala avståndet för att visuellt ansluta den här sektionen till intilliggande sektioner."
+    },
+    {
+      "type": "checkbox",
+      "id": "remove_top_padding",
+      "label": "Ta bort övre marginal",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "remove_bottom_padding",
+      "label": "Ta bort nedre marginal",
+      "default": false
+    }
+  ],
+  "presets": [
+    {
+      "name": "Nyhetsbrev"
+    }
+  ],
+  "disabled_on": {
+    "groups": [
+      "header",
+      "footer",
+      "aside"
+    ]
+  }
+}
+{% endschema %}

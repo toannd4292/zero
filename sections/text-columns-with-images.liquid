@@ -1,0 +1,245 @@
+{% liquid
+  assign section_color = section.settings.color_scheme | default: 'primary'
+
+  assign show_section_title = false
+  if section.settings.title != blank or section.settings.subheading != blank
+    assign show_section_title = true
+  elsif section.settings.cta_link != blank and section.settings.cta_label != blank
+    assign show_section_title = true
+  endif
+
+  if section.blocks.size <= 1
+    assign enable_mobile_carousel = false
+    assign enable_desktop_carousel = false
+  else
+    assign enable_mobile_carousel = section.settings.enable_mobile_carousel
+
+    if section.blocks.size <= 2
+      assign enable_desktop_carousel = false
+    else
+      assign enable_desktop_carousel = section.settings.enable_desktop_carousel
+    endif
+  endif
+%}
+
+<section class="{% unless section.settings.remove_top_padding %}pt-section{% endunless %} {% unless section.settings.remove_bottom_padding %}pb-section{% endunless %} text-scheme-text bg-scheme-background {% if section.settings.disable_color_transition %}disable-section-color-transition disable-section-color-transition-source{% endif %}" data-color-scheme="{{ section_color }}">
+  <div class="max-w-site mx-auto px-0 lg:px-10">
+    <div class="{% if settings.section_titles_position == 'left_of_content' %}lg:grid lg:gap-x-grid-gutter lg:grid-cols-4{% endif %}">
+
+      {%- if show_section_title -%}
+        {%- render 'section-title',
+          title: section.settings.title,
+          subheading: section.settings.subheading,
+          cta_link: section.settings.cta_link,
+          cta_label: section.settings.cta_label
+        -%}
+      {%- endif -%}
+
+      {%- liquid
+        assign item_class = 'block pb-10 px-5 lg:px-0'
+
+        if enable_mobile_carousel
+          assign item_class = item_class | append: ' w-3/4'
+        endif
+
+        unless enable_desktop_carousel
+          assign item_class = item_class | append: ' lg:w-auto lg:pb-0 ' | append: section.settings.column_text_align
+        else
+          assign item_class = item_class | append: ' lg:w-3/8 lg:pb-14 ' | append: section.settings.column_text_align
+        endunless
+
+        assign list_classes = 'lg:grid lg:gap-y-14 lg:gap-x-grid-gutter lg:grid-cols-' | append: section.blocks.size
+
+        if enable_mobile_carousel or enable_desktop_carousel
+          assign item_class = item_class | append: ' splide__slide'
+        endif
+
+        if section.blocks.size == 1
+          assign item_class = item_class | append: ' lg:max-w-3/4 text-lg lg:text-xl leading-7 lg:leading-8'
+        else
+          assign item_class = item_class | append: ' text-theme-basic'
+        endif
+
+        capture image_sizes
+          echo '@media (min-width: 990px) calc((100vw - 5rem) / ' | append: section.blocks.size | append: '), 75vw'
+        endcapture
+
+        capture block_items
+          for block in section.blocks
+            render 'block-image-with-text-columns', block: block, item_class: item_class, sizes: image_sizes
+          endfor
+        endcapture
+      -%}
+
+      {% render 'section-content',
+         enable_mobile_carousel: enable_mobile_carousel,
+         enable_desktop_carousel: enable_desktop_carousel,
+         show_section_title: show_section_title,
+         slideshow_id: section.id,
+         list_classes: list_classes,
+         content: block_items,
+         show_section_title: show_section_title
+      %}
+
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Text columns with images",
+  "settings": [
+    {
+      "id": "title",
+      "type": "text",
+      "label": "Heading",
+      "default": "Title"
+    },
+    {
+      "id": "subheading",
+      "type": "richtext",
+      "label": "Subheading",
+      "default": "<p>Use this text to share information about your brand with your customers.</p>"
+    },
+    {
+      "type": "select",
+      "id": "column_text_align",
+      "label": "Column text alignment",
+      "options": [
+        {
+          "value": "text-left",
+          "label": "Left"
+        },
+        {
+          "value": "text-center",
+          "label": "Center"
+        },
+        {
+          "value": "text-right",
+          "label": "Right"
+        }
+      ],
+      "default": "text-left"
+    },
+    {
+      "type": "header",
+      "content": "Call to action"
+    },
+    {
+      "type": "url",
+      "id": "cta_link",
+      "label": "Link"
+    },
+    {
+      "type": "text",
+      "id": "cta_label",
+      "label": "Label"
+    },
+    {
+      "type": "header",
+      "content": "Carousel"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_mobile_carousel",
+      "label": "Enable on mobile",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_desktop_carousel",
+      "label": "Enable on desktop",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "Color"
+    },
+    {
+      "type": "select",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "options": [
+        {
+          "value": "primary",
+          "label": "Primary"
+        },
+        {
+          "value": "secondary",
+          "label": "Secondary"
+        },
+        {
+          "value": "tertiary",
+          "label": "Tertiary"
+        }
+      ]
+    },
+    {
+      "type": "checkbox",
+      "id": "disable_color_transition",
+      "label": "Disable transition",
+      "info": "Overrides section color transitions theme setting."
+    },
+    {
+      "type": "header",
+      "content": "Spacing",
+      "info": "Adjust vertical spacing to visually connect this section to adjacent sections"
+    },
+    {
+      "type": "checkbox",
+      "id": "remove_top_padding",
+      "label": "Remove top padding",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "remove_bottom_padding",
+      "label": "Remove bottom padding",
+      "default": false
+    }
+  ],
+  "blocks": [
+    {
+      "type": "image_with_text",
+      "name": "Image with text",
+      "limit": 4,
+      "settings": [
+        {
+          "id": "image",
+          "type": "image_picker",
+          "label": "Image"
+        },
+        {
+          "id": "richtext",
+          "type": "richtext",
+          "label": "Text",
+          "default": "<p>Use this text to share information about your brand with your customers. Describe a product, share announcements, or welcome customers to your store.</p>"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Text columns with images",
+      "blocks": [
+        {
+          "type": "image_with_text"
+        },
+        {
+          "type": "image_with_text"
+        },
+        {
+          "type": "image_with_text"
+        }
+      ]
+    }
+  ],
+  "disabled_on": {
+    "groups": [
+      "header",
+      "footer",
+      "aside"
+    ]
+  }
+}
+{% endschema %}

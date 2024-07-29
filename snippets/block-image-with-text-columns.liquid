@@ -1,0 +1,13 @@
+<li class="{{ item_class }}" {{ block.shopify_attributes }}>
+  {% if block.settings.image != blank %}
+    {{ block.settings.image | image_url: width: 1600 | image_tag: class: 'block', sizes: sizes, loading: 'lazy' }}
+  {% else %}
+    <div class="block relative">
+      {{ 'image' | placeholder_svg_tag: 'bg-scheme-placeholder-background text-scheme-placeholder-foreground fill-current' }}
+    </div>
+  {% endif %}
+
+  <div class="rte rte--compact mt-5">
+    {{ block.settings.richtext }}
+  </div>
+</li>

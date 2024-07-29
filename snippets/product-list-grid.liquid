@@ -1,0 +1,101 @@
+{%- liquid
+  case max_products
+    when '3' or '6'
+      assign products_per_row = '3'
+    when '4' or '8'
+      assign products_per_row = '4'
+  endcase
+
+  if product_list != blank
+    if product_list.products.size <= 1
+      assign enable_mobile_carousel = false
+      assign enable_desktop_carousel = false
+    else
+      if product_list.products.size <= 2
+        assign enable_desktop_carousel = false
+      endif
+    endif
+  endif
+
+  assign show_section_title = false
+  if title != blank or subheading != blank
+    assign show_section_title = true
+  elsif cta_link != blank and cta_label != blank
+    assign show_section_title = true
+  endif
+
+  if show_section_title and settings.section_titles_position == 'left_of_content'
+    assign container_classes = 'lg:grid lg:gap-x-grid-gutter lg:grid-cols-4'
+    assign content_area_classes = 'lg:col-span-3 lg:col-end-last'
+  endif
+
+-%}
+<div class="max-w-site mx-auto px-0 lg:px-10">
+  <div class="{% if class %} {{ class }} {% endif %} {{ container_classes }}">
+
+    {%- if show_section_title -%}
+      {%- render 'section-title',
+        title: title,
+        subheading: subheading,
+        cta_link: cta_link,
+        cta_label: cta_label
+      -%}
+    {%- endif -%}
+
+    {%- liquid
+      assign product_tile_class = 'block pb-10 px-5 lg:px-0'
+
+      if enable_mobile_carousel
+        assign product_tile_class = product_tile_class | append: ' w-3/4'
+      endif
+
+      unless enable_desktop_carousel
+        assign product_tile_class = product_tile_class | append: ' lg:w-auto lg:pb-0'
+      else
+        assign product_tile_class = product_tile_class | append: ' lg:w-3/8 lg:pb-14'
+      endunless
+
+      assign list_classes = 'lg:grid lg:gap-y-14 lg:gap-x-grid-gutter lg:grid-cols-' | append: products_per_row
+
+      if enable_mobile_carousel or enable_desktop_carousel
+        assign product_tile_class = product_tile_class | append: ' splide__slide'
+      endif
+
+      if product_list.products.size == 1
+        assign product_tile_class = product_tile_class | append: ' lg:max-w-3/4 text-lg lg:text-xl leading-7 lg:leading-8'
+      else
+        assign product_tile_class = product_tile_class | append: ' text-theme-basic'
+      endif
+
+      capture image_sizes
+        echo '@media (min-width: 990px) calc((100vw - 5rem) / ' | append: products_per_row | append: '), 75vw'
+      endcapture
+
+      capture product_tiles
+        if product_list != blank
+          for product in product_list limit: max_products
+            render 'product-tile', product: product, class: product_tile_class, sizes: image_sizes
+          endfor
+        else
+          for i in (1..max_products)
+            capture current_cycle
+              cycle '1', '2', '3', '4', '5', '6'
+            endcapture
+            assign placeholder_name = 'product-' | append: current_cycle
+            render 'product-tile-placeholder', placeholder_name: placeholder_name, class: product_tile_class
+          endfor
+        endif
+      endcapture
+    -%}
+
+    {% render 'section-content',
+       enable_mobile_carousel: enable_mobile_carousel,
+       enable_desktop_carousel: enable_desktop_carousel,
+       slideshow_id: slideshow_id,
+       wrapper_classes: content_area_classes,
+       list_classes: list_classes,
+       content: product_tiles,
+       show_section_title: show_section_title
+    %}
+  </div>
+</div>

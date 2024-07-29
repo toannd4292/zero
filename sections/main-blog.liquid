@@ -1,0 +1,359 @@
+{% paginate blog.articles by section.settings.max_posts %}
+  {% liquid
+    assign section_color = section.settings.color_scheme
+
+    assign desktop_layout = section.settings.desktop_layout
+    assign enable_cascade_on_mobile = section.settings.enable_cascade_on_mobile
+    assign sequence = section.settings.sequence
+
+    assign desktop_tags_layout = section.settings.desktop_tags_layout
+
+    if section.settings.variance == 'global'
+      assign variance = settings.variance
+    else
+      assign variance = section.settings.variance
+    endif
+
+    if section.settings.spacing == 'global'
+      assign spacing = settings.cascade_item_spacing
+    else
+      assign spacing = section.settings.spacing
+    endif
+
+    assign full_width_item_header = '||__cascade-item:full__||'
+    assign item_separator = '||__cascade-item-end__||'
+
+    capture blog_article_items
+      for article in blog.articles
+        if section.settings.feature_full_width_blog_posts
+          cycle full_width_item_header, '', ''
+        endif
+        echo '<div data-media-item>'
+        render 'article-tile', article: article, tag: 'div', show_author: section.settings.show_author, show_date: section.settings.show_date, show_excerpt: section.settings.show_excerpt, show_comment_count: section.settings.show_comment_count, show_tags: section.settings.show_tags, show_link_text: section.settings.show_link_text
+        echo '</div>'
+        echo item_separator
+      endfor
+    endcapture
+  %}
+
+  {% capture blog_posts %}
+    <div class="max-w-site mx-auto">
+      {% render 'cascade',
+        content_items: blog_article_items,
+        first_block_position: section.settings.first_blog_post_position,
+        alternate_first_block_position: true,
+        variance: variance,
+        spacing: spacing,
+        desktop_layout: desktop_layout,
+        enable_cascade_on_mobile: enable_cascade_on_mobile,
+        section_id: section.id,
+        sequence: sequence
+      %}
+    </div>
+    {% if paginate.pages > 1 %}
+      <div class="my-10">
+        {% render 'pagination',
+          paginate: paginate,
+        %}
+      </div>
+    {% endif %}
+  {% endcapture %}
+  
+  <section class="py-section bg-scheme-background text-scheme-text px-5 lg:px-10" data-color-scheme="{{ section_color }}">
+    <div>
+      <h1 class="font-heading text-heading-standard flex break-word">
+        {{ blog.title | escape }}
+        {% if section.settings.show_subscribe_link %}
+          <a
+            href="{{ shop.url }}{{ blogs[blog.handle].url }}.atom"
+            class="block w-4 h-4 ml-3"
+            title="{{ 'blogs.sidebar.rss' | t }}"
+          >
+            {% render 'icon-rss' %}
+          </a>
+        {% endif %}
+      </h1>
+    </div>
+    <div class="pt-section lg:pt-half-section">
+      {% if section.settings.enable_tag_filter %}
+        <div class="grid gap-5 {% if desktop_tags_layout == 'sidebar' %}lg:grid-cols-7{% endif %}">
+          <div class="{% if desktop_tags_layout == 'sidebar' %}lg:col-span-1{% endif %}">
+            <div x-data="{ expanded: false }">
+              <div
+                class="lg:hidden text-theme-basic"
+              >
+                <button
+                  class="flex flex-row justify-between items-center"
+                  @click="expanded = ! expanded"
+                  :aria-expanded="expanded"
+                >
+                  <span>{{ 'facets.sorting.filter' | t }}</span>
+                  <div class="ml-2">
+                    <span class="w-4 h-4 block" x-show="!expanded">{% render 'icon-chevron-down' %}</span>
+                    <span class="w-4 h-4 block" x-show="expanded">{% render 'icon-chevron-up' %}</span>
+                  </div>
+                </button>
+              </div>
+              <div
+                class="lg:block"
+                :class="{ 'hidden' : ! expanded }"
+              >
+                <ul class="mt-5 lg:mt-0 text-theme-basic {% if desktop_tags_layout == 'horizontal' %}flex items-center justify-start w-full -mx-2{% endif %}">
+                  <li class="mb-3">
+                    <a
+                      href="{{ blog.url }}"
+                      class="underline-offset-basic {% unless current_tags %} underline {% else %} hover:underline {% endunless %} {% if desktop_tags_layout == 'horizontal' %}px-2{% endif %}"
+                    >
+                      {{ 'blogs.sidebar.all_tags' | t }}
+                    </a>
+                  </li>
+                  {% for tag in blog.all_tags %}
+                    <li class="mb-3 break-word">
+                      <a
+                        href="{{ blog.url }}/tagged/{{ tag | handle }}"
+                        class="underline-offset-basic {% if current_tags contains tag %} underline {% else %} hover:underline {% endif %} {% if desktop_tags_layout == 'horizontal' %}px-2{% endif %}"
+                      >
+                        {{ tag }}
+                      </a>
+                    </li>
+                  {% endfor %}
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="{% if desktop_tags_layout == 'sidebar' %}lg:col-span-6{% endif %}">
+            {{ blog_posts }}
+          </div>
+        </div>
+      {% else %}
+        {{ blog_posts }}
+      {% endif %}
+    </div>
+  </section>
+{% endpaginate %}
+
+{% schema %}
+{
+  "name": "Blog",
+  "settings": [
+    {
+      "type": "range",
+      "id": "max_posts",
+      "min": 2,
+      "max": 24,
+      "step": 2,
+      "label": "Maximum number of posts per page",
+      "default": 12
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_tag_filter",
+      "label": "Enable filtering by tag",
+      "default": true
+    },
+    {
+      "type": "radio",
+      "id": "desktop_tags_layout",
+      "label": "Desktop tags layout",
+      "default": "sidebar",
+      "options": [
+        {
+          "value": "sidebar",
+          "label": "Sidebar"
+        },
+        {
+          "value": "horizontal",
+          "label": "Horizontal"
+        }
+      ]
+    },
+    {
+      "type": "checkbox",
+      "id": "show_subscribe_link",
+      "label": "Show RSS link",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "Articles"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_author",
+      "label": "Show author",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_date",
+      "label": "Show date",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_excerpt",
+      "label": "Show excerpt",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_comment_count",
+      "label": "Show comment count",
+      "info": "Comment count will only show if the blog has comments enabled and the article has comments",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_tags",
+      "label": "Show tags",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_link_text",
+      "label": "Show “Read more” text",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "checkbox",
+      "id": "feature_full_width_blog_posts",
+      "label": "Feature full width blog posts",
+      "info": "Enable this setting to showcase a mix of blog posts at half width and full width. [Learn more](https://help.switchthemes.co)",
+      "default": false
+    },
+    {
+      "type": "radio",
+      "id": "desktop_layout",
+      "label": "Desktop layout",
+      "default": "two_columns",
+      "options": [
+        {
+          "value": "single_column",
+          "label": "Single column"
+        },
+        {
+          "value": "two_columns",
+          "label": "Two columns"
+        }
+      ]
+    },
+    {
+      "type": "radio",
+      "id": "first_blog_post_position",
+      "label": "First blog post position",
+      "options": [
+        {
+          "value": "left",
+          "label": "Top left"
+        },
+        {
+          "value": "right",
+          "label": "Top right"
+        }
+      ]
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_cascade_on_mobile",
+      "label": "Enable cascade layout on mobile",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "spacing",
+      "label": "Vertical space between items",
+      "options": [
+        {
+          "value": "global",
+          "label": "Same as theme settings"
+        },
+        {
+          "value": "small",
+          "label": "Small"
+        },
+        {
+          "value": "medium",
+          "label": "Medium"
+        },
+        {
+          "value": "large",
+          "label": "Large"
+        }
+      ],
+      "default": "global"
+    },
+    {
+      "type": "header",
+      "content": "Media"
+    },
+    {
+      "type": "paragraph",
+      "content": "Adjust variation and sequence of media sizes to create unique layouts. [Learn more](https://help.switchthemes.co/)"
+    },
+    {
+      "type": "select",
+      "id": "variance",
+      "label": "Variation between media sizes",
+      "options": [
+        {
+          "value": "global",
+          "label": "Same as theme settings"
+        },
+        {
+          "value": "none",
+          "label": "None"
+        },
+        {
+          "value": "low",
+          "label": "Low"
+        },
+        {
+          "value": "medium",
+          "label": "Medium"
+        },
+        {
+          "value": "high",
+          "label": "High"
+        }
+      ],
+      "default": "global"
+    },
+    {
+      "type": "range",
+      "id": "sequence",
+      "min": 1,
+      "max": 5,
+      "step": 1,
+      "label": "Sequence",
+      "default": 1
+    },
+    {
+      "type": "header",
+      "content": "Color"
+    },
+    {
+      "type": "select",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "options": [
+        {
+          "value": "primary",
+          "label": "Primary"
+        },
+        {
+          "value": "secondary",
+          "label": "Secondary"
+        },
+        {
+          "value": "tertiary",
+          "label": "Tertiary"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

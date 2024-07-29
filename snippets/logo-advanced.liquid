@@ -1,0 +1,98 @@
+{% liquid
+  capture liquid_main
+   echo block.settings.liquid
+  endcapture
+
+  capture liquid_sticky
+   echo block.settings.liquid_sticky
+  endcapture
+
+  capture liquid_mobile
+   echo block.settings.liquid_mobile
+  endcapture
+
+  capture liquid_mobile_sticky
+   echo block.settings.liquid_mobile_sticky
+  endcapture
+
+  assign has_sticky_liquid = false
+  assign has_mobile_liquid = false
+  assign has_mobile_sticky_liquid = false
+
+  if liquid_sticky != blank
+    assign has_sticky_liquid = true
+  endif
+
+  if liquid_mobile != blank
+    assign has_mobile_liquid = true
+  endif
+
+  if liquid_mobile_sticky != blank
+    assign has_mobile_sticky_liquid = true
+  endif
+
+  assign breakpoint = block.settings.breakpoint
+%}
+
+{% if has_mobile_liquid %}
+  {% style %}
+    .header__desktop-logo {
+      display: none;
+    }
+
+    @media (min-width: {{ breakpoint | append: 'px' }}) {
+      .header__desktop-logo {
+        display: block;
+      }
+
+      .header__mobile-logo {
+        display: none;
+      }
+    }
+  {% endstyle %}
+{% endif %}
+
+{% unless has_sticky_liquid or has_mobile_liquid or has_mobile_sticky_liquid %}
+  <div {{ block.shopify_attributes }}>
+    {{ liquid_main }}
+  </div>
+{% else %}
+  <div
+    class="{% if has_mobile_liquid %} header__desktop-logo {% endif %}"
+    {% if has_sticky_liquid %}
+      x-show="! isStuck"
+    {% endif %}
+    {{ block.shopify_attributes }}
+  >
+    {{ liquid_main }}
+  </div>
+
+  {% if has_sticky_liquid %}
+    <div
+      class="{% if has_mobile_liquid %} header__desktop-logo {% endif %}"
+      x-show="isStuck"
+    >
+      {{ liquid_sticky }}
+    </div>
+  {% endif %}
+
+  {% if has_mobile_liquid %}
+    <div
+      class="header__mobile-logo"
+      {% if has_mobile_sticky_liquid %}
+        x-show="! isStuck"
+      {% endif %}
+    >
+      {{ liquid_mobile }}
+    </div>
+
+    {% if has_mobile_sticky_liquid %}
+      <div
+        class="header__mobile-logo"
+        x-show="isStuck"
+      >
+        {{ liquid_mobile_sticky }}
+      </div>
+    {% endif %}
+  {% endif %}
+{% endunless %}

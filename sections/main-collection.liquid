@@ -1,0 +1,464 @@
+{%- liquid
+  assign section_color = section.settings.color_scheme
+  assign show_sort = section.settings.enable_sorting
+  assign show_filters = section.settings.enable_filtering
+  assign desktop_filter_layout = section.settings.desktop_filter_layout
+  assign desktop_menu_layout = section.settings.desktop_menu_layout
+
+
+  assign desktop_sidebar_in_use = false
+
+  assign linklist = section.settings.linklist
+
+  assign desktop_layout = section.settings.desktop_layout
+  assign enable_cascade_on_mobile = section.settings.enable_cascade_on_mobile
+  assign sequence = section.settings.sequence
+
+  if show_filters or show_sort
+    assign total_active_values = 0
+
+    for filter in collection.filters
+      assign total_active_values = total_active_values | plus: filter.active_values.size
+    endfor
+
+    unless desktop_filter_layout == 'drawer'
+      assign desktop_sidebar_in_use = true
+    endunless
+  endif
+
+  assign menu_in_sidebar = false
+  if linklist != blank and desktop_menu_layout == 'sidebar'
+    assign menu_in_sidebar = true
+    assign desktop_sidebar_in_use = true
+  endif
+
+  if desktop_sidebar_in_use
+    assign wrapper_classes = 'lg:grid lg:gap-grid-gutter lg:grid-cols-[14rem_1fr]'
+    assign product_cascade_classes = 'grid grid-cols-2 lg:pl-8 gap-x-grid-gutter gap-y-0'
+  else
+    assign product_cascade_classes = 'grid grid-cols-2 gap-x-grid-gutter gap-y-0'
+  endif
+
+  if section.settings.variance == 'global'
+    assign variance = settings.variance
+  else
+    assign variance = section.settings.variance
+  endif
+
+  if section.settings.spacing == 'global'
+    assign spacing = settings.cascade_item_spacing
+  else
+    assign spacing = section.settings.spacing
+  endif
+
+  assign full_width_item_header = '||__cascade-item:full__||'
+  assign item_separator = '||__cascade-item-end__||'
+-%}
+
+{% style %}
+  .main-collection-banner {
+    --color-scheme-text: var(--color-{{ section_color }}-text);
+    --color-scheme-text-overlay: var(--color-{{ section_color }}-text-overlay);
+    --color-scheme-background: var(--color-{{ section_color }}-background);
+    --color-scheme-accent: var(--color-{{ section_color }}-accent);
+    --color-scheme-accent-overlay: var(--color-{{ section_color }}-accent-overlay);
+    --color-scheme-meta: var(--color-{{ section_color }}-meta);
+  }
+{% endstyle %}
+
+{%- capture filter_drawer_toggle -%}
+<button type="button" @click="$store.modals.open('filters')">
+  <span class="inline-block align-middle h-5 w-5 mr-2">
+    {%- if show_sort and show_filters == false -%}
+      {% render 'icon-sort' %}
+    {%- else -%}
+      {% render 'icon-filter' %}
+    {%- endif -%}
+  </span>
+  <span class="inline-block align-middle">
+    {%- if show_sort and show_filters -%}
+    {{ 'facets.filters.filter_and_sort' | t }}
+    {%-  elsif show_sort and show_filters == false -%}
+    {{ 'facets.sorting.title' | t }}
+    {%-  else -%}
+    {{ 'facets.filters.filter' | t }}
+    {%- endif -%}
+    {% if total_active_values > 0 %}({{ total_active_values }}){% endif %}
+  </span>
+</button>
+{%- endcapture -%}
+
+<section
+  class="py-section bg-scheme-background text-scheme-text"
+  data-color-scheme="{{ section_color }}"
+  {% if show_filters or show_sort %}
+    x-data="ThemeSection_filterable('{{ section.id }}')"
+  {% endif %}
+>
+  <div
+    id="facets-filterable"
+    class="max-w-site mx-auto px-5 lg:px-10"
+  >
+
+    {% if linklist != blank %}
+      {% render 'collection-horizontal-navigation',
+        linklist: linklist,
+        desktop_menu_layout: desktop_menu_layout
+      %}
+    {% endif %}
+
+    <div class="{{ wrapper_classes }}">
+      {% if show_filters or show_sort or menu_in_sidebar %}
+        <a class="in-page-link skip-link" href="#facets-results">{{ 'collections.general.title' | t }}</a>
+        {% if show_filters %}
+          <div class="hidden" id="facets-results-count">
+            {%- if collection.products_count == 1 -%}
+              {{ 'collections.general.items_with_count.one' | t: count: collection.products_count }}
+            {%- else -%}
+              {{ 'collections.general.items_with_count.other' | t: count: collection.products_count }}
+            {%- endif -%}
+          </div>
+        {% endif %}
+        {% if desktop_filter_layout == 'sidebar' or menu_in_sidebar %}
+          <div class="sw-hidden lg:block lg:sticky lg:top-header-height-with-buffer lg:h-min">
+            {% if linklist != blank and desktop_menu_layout == 'sidebar' %}
+              <aside>
+                <nav>
+                  <ul class="mb-12">
+                    {% for link in linklist.links %}
+                      <li class="mb-3">
+                        <a class="theme-link-mono break-word {% if link.active %}underline{% endif %}" href="{{ link.url }}">
+                          {{- link.title -}}
+                        </a>
+                      </li>
+                    {% endfor %}
+                  </ul>
+                </nav>
+              </aside>
+            {% endif %}
+            {% if show_filters or show_sort %}
+              {% if desktop_filter_layout == 'sidebar' %}
+                  {% render 'filters-desktop',
+                    results: collection,
+                    enable_color_swatch_filters: section.settings.enable_color_swatch_filters,
+                    expand_filters: section.settings.expand_filters,
+                    capitalize_filters: section.settings.capitalize_filters,
+                    show_filter_count: section.settings.show_filter_count,
+                    show_filters: show_filters,
+                    show_sort: show_sort
+                  %}
+              {% else %}
+                <div class="mr-auto mt-5 lg:mt-10">
+                  {{ filter_drawer_toggle }}
+                </div>
+              {% endif %}
+            {% endif %}
+          </div>
+        {% endif %}
+      {% endif %}
+      <div>
+          {% if show_filters or show_sort %}
+            <div class="flex justify-between items-center">
+              <div class="mr-auto my-5 lg:my-10 {% if desktop_filter_layout == 'sidebar' or desktop_sidebar_in_use %}  lg:hidden{% else %} lg:mt-0 lg:mb-8{% endif %}">
+                {{ filter_drawer_toggle }}
+              </div>
+            </div>
+          {% endif %}
+        {% paginate collection.products by section.settings.max_products %}
+          {%- if collection.products.size == 0 -%}
+            <p class="text-center">{{ 'collections.general.no_matches' | t }}</p>
+          {%- else -%}
+          <div  id="facets-results">
+            {% liquid
+              capture product_items
+                for product in collection.products
+if product.handle contains "docapp-free-gift-"
+continue
+endif
+                  if section.settings.feature_full_width_products
+                    cycle full_width_item_header, '', ''
+                  endif
+                  echo '<div data-media-item>'
+                  render 'product-tile', product: product, tag: 'div', sizes: '50vw', full_width_item_header: full_width_item_header
+                  echo '</div>'
+                  echo item_separator
+                endfor
+              endcapture
+            %}
+            {% render 'cascade',
+              content_items: product_items,
+              grid_class: product_cascade_classes,
+              first_block_position: section.settings.first_product_position,
+              alternate_first_block_position: true,
+              variance: variance,
+              spacing: spacing,
+              desktop_layout: desktop_layout,
+              enable_cascade_on_mobile: enable_cascade_on_mobile,
+              section_id: section.id,
+              sequence: sequence
+            %}
+          </div>
+          {% if paginate.pages > 1 %}
+            <div class="my-4">
+              {% render 'pagination',
+                paginate: paginate,
+              %}
+            </div>
+          {% endif %}
+          {%- endif -%}
+        {% endpaginate %}
+      </div>
+    </div>
+    {% if show_filters or show_sort %}
+      {% render 'filters-mobile',
+        results: collection,
+        enable_color_swatch_filters: section.settings.enable_color_swatch_filters,
+        expand_filters: section.settings.expand_filters,
+        capitalize_filters: section.settings.capitalize_filters,
+        show_filter_count: section.settings.show_filter_count,
+        show_filters: show_filters,
+        show_sort: show_sort
+      %}
+    {% endif %}
+  </div>
+
+</section>
+
+{% if show_filters or show_sort %}
+  <script src="{{ 'filterable.js' | asset_url }}" type="module"></script>
+{% endif %}
+
+{% schema %}
+{
+  "name": "Collection",
+  "class": "main-collection",
+  "settings": [
+    {
+      "type": "range",
+      "id": "max_products",
+      "min": 2,
+      "max": 24,
+      "step": 2,
+      "label": "Maximum number of products per page",
+      "default": 12
+    },
+    {
+      "type": "header",
+      "content": "Filtering and sorting"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_filtering",
+      "label": "Enable filtering",
+      "info": "[Customize filters](/admin/menus)",
+      "default": true
+    },
+    {
+      "type": "radio",
+      "id": "desktop_filter_layout",
+      "label": "Desktop filter layout",
+      "default": "sidebar",
+      "options": [
+        {
+          "value": "sidebar",
+          "label": "Sidebar"
+        },
+        {
+          "value": "drawer",
+          "label": "Drawer"
+        }
+      ],
+      "info": "Drawer is the default mobile layout."
+    },
+    {
+      "type": "checkbox",
+      "id": "expand_filters",
+      "label": "Expand filters by default",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_filter_count",
+      "label": "Show filter counts",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_color_swatch_filters",
+      "label": "Enable color swatch filters",
+      "info": "[Learn how to set up swatches](https://support.switchthemes.co/article/232-color-swatches)"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_sorting",
+      "label": "Enable sorting"
+    },
+    {
+      "type": "header",
+      "content": "Collection menu"
+    },
+    {
+      "type": "link_list",
+      "id": "linklist",
+      "label": "Menu"
+    },
+    {
+      "type": "radio",
+      "id": "desktop_menu_layout",
+      "label": "Desktop menu layout",
+      "default": "sidebar",
+      "options": [
+        {
+          "value": "sidebar",
+          "label": "Sidebar"
+        },
+        {
+          "value": "horizontal",
+          "label": "Horizontal"
+        }
+      ],
+      "info": "Horizontal is the default mobile layout."
+    },
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "checkbox",
+      "id": "feature_full_width_products",
+      "label": "Feature full width products",
+      "info": "Enable this setting to showcase a mix of products at half width and full width. [Learn more](https://help.switchthemes.co)",
+      "default": false
+    },
+    {
+      "type": "radio",
+      "id": "desktop_layout",
+      "label": "Desktop layout",
+      "default": "two_columns",
+      "options": [
+        {
+          "value": "single_column",
+          "label": "Single column"
+        },
+        {
+          "value": "two_columns",
+          "label": "Two columns"
+        }
+      ]
+    },
+    {
+      "type": "radio",
+      "id": "first_product_position",
+      "label": "First product position",
+      "options": [
+        {
+          "value": "left",
+          "label": "Top left"
+        },
+        {
+          "value": "right",
+          "label": "Top right"
+        }
+      ]
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_cascade_on_mobile",
+      "label": "Enable cascade layout on mobile",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "spacing",
+      "label": "Vertical space between items",
+      "options": [
+        {
+          "value": "global",
+          "label": "Same as theme settings"
+        },
+        {
+          "value": "small",
+          "label": "Small"
+        },
+        {
+          "value": "medium",
+          "label": "Medium"
+        },
+        {
+          "value": "large",
+          "label": "Large"
+        }
+      ],
+      "default": "global"
+    },
+    {
+      "type": "header",
+      "content": "Media"
+    },
+    {
+      "type": "paragraph",
+      "content": "Adjust variation and sequence of media sizes to create unique layouts. [Learn more](https://help.switchthemes.co/)"
+    },
+    {
+      "type": "select",
+      "id": "variance",
+      "label": "Variation between media sizes",
+      "options": [
+        {
+          "value": "global",
+          "label": "Same as theme settings"
+        },
+        {
+          "value": "none",
+          "label": "None"
+        },
+        {
+          "value": "low",
+          "label": "Low"
+        },
+        {
+          "value": "medium",
+          "label": "Medium"
+        },
+        {
+          "value": "high",
+          "label": "High"
+        }
+      ],
+      "default": "global"
+    },
+    {
+      "type": "range",
+      "id": "sequence",
+      "min": 1,
+      "max": 5,
+      "step": 1,
+      "label": "Sequence",
+      "default": 1
+    },
+    {
+      "type": "header",
+      "content": "Color"
+    },
+    {
+      "type": "select",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "options": [
+        {
+          "value": "primary",
+          "label": "Primary"
+        },
+        {
+          "value": "secondary",
+          "label": "Secondary"
+        },
+        {
+          "value": "tertiary",
+          "label": "Tertiary"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

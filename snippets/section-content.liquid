@@ -1,0 +1,67 @@
+{% liquid
+  if settings.section_titles_position == 'left_of_content'
+    if show_section_title 
+      assign content_area_classes = 'lg:col-span-3 lg:col-end-last'
+    else
+      assign content_area_classes = 'lg:col-span-full'
+    endif
+  endif
+
+  if enable_desktop_carousel or enable_mobile_carousel
+    assign splide_classes = 'splide'
+
+    unless enable_desktop_carousel and enable_mobile_carousel
+      if enable_mobile_carousel
+        assign splide_classes = splide_classes | append: ' splide--mobile-only'
+      else
+        assign splide_classes = splide_classes | append: ' splide--desktop-only'
+      endif
+    endunless
+
+    if titles_on_top
+      assign splide_classes = splide_classes | append: ' splide--titles-on-top'
+    endif
+
+    if enable_desktop_carousel
+     assign splide_track_classes = 'lg:-mr-10'
+
+     if titles_on_top
+      assign splide_track_classes = splide_track_classes | append: ' lg:-ml-10'
+     endif
+    endif
+  else
+    assign no_splide = true
+    assign splide_classes = 'no-splide'
+  endif
+%}
+<div
+  id="slideshow-{{ slideshow_id }}"
+  class="{{ content_area_classes }} {{ splide_classes }}"
+>
+  <div class="{% unless no_splide %} splide__track {% endunless %} {{ splide_track_classes }}">
+    <ul class="{{ list_classes }} {% unless no_splide %} splide__list {% endunless %}" role="list">
+      {{ content }}
+    </ul>
+  </div>
+
+  {% unless no_splide %}
+    <div class="splide__arrows pr-5 lg:pr-0">
+      <button class="splide__arrow splide__arrow--prev mr-1 p-1">
+        <span class="sr-only">{{ 'sections.slideshow.previous_slide' | t }}</span>
+        <div class="w-8 h-8">
+          {% render 'icon-previous' %}
+        </div>
+      </button>
+      <button class="splide__arrow splide__arrow--next p-1">
+        <span class="sr-only">{{ 'sections.slideshow.next_slide' | t }}</span>
+        <div class="w-8 h-8">
+          {% render 'icon-next' %}
+        </div>
+      </button>
+    </div>
+  {% endunless %}
+</div>
+{% unless request.design_mode %}
+  <script src="{{ 'modules-slideshow.bundle.min.js' | asset_url }}" type="module"></script>
+{% endunless %}
+{{ 'modules-slideshow.bundle.css' | asset_url | stylesheet_tag }}

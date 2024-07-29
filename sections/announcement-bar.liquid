@@ -1,0 +1,150 @@
+{%- liquid
+  assign section_color = section.settings.color_scheme
+  assign text = section.settings.text
+  assign link = section.settings.link
+  assign speed_number = section.settings.speed | plus: 0
+
+  assign show_announcement_bar = false
+
+  if section.settings.home_page_only == false or template.name == 'index'
+    assign show_announcement_bar = true
+  endif
+-%}
+
+{% if show_announcement_bar %}
+  <section
+    class="bg-scheme-background text-scheme-text text-center disable-section-color-transition disable-section-color-transition-source"
+    data-color-scheme="{{ section_color }}"
+    id="AnnouncementBar"
+  >
+    {%- if section.settings.display == 'static' -%}
+      {%- if link != blank -%}
+        <a
+          class="grid place-content-center w-full text-sm text-current hover:text-scheme-accent py-1 lg:py-2 px-5 lg:px-0"
+          href="{{ link }}"
+        >
+          {{ text | escape }}
+        </a>
+      {%- else -%}
+        <div
+          class="grid place-content-center w-full  text-sm text-current text-center py-1 lg:py-2"
+          role="complementary"
+        >
+          <p class="px-5 lg:px-0">{{ text | escape }}</p>
+        </div>
+      {%- endif -%}
+    {%- else -%}
+      {% render 'scrolling-text',
+        id: section.id,
+        speed_number: speed_number,
+        link: link,
+        text: text,
+        font: 'text-base',
+        section_color: section_color,
+        direction: section.settings.direction,
+        repeat_text: section.settings.repeat_text
+      %}
+    {%- endif -%}
+  </section>
+{% endif %}
+{% schema %}
+{
+  "name": "Announcement bar",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "home_page_only",
+      "label": "Home page only",
+      "default": true
+    },
+    {
+      "type": "radio",
+      "id": "display",
+      "label": "Display",
+      "options": [
+        {
+          "value": "static",
+          "label": "Static"
+        },
+        {
+          "value": "scrolling_text",
+          "label": "Scrolling text"
+        }
+      ],
+      "default": "static"
+    },
+    {
+      "type": "text",
+      "id": "text",
+      "label": "Text",
+      "default": "Announce something here"
+    },
+    {
+      "type": "url",
+      "id": "link",
+      "label": "Link",
+      "info": "Optional"
+    },
+    {
+      "type": "header",
+      "content": "Marquee"
+    },
+    {
+      "type": "checkbox",
+      "id": "repeat_text",
+      "default": true,
+      "label": "Repeat text",
+      "info": "Automatically repeat text to create an infinity effect."
+    },
+    {
+      "type": "range",
+      "id": "speed",
+      "min": 10,
+      "max": 400,
+      "step": 10,
+      "unit": "sec",
+      "label": "Speed",
+      "default": 120
+    },
+    {
+      "type": "radio",
+      "id": "direction",
+      "label": "Direction",
+      "options": [
+        {
+          "value": "",
+          "label": "Right to left"
+        },
+        {
+          "value": "reverse",
+          "label": "Left to right"
+        }
+      ],
+      "default": ""
+    },
+    {
+      "type": "header",
+      "content": "Color"
+    },
+    {
+      "type": "select",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "options": [
+        {
+          "value": "primary",
+          "label": "Primary"
+        },
+        {
+          "value": "secondary",
+          "label": "Secondary"
+        },
+        {
+          "value": "tertiary",
+          "label": "Tertiary"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

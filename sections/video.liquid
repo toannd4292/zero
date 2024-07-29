@@ -1,0 +1,337 @@
+{%- liquid
+  assign section_color = section.settings.color_scheme | default: 'primary'
+
+  assign show_section_title = false
+  if section.settings.title != blank or section.settings.subheading != blank
+    assign show_section_title = true
+  elsif section.settings.cta_link != blank and section.settings.cta_label != blank
+    assign show_section_title = true
+  endif
+
+  if show_section_title and settings.section_titles_position == 'left_of_content'
+    assign container_classes = 'lg:grid lg:gap-x-grid-gutter lg:grid-cols-4'
+    assign content_area_classes = 'lg:col-span-3 lg:col-end-last'
+  endif
+
+  if section.settings.subheading == blank
+    assign alt_text = section.settings.alt_text
+  else
+    assign alt_text = section.settins.subheading
+  endif
+
+  if section.settings.video_url != blank
+    assign video_url = section.settings.video_url
+  endif
+-%}
+
+<section class="{% unless section.settings.remove_top_padding %}pt-section{% endunless %} {% unless section.settings.remove_bottom_padding %}pb-section{% endunless %} text-scheme-text bg-scheme-background {% if section.settings.disable_color_transition %}disable-section-color-transition disable-section-color-transition-source{% endif %}" data-color-scheme="{{ section_color }}">
+  <div class="max-w-site mx-auto px-5 lg:px-10">
+    <div class="{{ container_classes }}">
+      
+      {%- if show_section_title -%}
+        {%- render 'section-title',
+          title: section.settings.title,
+          subheading: section.settings.subheading,
+          cta_link: section.settings.cta_link,
+          cta_label: section.settings.cta_label
+        -%}
+      {%- endif -%}
+
+      <div class="{{ content_area_classes }}">
+        {% if video_url %}
+          {% liquid
+            assign use_high_res_image = true
+
+            if video_url.type == 'youtube'
+              assign base_url_webp = 'https://i.ytimg.com/vi_webp/' | append: video_url.id
+              assign base_url_jpg = 'https://i.ytimg.com/vi/' | append: video_url.id
+
+              assign image_url_mq_webp =  base_url_webp | append: '/mqdefault.webp'
+              assign image_url_mq_jpg =  base_url_jpg | append: '/mqdefault.jpg'
+
+              if use_high_res_image
+                assign image_url_max_webp = base_url_webp | append: '/maxresdefault.webp'
+                assign image_url_max_jpg = base_url_jpg | append: '/maxresdefault.jpg'
+              else
+                assign image_url_max_webp = base_url_webp | append: '/hqdefault.webp'
+                assign image_url_max_jpg = base_url_jpg | append: '/hqdefault.jpg'
+              endif
+            endif
+          %}
+          <div
+            x-data="ThemeModule_Video(
+              'VideoSection-{{ section.id }}',
+              'external_video',
+              '{{ video_url.type }}',
+              true
+            )"
+            class="w-full aspect-w-16 aspect-h-9 relative"
+          >
+            <template x-if="enabled">
+              <div
+                class="transition-opacity duration-500"
+                :class="{ 'opacity-0': !shown, 'pointer-events-none': !shown }"
+              >
+                {% case video_url.type %}
+                  {% when 'youtube' %}
+                    <iframe src="https://www.youtube.com/embed/{{ video_url.id }}?enablejsapi=1&autoplay=1" class="js-youtube absolute inset-0 w-full h-full" allow="autoplay; encrypted-media" allowfullscreen title="{{ alt_text | escape }}"></iframe>
+                  {% when 'vimeo' %}
+                    <iframe src="https://player.vimeo.com/video/{{ video_url.id }}?autoplay=1" class="js-vimeo absolute inset-0 w-full h-full" allow="autoplay; encrypted-media" allowfullscreen title="{{ alt_text | escape }}"></iframe>
+                {% endcase %}
+              </div>
+            </template>
+            <div
+              class="cursor-pointer group transition-opacity duration-300"
+              :class="{ 'opacity-0' : shown, 'pointer-events-none': shown }"
+              @click="enableVideo()"
+            >
+              <div class="absolute inset-0 w-full h-full">
+                {% if video_url.type == 'youtube' %}
+                  <picture class="w-full h-full aspect-w-16 aspect-h-9 object-cover">
+                    <source
+                      type="image/webp"
+                      media="all"
+                      srcset="{{ image_url_mq_webp }} 320w, {{ image_url_max_webp }}"
+                    >
+                    <source
+                      type="image/jpeg"
+                      media="all"
+                      srcset="{{ image_url_mq_jpg }} 320w, {{ image_url_max_jpg }}"
+                    >
+                    <img
+                      src="{{ image_url_mq_jpg }}"
+                      loading="lazy"
+                      width="1600"
+                      height="900"
+                    >
+                  </picture>
+                {% else %}
+                  <img
+                    class="w-full h-full object-cover"
+                    x-data="{ vimeo_thumbnail_src: null, width: 0, height: 0 }"
+                    x-init="fetch(`https://vimeo.com/api/v2/video/{{ video_url.id }}.json`)
+                        .then(res => res.json())
+                        .then(
+                          data => {
+                            width = data[0].width;
+                            height = data[0].height;
+                            vimeo_thumbnail_src = data[0].thumbnail_large;
+                          }
+                        );"
+                    :src="vimeo_thumbnail_src"
+                    :class="{ 'invisible' : ! vimeo_thumbnail_src }"
+                    :width="width"
+                    :height="height"
+                    loading="lazy"
+                  >
+                {% endif %}
+              </div>
+              <div class="absolute inset-0 w-full h-full transition-opacity duration-500 opacity-0 group-hover:opacity-30">
+                <div class="bg-scheme-background w-full h-full"></div>
+              </div>
+              <button class="absolute inset-0 w-full h-full grid place-content-center">
+                <span class="sr-only">{{ 'general.video.play' | t }}</span>
+                <div class="transition duration-300 delay-150 scale-95 group-hover:scale-100">
+                  <div class="w-16 h-16 p-4 rounded-full bg-scheme-background">
+                    {% render 'icon-play' %}
+                  </div>
+                </div>
+              </button>
+            </div>
+          </div>
+        {% else %}
+          {% comment %}
+            Empty setting / placeholder state, hardcoded due to inability to create video_url objects; should match above with default setting exactly
+          {% endcomment %}
+          {% liquid
+            assign placeholder_video_id = '_9VUPq3SxOc'
+            assign use_high_res_image = true
+
+            assign base_url_webp = 'https://i.ytimg.com/vi_webp/' | append: placeholder_video_id
+            assign base_url_jpg = 'https://i.ytimg.com/vi/' | append: placeholder_video_id
+
+            assign image_url_mq_webp =  base_url_webp | append: '/mqdefault.webp'
+            assign image_url_mq_jpg =  base_url_jpg | append: '/mqdefault.jpg'
+
+            if use_high_res_image
+              assign image_url_max_webp = base_url_webp | append: '/maxresdefault.webp'
+              assign image_url_max_jpg = base_url_jpg | append: '/maxresdefault.jpg'
+            else
+              assign image_url_max_webp = base_url_webp | append: '/hqdefault.webp'
+              assign image_url_max_jpg = base_url_jpg | append: '/hqdefault.jpg'
+            endif
+          %}
+          <div
+            x-data="ThemeModule_Video(
+              'VideoSection-{{ section.id }}',
+              'external_video',
+              'youtube',
+              true
+            )"
+            class="w-full aspect-w-16 aspect-h-9 relative"
+          >
+            <template x-if="enabled">
+              <div
+                class="transition-opacity duration-500"
+                :class="{ 'opacity-0': !shown, 'pointer-events-none': !shown }"
+              >
+                <iframe src="https://www.youtube.com/embed/{{ placeholder_video_id }}?enablejsapi=1&autoplay=1" class="js-youtube absolute inset-0 w-full h-full" allow="autoplay; encrypted-media" allowfullscreen title="{{ alt_text | escape }}"></iframe>
+              </div>
+            </template>
+            <div
+              class="cursor-pointer group transition-opacity duration-300"
+              :class="{ 'opacity-0' : shown, 'pointer-events-none': shown }"
+              @click="enableVideo()"
+            >
+              <div class="absolute inset-0 w-full h-full">
+                <picture class="w-full h-full aspect-w-16 aspect-h-9 object-cover">
+                  <source
+                    type="image/webp"
+                    media="all"
+                    srcset="{{ image_url_mq_webp }} 320w, {{ image_url_max_webp }}"
+                  >
+                  <source
+                    type="image/jpeg"
+                    media="all"
+                    srcset="{{ image_url_mq_jpg }} 320w, {{ image_url_max_jpg }}"
+                  >
+                  <img
+                    src="{{ image_url_mq_jpg }}"
+                    loading="lazy"
+                    width="1600"
+                    height="900"
+                  >
+                </picture>
+              </div>
+              <div class="absolute inset-0 w-full h-full transition-opacity duration-500 opacity-0 group-hover:opacity-30">
+                <div class="bg-scheme-background w-full h-full"></div>
+              </div>
+              <button class="absolute inset-0 w-full h-full grid place-content-center">
+                <span class="sr-only">{{ 'general.video.play' | t }}</span>
+                <div class="transition duration-300 delay-150 scale-95 group-hover:scale-100">
+                  <div class="w-16 h-16 p-4 rounded-full bg-scheme-background">
+                    {% render 'icon-play' %}
+                  </div>
+                </div>
+              </button>
+            </div>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+
+{% unless request.design_mode %}
+  <script src="{{ 'modules-video.bundle.min.js' | asset_url }}" type="module"></script>
+{% endunless %}
+
+{% schema %}
+{
+  "name": "Video",
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Heading",
+      "default": "Video"
+    },
+    {
+      "type": "textarea",
+      "id": "subheading",
+      "label": "Subheading",
+      "default": "Subheading goes here",
+      "info": "This will also be used for alt text for accessibility purposes"
+    },
+    {
+      "id": "video_url",
+      "type": "video_url",
+      "label": "Video link",
+      "accept": [
+        "youtube",
+        "vimeo"
+      ],
+      "info": "Accepts URLs from YouTube or Vimeo",
+      "default": "https://www.youtube.com/watch?v=_9VUPq3SxOc"
+    },
+    {
+      "type": "textarea",
+      "id": "alt_text",
+      "label": "Alt text",
+      "info": "Provide descriptive alt text for accessibility if subheading is not provided"
+    },
+    {
+      "type": "header",
+      "content": "Call to action"
+    },
+    {
+      "type": "url",
+      "id": "cta_link",
+      "label": "Link"
+    },
+    {
+      "type": "text",
+      "id": "cta_label",
+      "label": "Label"
+    },
+    {
+      "type": "header",
+      "content": "Color"
+    },
+    {
+      "type": "select",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "options": [
+        {
+          "value": "primary",
+          "label": "Primary"
+        },
+        {
+          "value": "secondary",
+          "label": "Secondary"
+        },
+        {
+          "value": "tertiary",
+          "label": "Tertiary"
+        }
+      ]
+    },
+    {
+      "type": "checkbox",
+      "id": "disable_color_transition",
+      "label": "Disable transition",
+      "info": "Overrides section color transitions theme setting."
+    },
+    {
+      "type": "header",
+      "content": "Spacing",
+      "info": "Adjust vertical spacing to visually connect this section to adjacent sections"
+    },
+    {
+      "type": "checkbox",
+      "id": "remove_top_padding",
+      "label": "Remove top padding",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "remove_bottom_padding",
+      "label": "Remove bottom padding",
+      "default": false
+    }
+  ],
+  "presets": [
+    {
+      "name": "Video"
+    }
+  ],
+  "disabled_on": {
+    "groups": [
+      "header",
+      "footer",
+      "aside"
+    ]
+  }
+}
+{% endschema %}

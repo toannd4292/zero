@@ -1,0 +1,184 @@
+{%- liquid
+  unless loading == 'eager'
+    assign loading = 'lazy'
+    assign preload = false
+  else
+    assign preload = true
+  endunless
+
+  unless hidden_class
+    assign hidden_class = 'md:hidden'
+  endunless
+
+  if split
+    if split_media_style == 'cover'
+      assign object_fit = 'md:object-cover'
+    else
+      assign object_fit = 'md:object-contain'
+    endif
+  endif
+-%}
+
+<div
+  class="{% unless shown %} {{ hidden_class }} {% endunless %} {% if split %}h-full{% endif %}"
+  {% unless always_shown %}
+    :class="{ '{{ hidden_class }}' : current_media_id !== {{ media.id }} }"
+  {% endunless %}
+  {% if scroll_to == true %}
+    @media-visible.camel="!isUsingSlideshowToDisplayMedia && scrollToTopOf($el)"
+  {% endif %}
+  {% if media_item %}
+    data-media-item
+  {% endif %}
+  data-product-single-media-wrapper="{{ media.id }}"
+>
+  {% case media.media_type %}
+    {% when 'video', 'external_video' %}
+      <div
+        x-data='
+          ThemeModule_Video(
+            "{{ section.id }}-{{ media.id }}",
+            {{ media.media_type | json }},
+            {{ media.host | json }},
+            {{ section.settings.autoplay_videos_on_desktop | json }}
+          )
+        '
+        class="relative w-full {% if split %}h-full{% endif %}"
+        {% unless split %}
+          style="padding-top: {{ 100.00 | divided_by: media.aspect_ratio }}%;"
+        {% endunless %}
+        x-intersect:leave="!isUsingSlideshowToDisplayMedia && pause()"
+      >
+        <template x-if="enabled">
+          <div
+            class="transition-opacity duration-500 {% if split %}h-full{% endif %}"
+            :class="{ 'opacity-0': !shown, 'pointer-events-none': !shown }"
+          >
+            {% liquid
+              assign video_object_class = 'video absolute inset-0 w-full h-full'
+            %}
+            {% case media.media_type %}
+              {% when 'video' %}
+                {% if split %}
+                  {% assign video_object_class = video_object_class
+                    | append: ' md:h-full md:w-full md:object-cover '
+                    | append: object_fit
+                  %}
+                {% endif %}
+                {{
+                  media
+                  | video_tag:
+                    class: video_object_class,
+                    image_size: '2000x',
+                    controls: true,
+                    autoplay: true,
+                    loop: section.settings.enable_video_looping
+                }}
+              {% when 'external_video' %}
+                {% liquid
+                  assign video_object_class = video_object_class | append: ' js-' | append: media.host
+                %}
+                {% case media.host %}
+                  {% when 'youtube' %}
+                    {{
+                      media
+                      | external_video_url:
+                        enablejsapi: 1,
+                        autoplay: true,
+                        loop: section.settings.enable_video_looping,
+                        playlist: media.external_id
+                      | external_video_tag: class: video_object_class
+                    }}
+                  {% when 'vimeo' %}
+                    {{
+                      media
+                      | external_video_url: autoplay: true, loop: section.settings.enable_video_looping
+                      | external_video_tag: class: video_object_class
+                    }}
+                {% endcase %}
+            {% endcase %}
+          </div>
+        </template>
+        <div
+          class="cursor-pointer group transition-opacity duration-300 {% if split %}h-full{% endif %}"
+          :class="{ 'opacity-0' : shown, 'pointer-events-none': shown }"
+          @click="enableVideo()"
+        >
+          <div class="absolute inset-0 w-full h-full">
+            {% assign class = 'absolute inset-0 w-full h-full' %}
+            {% if split %}
+              {% capture class %}absolute inset-0 w-full h-full {{ object_fit }}{% endcapture %}
+            {% endif %}
+            {{
+              media
+              | image_url: width: 2000
+              | image_tag: sizes: sizes, preload: preload, class: class, loading: loading
+            }}
+          </div>
+          <div class="absolute inset-0 w-full h-full transition-opacity duration-500 opacity-0 group-hover:opacity-30">
+            <div class="bg-scheme-background w-full h-full"></div>
+          </div>
+          <button class="absolute inset-0 w-full h-full grid place-content-center">
+            <span class="sr-only">{{ 'general.video.play' | t }}</span>
+            <div class="transition duration-300 delay-150 scale-95 group-hover:scale-100">
+              <div class="w-16 h-16 p-4 bg-scheme-background border border-scheme-text/5">
+                <svg
+                  aria-hidden="true"
+                  focusable="false"
+                  role="presentation"
+                  class="w-full h-full fill-current"
+                  viewBox="0 0 20 20"
+                >
+                  <path d="M17 9.928L5 16.856V3l12 6.928z"></path>
+                </svg>
+              </div>
+            </div>
+          </button>
+        </div>
+      </div>
+      {% unless request.design_mode %}
+        <script src="{{ 'modules-video.bundle.min.js' | asset_url }}" type="module"></script>
+      {% endunless %}
+    {% when 'model' %}
+      <div
+        x-data="ThemeModule_Model"
+        class="relative w-full"
+        style="padding-top: 100%;"
+        x-intersect.once="_init()"
+      >
+        <div x-show="!enabled">
+          {{ media | image_url: width: 1000 | image_tag: class: 'absolute inset-0 w-full h-full', loading: 'lazy' }}
+        </div>
+        <template x-if="enabled">
+          {{
+            media
+            | model_viewer_tag:
+              image_size: '1000x',
+              reveal: 'interaction',
+              toggleable: true,
+              data-model-id: media.id,
+              class: 'absolute inset-0 w-full h-full',
+              background-color: 'white'
+          }}
+        </template>
+      </div>
+
+      {% unless request.design_mode %}
+        <script src="{{ 'product-model.js' | asset_url }}" type="module"></script>
+      {% endunless %}
+      <link
+        id="ModelViewerStyle"
+        rel="stylesheet"
+        href="https://cdn.shopify.com/shopifycloud/model-viewer-ui/assets/v1.0/model-viewer-ui.css"
+        media="print"
+        onload="this.media='all'"
+      >
+      {{ 'shopify-model-viewer-ui.css' | asset_url | stylesheet_tag }}
+    {% else %}
+      {% assign class = '' %}
+      {% if split %}
+        {% capture class %}md:h-full md:w-full {{ object_fit }} {% endcapture %}
+      {% endif %}
+      {{ media | image_url: width: 2000 | image_tag: sizes: sizes, loading: loading, preload: preload, class: class }}
+  {% endcase %}
+</div>

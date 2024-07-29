@@ -1,0 +1,286 @@
+{%- liquid
+  assign section_color = section.settings.color_scheme | default: 'primary'
+  assign desktop_layout = section.settings.desktop_layout
+  assign enable_cascade_on_mobile = section.settings.enable_cascade_on_mobile
+  assign collection = section.settings.collection
+  assign sequence = section.settings.sequence
+
+  assign title = section.settings.title
+  if title == blank
+    if collection
+      assign title = collection.title
+    else
+      assign title = 'sections.onboarding.collection_title' | t
+    endif
+  endif
+
+  if section.settings.variance == 'global'
+    assign variance = settings.variance
+  else
+    assign variance = section.settings.variance
+  endif
+
+  if section.settings.spacing == 'global'
+    assign spacing = settings.cascade_item_spacing
+  else
+    assign spacing = section.settings.spacing
+  endif
+
+  assign full_width_item_header = '||__cascade-item:full__||'
+  assign item_separator = '||__cascade-item-end__||'
+-%}
+
+<section class="{% unless section.settings.remove_top_padding %}pt-section{% endunless %} {% unless section.settings.remove_bottom_padding %}pb-section{% endunless %} text-scheme-text bg-scheme-background {% if section.settings.disable_color_transition %}disable-section-color-transition disable-section-color-transition-source{% endif %}" data-color-scheme="{{ section_color }}">
+  <div class="max-w-site mx-auto px-5 lg:px-10 relative">
+    {% if section.settings.title != blank %}
+      {%- render 'cascade-heading', title: section.settings.title, overlay_heading: section.settings.overlay_heading -%}
+    {% endif %}
+    <div class="relative z-0">
+      {% liquid
+        capture product_items
+          for product in collection.products limit: section.settings.max_products
+            if section.settings.feature_full_width_products
+              cycle full_width_item_header, '', ''
+            endif
+            echo '<div data-media-item>'
+            render 'product-tile', product: product, tag: 'div', sizes: '50vw', full_width_item_header: full_width_item_header
+            echo '</div>'
+            echo item_separator
+          else
+            for i in (1..section.settings.max_products)
+              if section.settings.feature_full_width_products
+                cycle full_width_item_header, '', ''
+              endif 
+              assign placeholder_index = placeholder_index | modulo: 6 | plus: 1
+              assign placeholder_name = 'product-' | append: placeholder_index
+              echo '<div data-media-item>'
+              render 'product-tile-placeholder', placeholder_name: placeholder_name, tag: 'div', full_width_item_header: full_width_item_header
+              echo '</div>'
+              echo item_separator
+            endfor 
+          endfor
+        endcapture
+      %}
+      {% render 'cascade',
+        content_items: product_items,
+        first_block_position: section.settings.first_product_position,
+        alternate_first_block_position: true,
+        variance: variance,
+        spacing: spacing,
+        desktop_layout: desktop_layout,
+        enable_cascade_on_mobile: enable_cascade_on_mobile,
+        section_id: section.id,
+        sequence: sequence
+      %}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Cascading collection",
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Heading",
+      "default": "Cascading collection"
+    },
+    {
+      "type": "checkbox",
+      "id": "overlay_heading",
+      "label": "Overlay heading",
+      "default": false
+    },
+    {
+      "id": "collection",
+      "type": "collection",
+      "label": "Collection"
+    },
+    {
+      "type": "range",
+      "id": "max_products",
+      "min": 2,
+      "max": 12,
+      "step": 1,
+      "label": "Number of products",
+      "default": 4
+    },
+    {
+      "type": "checkbox",
+      "id": "feature_full_width_products",
+      "label": "Feature full width products",
+      "info": "Enable this setting to showcase a mix of products at half width and full width. [Learn more](https://help.switchthemes.co)",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "radio",
+      "id": "desktop_layout",
+      "label": "Desktop layout",
+      "default": "two_columns",
+      "options": [
+        {
+          "value": "single_column",
+          "label": "Single column"
+        },
+        {
+          "value": "two_columns",
+          "label": "Two columns"
+        }
+      ]
+    },
+    {
+      "type": "radio",
+      "id": "first_product_position",
+      "label": "First product position",
+      "options": [
+        {
+          "value": "left",
+          "label": "Top left"
+        },
+        {
+          "value": "right",
+          "label": "Top right"
+        }
+      ]
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_cascade_on_mobile",
+      "label": "Enable cascade layout on mobile",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "spacing",
+      "label": "Vertical space between items",
+      "options": [
+        {
+          "value": "global",
+          "label": "Same as theme settings"
+        },
+        {
+          "value": "small",
+          "label": "Small"
+        },
+        {
+          "value": "medium",
+          "label": "Medium"
+        },
+        {
+          "value": "large",
+          "label": "Large"
+        }
+      ],
+      "default": "global"
+    },
+    {
+      "type": "header",
+      "content": "Media"
+    },
+    {
+      "type": "paragraph",
+      "content": "Adjust variation and sequence of media sizes to create unique layouts. [Learn more](https://help.switchthemes.co/)"
+    },
+    {
+      "type": "select",
+      "id": "variance",
+      "label": "Variation between media sizes",
+      "options": [
+        {
+          "value": "global",
+          "label": "Same as theme settings"
+        },
+        {
+          "value": "none",
+          "label": "None"
+        },
+        {
+          "value": "low",
+          "label": "Low"
+        },
+        {
+          "value": "medium",
+          "label": "Medium"
+        },
+        {
+          "value": "high",
+          "label": "High"
+        }
+      ],
+      "default": "global"
+    },
+    {
+      "type": "range",
+      "id": "sequence",
+      "min": 1,
+      "max": 5,
+      "step": 1,
+      "label": "Sequence",
+      "default": 1
+    },
+    {
+      "type": "header",
+      "content": "Color"
+    },
+    {
+      "type": "select",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "options": [
+        {
+          "value": "primary",
+          "label": "Primary"
+        },
+        {
+          "value": "secondary",
+          "label": "Secondary"
+        },
+        {
+          "value": "tertiary",
+          "label": "Tertiary"
+        }
+      ]
+    },
+    {
+      "type": "checkbox",
+      "id": "disable_color_transition",
+      "label": "Disable transition",
+      "info": "Overrides section color transitions theme setting."
+    },
+    {
+      "type": "header",
+      "content": "Spacing",
+      "info": "Adjust vertical spacing to visually connect this section to adjacent sections"
+    },
+    {
+      "type": "checkbox",
+      "id": "remove_top_padding",
+      "label": "Remove top padding",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "remove_bottom_padding",
+      "label": "Remove bottom padding",
+      "default": false
+    }
+  ],
+  "presets": [
+    {
+      "name": "Cascading collection"
+    }
+  ],
+  "disabled_on": {
+    "groups": [
+      "header",
+      "footer",
+      "aside"
+    ]
+  }
+}
+{% endschema %}

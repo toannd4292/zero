@@ -1,0 +1,211 @@
+{%- assign section_color = section.settings.color_scheme | default: 'primary' -%}
+
+{%- if recommendations.performed -%}
+  {% if recommendations.products_count > 0 %}
+    {% liquid
+      if recommendations.products_count <= 1
+        assign enable_mobile_carousel = false
+        assign enable_desktop_carousel = false
+      else
+        assign enable_mobile_carousel = section.settings.enable_mobile_carousel
+
+        if recommendations.products_count <= 2
+          assign enable_desktop_carousel = false
+        else
+          assign enable_desktop_carousel = section.settings.enable_desktop_carousel
+        endif
+      endif
+
+      assign title = section.settings.product_recommendations_heading
+      assign show_section_title = false
+      if title != blank
+        assign show_section_title = true
+      endif
+
+      if show_section_title and settings.section_titles_position == 'left_of_content'
+        assign container_classes = 'lg:grid lg:gap-x-grid-gutter lg:grid-cols-4'
+        assign content_area_classes = 'lg:col-span-3 lg:col-end-last'
+      endif
+
+    %}
+    <div class="product-recommendations">
+      <div class="py-section text-scheme-text bg-scheme-background" data-color-scheme="{{ section_color }}">
+        <div class="max-w-site mx-auto px-0 lg:px-10">
+          <div class="{{ container_classes }}">
+
+            {%- if show_section_title -%}
+              {%- render 'section-title',
+                title: title
+              -%}
+            {%- endif -%}
+
+            {%- liquid
+              assign product_tile_class = 'block pb-10 px-5 lg:px-0'
+
+              if enable_mobile_carousel
+                assign product_tile_class = product_tile_class | append: ' w-3/4'
+              endif
+
+              unless enable_desktop_carousel
+                assign product_tile_class = product_tile_class | append: ' lg:w-auto lg:pb-0 ' | append: section.settings.text_align
+              else
+                assign product_tile_class = product_tile_class | append: ' lg:w-3/8 lg:pb-14 ' | append: section.settings.text_align
+              endunless
+
+              case recommendations.products_count
+                when 3 or 6
+                  assign grid_cols = 3
+                when 4 or 8
+                  assign grid_cols = 4
+                else
+                  assign grid_cols = 2
+              endcase
+
+              assign list_classes = 'lg:grid lg:gap-y-14 lg:gap-x-grid-gutter lg:grid-cols-' | append: grid_cols
+
+              if enable_mobile_carousel or enable_desktop_carousel
+                assign product_tile_class = product_tile_class | append: ' splide__slide'
+              endif
+
+              if recommendations.products_count == 1
+                assign product_tile_class = product_tile_class | append: ' lg:max-w-3/4 text-lg lg:text-xl leading-7 lg:leading-8'
+              else
+                assign product_tile_class = product_tile_class | append: ' text-theme-basic'
+              endif
+
+              capture image_sizes
+                echo '@media (min-width: 990px) calc((100vw - 5rem) / ' | append: recommendations.products_count | append: '), 75vw'
+              endcapture
+
+              capture product_tiles
+                for product in recommendations.products
+                  render 'product-tile', product: product, class: product_tile_class, sizes: image_sizes
+                endfor
+              endcapture
+            -%}
+
+            {% render 'section-content',
+               enable_mobile_carousel: enable_mobile_carousel,
+               enable_desktop_carousel: enable_desktop_carousel,
+               slideshow_id: section.id,
+               wrapper_classes: content_area_classes,
+               list_classes: list_classes,
+               content: product_tiles,
+               show_section_title: show_section_title
+            %}
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+{%- else -%}
+  {%- capture section_url -%}{{ routes.product_recommendations_url }}?section_id={{ section.id }}&limit={{ section.settings.max_products }}&product_id={{ product.id }}{%- endcapture -%}
+  {%- if section.settings.enable_mobile_carousel or section.settings.enable_desktop_carousel -%}
+    <div
+      class="product-recommendations"
+      x-data
+      x-html-with-slideshow="$fetchedSection(
+        '{{ section_url }}',
+        '.product-recommendations'
+      )"
+    ></div>
+
+    {% unless request.design_mode %}
+      <script src="{{ 'modules-slideshow.bundle.min.js' | asset_url }}" type="module"></script>
+    {% endunless %}
+    {{ 'modules-slideshow.bundle.css' | asset_url | stylesheet_tag }}
+  {%- else -%}
+    <div
+      class="product-recommendations"
+      x-data
+      x-html="$fetchedSection(
+        '{{ section_url }}',
+        '.product-recommendations'
+      )"
+    ></div>
+  {%- endif -%}
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Product recommendations",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "These recommendations are automatically generated, but you can customize them with the Shopify Search & Discovery app. [Learn more](https://help.shopify.com/en/manual/online-store/search-and-discovery/product-recommendations)"
+    },
+    {
+      "type": "text",
+      "id": "product_recommendations_heading",
+      "label": "Heading",
+      "default": "You may also like"
+    },
+    {
+      "type": "select",
+      "id": "max_products",
+      "default": "3",
+      "options": [
+        {
+          "value": "3",
+          "label": "3 Products"
+        },
+        {
+          "value": "4",
+          "label": "4 Products"
+        },
+        {
+          "value": "6",
+          "label": "6 Products"
+        },
+        {
+          "value": "8",
+          "label": "8 Products"
+        }
+      ],
+      "label": "Number of products"
+    },
+    {
+      "type": "header",
+      "content": "Carousel"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_mobile_carousel",
+      "label": "Enable on mobile",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_desktop_carousel",
+      "label": "Enable on desktop",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "Color"
+    },
+    {
+      "type": "select",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "options": [
+        {
+          "value": "primary",
+          "label": "Primary"
+        },
+        {
+          "value": "secondary",
+          "label": "Secondary"
+        },
+        {
+          "value": "tertiary",
+          "label": "Tertiary"
+        }
+      ]
+    }
+  ],
+  "templates": [
+    "product"
+  ]
+}
+{% endschema %}

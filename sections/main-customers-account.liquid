@@ -1,0 +1,90 @@
+{% assign section_color = 'primary' %}
+
+<section class="py-section text-scheme-text bg-scheme-background" data-color-scheme="{{ section_color }}">
+  <div class="max-w-site mx-auto my-10 px-5 md:px-10 min-h-[55vh]">
+    <div class="max-w-5xl mx-auto md:grid md:grid-cols-3 md:gap-grid-gutter">
+      <div class="mb-20 md:mb-0">
+        <h1
+          class="font-heading text-heading-standard mb-5"
+          tabindex="-1"
+          data-should-focus
+        >
+          {{ 'customer.account.title' | t }}
+        </h1>
+        <h2 class="font-heading text-md mb-1">
+          {{ 'customer.account.details' | t }}
+        </h2>
+        <div class="text-sm">
+
+          {{ customer.default_address | format_address }}
+          <div class="my-5">
+            <a class="theme-link" href="{{ routes.account_addresses_url }}">
+              {{ 'customer.account.view_addresses' | t }} ({{ customer.addresses_count }})
+            </a>
+          </div>
+        </div>
+
+        <div class="text-sm my-5">
+          {% if customer.first_name != blank %}
+            {% capture first_name %}<a class="" href="{{ routes.account_url }}">{{ customer.first_name }}</a>{% endcapture %}
+            {{ 'layout.customer.logged_in_as_html' | t: first_name: first_name }}
+          {% else %}
+            <a class="" href="{{ routes.account_url }}">{{ 'layout.customer.account' | t }}</a>
+          {% endif %}
+
+          <div class="my-1">
+            <a class="theme-link" href="{{ routes.account_logout_url }}">
+              {{ 'layout.customer.log_out' | t }}
+            </a>
+          </div>
+        </div>
+      </div>
+      <div class="md:col-span-2">
+        <h2 class="font-heading text-lg mb-5">
+          {{ 'customer.orders.title' | t }}
+        </h2>
+
+        {% paginate customer.orders by 20 %}
+          {% if customer.orders.size != 0 %}
+            <table class="responsive-table text-sm">
+              <thead>
+                <tr>
+                  <th scope="col">{{ 'customer.orders.order_number' | t }}</th>
+                  <th scope="col">{{ 'customer.orders.date' | t }}</th>
+                  <th scope="col">{{ 'customer.orders.payment_status' | t }}</th>
+                  <th scope="col">{{ 'customer.orders.fulfillment_status' | t }}</th>
+                  <th scope="col">{{ 'customer.orders.total' | t }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for order in customer.orders %}
+                  <tr class="responsive-table-row border-t-scheme-text lg:border-none">
+                    <td class="text-primary-accent" data-label="{{ 'customer.orders.order_number' | t }}"><span class="underline underline-offset-hair">{{ order.name | link_to: order.customer_url }}</span></td>
+                    <td data-label="{{ 'customer.orders.date' | t }}">{{ order.created_at | date: format: 'month_day_year' }}</td>
+                    <td data-label="{{ 'customer.orders.payment_status' | t }}">{{ order.financial_status_label }}</td>
+                    <td data-label="{{ 'customer.orders.fulfillment_status' | t }}">{{ order.fulfillment_status_label }}</td>
+                    <td data-label="{{ 'customer.orders.total' | t }}">{{ order.total_price | money }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          {% else %}
+            <p>{{ 'customer.orders.none' | t }}</p>
+          {% endif %}
+
+          {% if paginate.pages > 1 %}
+            {% render 'pagination', paginate: paginate %}
+          {% endif %}
+
+        {% endpaginate %}
+      </div>
+    </div>
+  </div>
+
+</section>
+
+{% schema %}
+{
+  "name": "Customer account"
+}
+{% endschema %}

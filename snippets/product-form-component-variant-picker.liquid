@@ -1,0 +1,113 @@
+{% unless product.has_only_default_variant %}
+
+  <div
+    data-product-form-variant-container
+    class="{{ class }}"
+    {% if block %}
+      {{ block.shopify_attributes }}
+    {% endif %}
+  >
+    {% assign option_style = block.settings.option_style %}
+    {% for option in product.options_with_values %}
+      {% liquid
+        if settings.enable_color_swatches
+          assign is_color = false
+          assign swatch_trigger = 'products.product.color_swatch_trigger' | t | downcase
+          assign option_downcase = option.name | downcase
+          if option_downcase contains swatch_trigger
+            assign is_color = true
+          elsif swatch_trigger == 'color' and option_downcase contains 'colour'
+            assign is_color = true
+          endif
+        endif
+      %}
+      {% assign option_array_index = forloop.index0 %}
+
+      <fieldset class="product-variant-picker-block {% if is_color %}-mx-color-fieldset-offset {% endif %} js-enabled {% if forloop.first == false and label_class != 'sr-only' %} mt-4 {% endif %}">
+        {%- unless is_color or option_style == 'buttons' -%}
+          <div class="my-1">
+            <label class="{{ label_class }}" for="Option{{ option.position }}">
+              {{ option.name }}:
+            </label>
+            <select
+              id="Option{{ option.position }}-{{ section.id }}"
+              name="options[{{ option.name | escape }}]"
+              @change="optionChange()"
+              class="single-option-selector font-main text-base focus:border-current"
+              data-single-option-selector
+              x-model="currentOption{{ forloop.index }}"
+              
+            >
+              {% for value in option.values %}
+                <option
+                  value="{{ value | escape }}"
+                  data-handle="{{ value | handleize }}"
+                  {% if option.selected_value == value %}selected="selected"{% endif %}>
+                    {{ value }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+        {%- else -%}
+          <legend class="{{ label_class }}">
+            {{ option.name }}{% if is_color %}: <span x-text="options[{{ forloop.index0 }}]"></span>{% endif %}
+          </legend>
+          <div class="-mx-1 mt-1 flex flex-wrap">
+            {% for value in option.values %}
+              {%- liquid
+                assign variant_label_state = true
+                if product.options.size == 1
+                  unless product.variants[forloop.index0].available
+                    assign variant_label_state = false
+                  endunless
+                endif
+                assign color_image = value | handle | append: '.' | append: 'png' | file_img_url: '160x' | prepend: 'https:'
+                assign color_swatch_fallback = value | split: ' ' | last | handle
+              -%}
+              <div class="inline-block mx-1 mb-2 relative variant-input">
+                <input
+                  form="{{ product_form_id }}"
+                  class="{% if is_color %}color-swatch{% endif %} cursor-pointer absolute top-0 left-0 w-full h-full opacity-0 peer"
+                  @change="optionChange()"
+                  type="radio"
+                  id="{{ product_form_id }}-Option{{ option.position }}-{{ value | escape }}"
+                  name="options[{{ option.name }}]"
+                  value="{{ value | escape }}"
+                  data-handle="{{ value | handleize }}"
+                  x-model="currentOption{{ option_array_index | plus: 1 }}"
+                  {% if option.selected_value == value %} checked{% endif %} data-single-option-selector
+                >
+                <label
+                  class="
+                    relative block text-center border-scheme-text break-word
+                    {% unless is_color %}
+                      p-2 min-w-[2.5rem] peer-checked:bg-scheme-text peer-checked:text-scheme-background
+                    {% else %}
+                      p-1 peer-checked:border-scheme-text/10
+                    {% endunless %}
+                    border-1 border cursor-pointer
+              {% comment %}
+                    {% unless variant_label_state %}
+                      line-through
+                    {% endunless %}
+              {% endcomment %}
+                    cursor-pointer"
+                  for="{{ product_form_id }}-Option{{ option.position }}-{{ value | escape }}"
+                  title="{{ option.value }}"
+                  >
+                  {%- if is_color %}
+                    {%- unless variant_label_state -%}
+                      <span class="absolute left-0 bottom-0 z-10 h-1 w-full bg-scheme-text top-1/2 -translate-y-1/2 -rotate-45"></span>
+                    {%- endunless -%}
+                    <span class="block w-10 h-10 bg-cover" style="background-image: url({{ color_image }}); background-color: {{ color_swatch_fallback }};"></span>
+                  {%- endif -%}
+                  <span {% if is_color %}class="sr-only"{% endif %}>{{ value }}</span>
+                </label>
+              </div>
+            {% endfor %}
+          </div>
+        {%- endunless -%}
+      </fieldset>
+    {% endfor %}
+  </div>
+{% endunless %}

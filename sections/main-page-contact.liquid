@@ -1,0 +1,132 @@
+{%- assign section_color = section.settings.color_scheme | default: 'primary' -%}
+
+{%- if section.settings.layout == 'default' -%}
+  {%- assign wrapper_class = 'md:w-7/8 mx-auto' -%}
+  {%- assign grid_class = 'md:grid md:grid-cols-5' -%}
+  {%- assign page_content_class = 'md:col-span-2' -%}
+  {%- assign form_class = 'mt-5 md:mt-0 md:col-span-3' -%}
+{%- else -%}
+  {%- assign wrapper_class = 'md:w-1/2 mx-auto' -%}
+  {%- assign grid_class = '' -%}
+  {%- assign page_content_class = '' -%}
+  {%- assign form_class = 'mt-5' -%}
+{%- endif -%}
+
+{%- assign form_id = 'ContactForm' -%}
+
+<section class="py-section text-scheme-text bg-scheme-background" data-color-scheme="{{ section_color }}">
+  <div class="max-w-site mx-auto px-5 lg:px-10">
+    <div class="{{ wrapper_class }}">
+      <div class="{{ grid_class }}">
+       <div id="{{ form_id }}-container">
+          <div class="{{ page_content_class }}">
+            <h1 class="font-heading text-2xl break-word">Kontakta oss</h1>
+            <p class="text-theme-basic mt-3">
+              Vi är glada att du vill kontakta oss! Vi strävar efter att svara på alla förfrågningar inom 24 timmar, men ibland kan det ta upp till en vecka. För snabbare hjälp, ta gärna en titt på våra "Vanliga frågor och svar" längst ner på varje produktsida. Där hittar du svar på det mesta! Tack för ditt tålamod och förståelse!
+            </p>
+            <div class="mt-5 rte text-theme-basic" x-data="ThemeUtil_RTE">{{ page.content | replace: '<meta charset="utf-8">', '' }}</div>
+          </div>
+          <div class="{{ form_class }}">
+            <form action="/contact#{{ form_id }}" method="post" id="{{ form_id }}" enctype="multipart/form-data">
+            <input type="hidden" name="form_type" value="contact">
+            <input type="hidden" name="utf8" value="✓">
+
+            <!-- Name Field -->
+            <label class="block" for="{{ form_id }}-name">Namn*</label>
+            <input type="text" class="block mt-3 w-full px-5 py-3 bg-transparent border-scheme-text" name="contact[name]" id="{{ form_id }}-name" placeholder="För- och efternamn" required>
+
+            <!-- Order Number Field -->
+            <label class="mt-5 block" for="{{ form_id }}-order-number">Ordernummer (om tillgängligt)</label>
+            <input type="text" class="block mt-3 w-full px-5 py-3 bg-transparent border-scheme-text" name="contact[order_number]" id="{{ form_id }}-order-number" placeholder="Ditt fyrsifriga ordernummer (tex 2309)">
+
+            <!-- Email Field -->
+            <label class="mt-5 block" for="{{ form_id }}-email">E-post*</label>
+            <input type="email" class="block mt-3 w-full px-5 py-3 bg-transparent border-scheme-text" name="contact[email]" id="{{ form_id }}-email" placeholder="Se till att du skriver rätt E-post för att inte missa vårt svar!" required>
+
+            <!-- Confirm Email Field -->
+            <label class="mt-5 block" for="{{ form_id }}-email-confirm">Bekräfta E-post*</label>
+            <input type="email" class="block mt-3 w-full px-5 py-3 bg-transparent border-scheme-text" id="{{ form_id }}-email-confirm" placeholder="Bekräfta din e-postadress" required>
+
+            <!-- Phone Field -->
+            <label class="mt-5 block" for="{{ form_id }}-phone">Telefon</label>
+            <input type="tel" class="block mt-3 w-full px-5 py-3 bg-transparent border-scheme-text" name="contact[phone]" id="{{ form_id }}-phone" placeholder="Telefon" pattern="[0-9\-]*">
+
+            <!-- Message Field -->
+            <label class="mt-5 block" for="{{ form_id }}-message">Skriv ditt meddelande här*</label>
+            <textarea rows="10" class="block mt-3 w-full px-5 py-3 bg-transparent border-scheme-text" name="contact[body]" id="{{ form_id }}-message" placeholder="Meddelande" required></textarea>
+
+            <!-- Confirmation Checkbox -->
+            <label for="{{ form_id }}-confirm-checkbox" class="inline-flex items-center mt-5">
+              <input type="checkbox" id="{{ form_id }}-confirm-checkbox" name="confirm_checkbox" required class="text-theme-basic">
+              <span class="ml-2 text-sm text-theme-basic">Genom att markera denna ruta bekräftar jag att all information jag har lämnat är korrekt och tillhör mig. Jag är också medveten om att eventuellt missbruk av retur- och reklamationsrätten betraktas enligt lagen som bedrägeri och kan komma att rapporteras till polisen. Jag bekräftar att jag har läst och godkänt våra Användarvillkor, Köpvillkor, Integritetspolicy, Cookies och är medveten om att mina personuppgifter kommer att behandlas enligt GDPR..</span>
+            </label>
+
+<div class="mt-5 max-w-sm">
+                <button type="submit" class="block w-full theme-button theme-button--solid"><span>Skicka</span></button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+<!-- Confirmation Message - initially hidden, will be centered on the screen with a thin black border and shadow -->
+<div id="{{ form_id }}-confirmation" class="confirmation-message" style="display:none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: auto; max-width: 600px; padding: 20px; box-sizing: border-box; background: transparent; border: 1px solid black; z-index: 1000; box-shadow: 0px 0px 20px rgba(0,0,0,0.5); border-radius: 10px;">
+  <p style="color: #0F6B9E; font-size: 24px; font-weight: bold; text-align: center; animation: pulse 2s infinite;">Tack för ditt meddelande! 
+      Vi har mottagit din förfrågan och kommer att återkoppla så snart som möjligt.</p>
+</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var form = document.getElementById('{{ form_id }}');
+    var formContainer = document.getElementById('{{ form_id }}-container');
+    var confirmation = document.getElementById('{{ form_id }}-confirmation');
+
+    form.addEventListener('submit', function(event) {
+      event.preventDefault(); // Stop the form from submitting immediately
+
+      var email = document.getElementById('{{ form_id }}-email').value;
+      var confirmEmail = document.getElementById('{{ form_id }}-email-confirm').value;
+      var checkbox = document.getElementById('{{ form_id }}-confirm-checkbox').checked;
+
+      // Validate email and checkbox
+      if(email !== confirmEmail) {
+        alert('E-postadresserna matchar inte. Vänligen kontrollera.');
+      } else if (!checkbox) {
+        alert('Du måste bekräfta att du godkänner våra villkor.');
+      } else {
+        // Prepare the form data
+        var formData = new FormData(form);
+
+        // Send the form data using AJAX
+        fetch(form.action, {
+          method: 'POST',
+          body: formData
+        })
+        .then(response => {
+          if (response.ok) {
+            // Hide the form container
+            formContainer.style.display = 'none';
+            // Show the confirmation message with animation
+            confirmation.style.display = 'block';
+          } else {
+            alert('Det gick inte att skicka formuläret. Försök igen senare.');
+          }
+        })
+        .catch(error => {
+          alert('Ett fel uppstod. Försök igen senare.');
+        });
+      }
+    });
+  });
+</script>
+
+<style>
+  @keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+  }
+</style>

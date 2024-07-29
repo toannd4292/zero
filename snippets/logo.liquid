@@ -1,0 +1,162 @@
+{% liquid
+  assign sticky_header_enabled = section.settings.sticky_header
+
+  assign has_sticky_logo_block = false
+  assign sticky_logo_block = section.blocks | where: 'type', 'logo_sticky' | first
+
+  if sticky_logo_block != blank
+    assign has_sticky_logo_block = true
+  endif
+
+  if enable_overlay and section.settings.overlay_logo != blank
+    assign main_logo = section.settings.overlay_logo
+  else
+    assign main_logo = section.settings.logo
+  endif
+
+  if sticky_header_enabled and has_sticky_logo_block and sticky_logo_block.settings.image != blank
+    assign use_sticky_logo = true
+  endif
+
+  assign has_mobile_logo_block = false
+  assign mobile_logo_block = section.blocks | where: 'type', 'logo_mobile' | first
+
+  if mobile_logo_block != blank
+    assign has_mobile_logo_block = true
+  endif
+
+  if has_mobile_logo_block and mobile_logo_block.settings.image != blank
+    assign use_mobile_logo = true
+  endif
+
+  assign use_mobile_sticky_logo = false
+
+  if sticky_header_enabled and has_mobile_logo_block and mobile_logo_block.settings.image_sticky != blank
+   assign use_mobile_sticky_logo = true
+  endif
+
+  assign has_nudge_block = false
+  assign nudge_block = section.blocks | where: 'type', 'logo_nudge' | first
+
+  if nudge_block != blank
+    assign has_nudge_block = true
+  endif
+%}
+
+{% if use_mobile_logo %}
+  {% style %}
+    .header__desktop-logo {
+      display: none;
+    }
+
+    @media (min-width: {{ mobile_logo_block.settings.breakpoint | append: 'px' }}) {
+      .header__desktop-logo {
+        display: block;
+      }
+
+      .header__mobile-logo {
+        display: none;
+      }
+    }
+  {% endstyle %}
+{% endif %}
+
+{% if section.settings.logo != blank %}
+  {% assign max_width_with_units = section.settings.logo_max_width | append: 'rem' %}
+  <div
+    class="m-[inherit] {% if use_mobile_logo %} header__desktop-logo {% endif %}"
+    style="
+      max-width: {{ max_width_with_units }};
+      {% if has_nudge_block %}
+        transform: translate({{ nudge_block.settings.nudge_x | append: 'rem' }}, {{ nudge_block.settings.nudge_y | append: 'rem' }});
+      {% endif %}
+      "
+    {% if use_sticky_logo %}
+      x-show="! isStuck"
+    {% endif %}
+  >
+    {{ main_logo | image_url: width: 500 | image_tag: loading: 'eager', preload: true, sizes: max_width_with_units }}
+  </div>
+
+  {% if use_sticky_logo %}
+    {% liquid
+      assign sticky_logo = sticky_logo_block.settings.image
+      assign sticky_logo_max_width_with_units = sticky_logo_block.settings.max_width | append: 'rem'
+    %}
+    <div
+      class="m-[inherit] {% if use_mobile_logo %} header__desktop-logo {% endif %}"
+      style="
+        max-width: {{ sticky_logo_max_width_with_units }};
+        {% if has_nudge_block %}
+          transform: translate({{ nudge_block.settings.nudge_x | append: 'rem' }}, {{ nudge_block.settings.nudge_y | append: 'rem' }});
+        {% endif %}
+        display: none;
+        "
+      x-show="isStuck"
+      {{ sticky_logo_block.shopify_attributes }}
+    >
+      {{ sticky_logo | image_url: width: 500 | image_tag: loading: 'lazy', sizes: sticky_logo_max_width_with_units }}
+    </div>
+  {% endif %}
+
+  {% if use_mobile_logo %}
+    {% liquid
+      assign mobile_max_width_with_units = mobile_logo_block.settings.max_width | append: 'rem'
+
+      if enable_overlay and mobile_logo_block.settings.image_overlay != blank
+        assign main_mobile_logo = mobile_logo_block.settings.image_overlay
+      else
+        assign main_mobile_logo = mobile_logo_block.settings.image
+      endif
+    %}
+    <div
+      class="m-[inherit] header__mobile-logo"
+      style="
+        max-width: {{ mobile_max_width_with_units }};
+        {% if has_nudge_block %}
+          {% unless nudge_block.settings.enable_mobile_nudge %}
+            transform: translate({{ nudge_block.settings.nudge_x | append: 'rem' }}, {{ nudge_block.settings.nudge_y | append: 'rem' }});
+          {% else %}
+            transform: translate({{ nudge_block.settings.nudge_mobile_x | append: 'rem' }}, {{ nudge_block.settings.nudge_mobile_y | append: 'rem' }});
+          {% endunless %}
+        {% endif %}
+        "
+      {% if use_mobile_sticky_logo %}
+        x-show="! isStuck"
+      {% endif %}
+      {{ mobile_logo_block.shopify_attributes }}
+    >
+      {{ main_mobile_logo | image_url: width: 500 | image_tag: loading: 'eager', preload: true, sizes: mobile_max_width_with_units }}
+    </div>
+
+    {% if use_mobile_sticky_logo %}
+      {% liquid
+        assign mobile_sticky_logo = mobile_logo_block.settings.image_sticky
+        assign mobile_sticky_logo_max_width_with_units = mobile_logo_block.settings.max_width_sticky | append: 'rem'
+      %}
+      <div
+        class="m-[inherit] header__mobile-logo"
+        style="
+          max-width: {{ mobile_sticky_logo_max_width_with_units }};
+          {% if has_nudge_block %}
+            {% unless nudge_block.settings.enable_mobile_nudge %}
+              transform: translate({{ nudge_block.settings.nudge_x | append: 'rem' }}, {{ nudge_block.settings.nudge_y | append: 'rem' }});
+            {% else %}
+              transform: translate({{ nudge_block.settings.nudge_mobile_x | append: 'rem' }}, {{ nudge_block.settings.nudge_mobile_y | append: 'rem' }});
+            {% endunless %}
+          {% endif %}
+          display: none;
+          "
+        x-show="isStuck"
+      >
+        {{ mobile_sticky_logo | image_url: width: 500 | image_tag: loading: 'lazy', sizes: mobile_sticky_logo_max_width_with_units }}
+      </div>
+    {% endif %}
+  {% endif %}
+{% else %}
+  <span class="font-heading text-lg">
+    {{ shop.name }}
+  </span>
+{% endif %}
+
+

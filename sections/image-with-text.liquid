@@ -1,0 +1,155 @@
+{% liquid
+  assign section_color = section.settings.color_scheme | default: 'primary'
+  assign image_position_on_desktop = section.settings.image_position_on_desktop
+
+
+  assign sizes = sizes | append: ', (min-width: 989px) 75vw'
+
+  assign container_classes = 'lg:grid lg:gap-x-grid-gutter lg:grid-cols-4 grid-flow-dense'
+
+  if image_position_on_desktop == 'right'
+    assign content_class = 'lg:col-start-1'
+    assign image_class = 'lg:col-span-3 lg:col-end-last'
+  else
+    assign content_class = 'lg:col-end-last'
+    assign image_class = 'lg:col-span-3 lg:col-start-1'
+  endif
+%}
+
+<section class="{% unless section.settings.remove_top_padding %}pt-section{% endunless %} {% unless section.settings.remove_bottom_padding %}pb-section{% endunless %} text-scheme-text bg-scheme-background {% if section.settings.disable_color_transition %}disable-section-color-transition disable-section-color-transition-source{% endif %}" data-color-scheme="{{ section_color }}">
+  <div class="max-w-site mx-auto px-0 lg:px-10">
+    <div class="{{ container_classes }}">
+
+      <div class="{{ image_class }}">
+        {% if section.settings.image != blank %}
+          {{ section.settings.image | image_url: width: 3000 | image_tag: loading: 'lazy', sizes: sizes }}
+        {% else %}
+          <div class="aspect-w-16 aspect-h-9">
+            {{ 'image' | placeholder_svg_tag: 'w-full h-full bg-scheme-placeholder-background text-scheme-placeholder-foreground fill-current' }}
+          </div>
+        {% endif %}
+      </div>
+
+      <div class="mt-10 lg:mt-0 {{ content_class }}">
+      {%- render 'section-title',
+        title: section.settings.title,
+        subheading: section.settings.richtext,
+        cta_link: section.settings.cta_link,
+        cta_label: section.settings.cta_label
+      -%}
+      </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Image with text",
+  "settings": [
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Image"
+    },
+    {
+      "type": "radio",
+      "id": "image_position_on_desktop",
+      "label": "Image position on desktop",
+      "options": [
+        {
+          "value": "left",
+          "label": "Left"
+        },
+        {
+          "value": "right",
+          "label": "Right"
+        }
+      ],
+      "default": "right"
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Heading",
+      "default": "Heading goes here"
+    },
+    {
+      "type": "richtext",
+      "id": "richtext",
+      "label": "Text",
+      "default": "<p>Use this text to share information about your brand with your customers.</p>"
+    },
+    {
+      "type": "header",
+      "content": "Call to action"
+    },
+    {
+      "type": "url",
+      "id": "cta_link",
+      "label": "Link"
+    },
+    {
+      "type": "text",
+      "id": "cta_label",
+      "label": "Label"
+    },
+    {
+      "type": "header",
+      "content": "Color"
+    },
+    {
+      "type": "select",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "options": [
+        {
+          "value": "primary",
+          "label": "Primary"
+        },
+        {
+          "value": "secondary",
+          "label": "Secondary"
+        },
+        {
+          "value": "tertiary",
+          "label": "Tertiary"
+        }
+      ]
+    },
+    {
+      "type": "checkbox",
+      "id": "disable_color_transition",
+      "label": "Disable transition",
+      "info": "Overrides section color transitions theme setting."
+    },
+    {
+      "type": "header",
+      "content": "Spacing",
+      "info": "Adjust vertical spacing to visually connect this section to adjacent sections"
+    },
+    {
+      "type": "checkbox",
+      "id": "remove_top_padding",
+      "label": "Remove top padding",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "remove_bottom_padding",
+      "label": "Remove bottom padding",
+      "default": false
+    }
+  ],
+  "presets": [
+    {
+      "name": "Image with text"
+    }
+  ],
+  "disabled_on": {
+    "groups": [
+      "header",
+      "footer",
+      "aside"
+    ]
+  }
+}
+{% endschema %}

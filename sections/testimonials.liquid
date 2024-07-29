@@ -1,0 +1,338 @@
+{%- liquid
+  assign section_color = section.settings.color_scheme | default: 'primary'
+
+  assign show_section_title = false
+  if section.settings.title != blank or section.settings.subheading != blank
+    assign show_section_title = true
+  elsif section.settings.cta_link != blank and section.settings.cta_label != blank
+    assign show_section_title = true
+  endif
+
+  if section.blocks.size <= 1
+    assign enable_mobile_carousel = false
+    assign enable_desktop_carousel = false
+  else
+    assign enable_mobile_carousel = section.settings.enable_mobile_carousel
+
+    if section.blocks.size <= 2
+      assign enable_desktop_carousel = false
+    else
+      assign enable_desktop_carousel = section.settings.enable_desktop_carousel
+    endif
+  endif
+
+  assign per_row_desktop = section.settings.per_row_desktop
+-%}
+
+<section class="text-scheme-text bg-scheme-background {% unless section.settings.remove_top_padding %}pt-section{% endunless %} {% unless section.settings.remove_bottom_padding %}pb-section{% endunless %} {% if section.settings.disable_color_transition %}disable-section-color-transition disable-section-color-transition-source{% endif %}" data-color-scheme="{{ section_color }}">
+  <div class="max-w-site mx-auto lg:px-10">
+    <div class="{% if settings.section_titles_position == 'left_of_content' %}lg:grid lg:gap-x-grid-gutter lg:grid-cols-4{% endif %}">
+      {%- unless section.settings.title == blank and section.settings.subheading == blank -%}
+        {%- render 'section-title',
+          title: section.settings.title,
+          subheading: section.settings.subheading
+        -%}
+      {%- endunless -%}
+
+      {%- liquid
+        assign item_class = 'block pb-10 px-5 lg:px-0'
+
+        if enable_mobile_carousel
+          assign item_class = item_class | append: ' w-3/4'
+        endif
+
+        unless enable_desktop_carousel
+          assign item_class = item_class | append: ' lg:w-auto lg:pb-0 ' | append: section.settings.column_text_align
+        else
+          if settings.section_titles_position == 'left_of_content'
+            assign item_class = item_class | append: ' lg:w-5/12'
+          else
+            assign item_class = item_class | append: ' lg:w-3/8'
+          endif
+
+          assign item_class = item_class | append: ' lg:pb-14 ' | append: section.settings.column_text_align
+        endunless
+
+        assign list_classes = 'lg:grid lg:gap-y-14 lg:gap-x-grid-gutter lg:grid-cols-' | append: per_row_desktop
+
+        if enable_mobile_carousel or enable_desktop_carousel
+          assign item_class = item_class | append: ' splide__slide'
+        endif
+
+        if section.blocks.size == 1
+          assign item_class = item_class | append: ' lg:max-w-3/4 text-lg lg:text-xl leading-7 lg:leading-8'
+        else
+          assign item_class = item_class | append: ' text-theme-basic'
+        endif
+      -%}
+      {% capture block_items %}
+        {% for block in section.blocks %}
+          <div class="{{ item_class }}" {{ block.shopify_attributes }}>
+            <div class="mx-auto {{ block.settings.text_align }} text-left relative">
+              {% if block.settings.image and block.settings.image_style == 'photo' %}
+                {{ block.settings.image | image_url: width: 600 | image_tag: loading: 'lazy', sizes: '5rem', class: 'inline-block w-[5rem] aspect-1 rounded-full object-cover object-center mb-5' }}
+              {% endif %}
+              <blockquote>
+                {%- if block.settings.rating != 'none' -%}
+                  {%- assign stars = block.settings.rating | split: '_' | first | plus: 0 -%}
+                  <div class="{{ block.settings.text_align }} mb-5 tracking-[0.1rem]">
+                    {%- for i in (1..stars) -%}★{%- endfor -%}
+                  </div>
+                {%- endif -%}
+                <div class="rte rte--compact break-word quotes-container">
+                  {{ block.settings.quote }}
+                </div>
+                {% if block.settings.source != blank %}
+                  <footer class="mt-5 break-word">&mdash; {{ block.settings.source | strip }}</footer>
+                {% endif %}
+              </blockquote>
+              {% if block.settings.image and block.settings.image_style == 'logo' %}
+              <div class="mt-2">
+              {{ block.settings.image | image_url: width: 600 | image_tag: loading: 'lazy', sizes: '4rem', class: 'inline-block max-w-[8rem] h-auto mt-3' }}
+              </div>
+              {% endif %}
+          </div>
+          </div>
+        {% endfor %}
+      {% endcapture %}
+
+      {% render 'section-content',
+         enable_mobile_carousel: enable_mobile_carousel,
+         enable_desktop_carousel: enable_desktop_carousel,
+         slideshow_id: section.id,
+         list_classes: list_classes,
+         content: block_items,
+         show_section_title: show_section_title
+      %}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Testimonials",
+  "settings": [
+    {
+      "id": "title",
+      "type": "text",
+      "label": "Heading",
+      "default": "Testimonials"
+    },
+    {
+      "id": "subheading",
+      "type": "richtext",
+      "label": "Subheading",
+      "default": "<p>Use this text to share information about your brand with your customers.</p>"
+    },
+    {
+      "type": "select",
+      "id": "per_row_desktop",
+      "label": "Testimonials per row on desktop",
+      "info": "Applies when carousel is disabled on desktop",
+      "default": "2",
+      "options": [
+        {
+          "value": "1",
+          "label": "1"
+        },
+        {
+          "value": "2",
+          "label": "2"
+        },
+        {
+          "value": "3",
+          "label": "3"
+        }
+      ]
+    },
+    {
+      "type": "header",
+      "content": "Carousel"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_mobile_carousel",
+      "label": "Enable on mobile",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_desktop_carousel",
+      "label": "Enable on desktop",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "Color"
+    },
+    {
+      "type": "select",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "options": [
+        {
+          "value": "primary",
+          "label": "Primary"
+        },
+        {
+          "value": "secondary",
+          "label": "Secondary"
+        },
+        {
+          "value": "tertiary",
+          "label": "Tertiary"
+        }
+      ]
+    },
+    {
+      "type": "checkbox",
+      "id": "disable_color_transition",
+      "label": "Disable transition",
+      "info": "Overrides section color transitions theme setting."
+    },
+    {
+      "type": "header",
+      "content": "Spacing",
+      "info": "Adjust vertical spacing to visually connect this section to adjacent sections"
+    },
+    {
+      "type": "checkbox",
+      "id": "remove_top_padding",
+      "label": "Remove top padding",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "remove_bottom_padding",
+      "label": "Remove bottom padding",
+      "default": false
+    }
+  ],
+  "blocks": [
+    {
+      "type": "testimonial",
+      "name": "Testimonial",
+      "settings": [
+        {
+          "id": "image",
+          "type": "image_picker",
+          "label": "Image"
+        },
+        {
+          "id": "image_style",
+          "type": "radio",
+          "label": "Image style",
+          "options": [
+            {
+              "value": "photo",
+              "label": "Photo"
+            },
+            {
+              "value": "logo",
+              "label": "Logo"
+            }
+          ],
+          "default": "photo"
+        },
+        {
+          "type": "select",
+          "id": "rating",
+          "label": "Rating",
+          "options": [
+            {
+              "value": "none",
+              "label": "No rating"
+            },
+            {
+              "value": "5_stars",
+              "label": "5 stars"
+            },
+            {
+              "value": "4_stars",
+              "label": "4 stars"
+            },
+            {
+              "value": "3_stars",
+              "label": "3 stars"
+            },
+            {
+              "value": "2_stars",
+              "label": "2 stars"
+            },
+            {
+              "value": "1_stars",
+              "label": "1 star"
+            }
+          ],
+          "default": "5_stars"
+        },
+        {
+          "id": "quote",
+          "type": "richtext",
+          "label": "Testimonial",
+          "default": "<p>A quote from a customer or staff member can help show off your products’ unique selling points.</p>"
+        },
+        {
+          "id": "source",
+          "type": "text",
+          "label": "Source",
+          "default": "Source"
+        },
+        {
+          "type": "select",
+          "id": "text_align",
+          "label": "Text alignment",
+          "options": [
+            {
+              "value": "text-left",
+              "label": "Left"
+            },
+            {
+              "value": "text-center",
+              "label": "Center"
+            },
+            {
+              "value": "text-right",
+              "label": "Right"
+            }
+          ],
+          "default": "text-left"
+        },
+        {
+          "type": "header",
+          "content": "Size"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Testimonials",
+      "blocks": [
+        {
+          "type": "testimonial"
+        },
+        {
+          "type": "testimonial"
+        },
+        {
+          "type": "testimonial"
+        },
+        {
+          "type": "testimonial"
+        },
+        {
+          "type": "testimonial"
+        }
+      ]
+    }
+  ],
+  "disabled_on": {
+    "groups": [
+      "header",
+      "footer",
+      "aside"
+    ]
+  }
+}
+{% endschema %}

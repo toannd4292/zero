@@ -1,0 +1,129 @@
+{%- form 'localization' -%}
+  <div class="flex flex-row flex-wrap justify-start lg:justify-end items-center -m-1">
+    {% if locale_selector %}
+      <div class="m-1">
+        <h2 class="sr-only" id="lang-heading">
+          {{ 'general.language.dropdown_label' | t }}
+        </h2>
+
+        <div
+          class="relative"
+          x-data="{ expanded: false }"
+          @keydown.escape.prevent.stop="expanded = false"
+          @click.outside="expanded = false"
+        >
+          <button
+            type="button"
+            class="text-sm flex justify-between items-center p-3 border border-scheme-text"
+            :aria-expanded="expanded"
+            aria-controls="lang-list"
+            aria-describedby="lang-heading"
+            @click.prevent="expanded = ! expanded"
+          >
+            {{ form.current_locale.endonym_name }}
+            <div class="w-4 h-4 ml-3" x-show="! expanded">
+              {%- render 'icon-chevron-down' %}
+            </div>
+            <div class="w-4 h-4 ml-3" x-show="expanded" x-cloak>
+              {%- render 'icon-chevron-up' %}
+            </div>
+          </button>
+          <ul
+            id="lang-list"
+            class="absolute border border-scheme-text bg-scheme-background bottom-[calc(100%_+_0.5rem)] left-0 right-auto md:left-auto md:right-0 max-h-[60vh] overflow-y-auto p-3 snap-y snap-mandatory"
+            x-show="expanded"
+            :aria-hidden="! expanded"
+            x-cloak
+          >
+            {% for locale in form.available_locales %}
+              <li class="text-sm w-40 first:-mt-2 last:-mb-2 snap-start">
+                <a
+                  class="block py-2"
+                  href="#"
+                  lang="{{ locale.iso_code }}"
+                  {% if locale.iso_code == form.current_locale.iso_code %}
+                    aria-current="true"
+                  {% endif %}
+                  @click.prevent="$refs.input.value = '{{ locale.iso_code }}'; $root.closest('form').submit();"
+                >
+                  <span class="{% if country.iso_code == localization.country.iso_code %} underline {% endif %} underline-offset-basic">
+                    {{- locale.endonym_name -}}
+                  </span>
+                </a>
+              </li>
+            {%- endfor -%}
+          </ul>
+          <input
+            x-ref="input"
+            type="hidden"
+            name="locale_code"
+            id="LocaleSelector"
+            value="{{ form.current_locale.iso_code }}"
+          />
+        </div>
+      </div>
+    {% endif %}
+    {% if country_selector %}
+      <div class="m-1">
+        <h2 class="sr-only" id="country-heading">
+          {{ 'general.country.dropdown_label' | t }}
+        </h2>
+
+        <div
+          class="relative"
+          x-data="{ expanded: false }"
+          @keydown.escape.prevent.stop="expanded = false"
+          @click.outside="expanded = false"
+        >
+          <button
+            type="button"
+            class="text-sm flex justify-between items-center p-3 border border-scheme-text"
+            :aria-expanded="expanded"
+            aria-controls="country-list"
+            aria-describedby="country-heading"
+            @click.prevent="expanded = ! expanded"
+          >
+            {{- localization.country.name }} ({{ localization.country.currency.iso_code }} {{ localization.country.currency.symbol }})
+            <div class="w-4 h-4 ml-3" x-show="! expanded">
+              {%- render 'icon-chevron-down' %}
+            </div>
+            <div class="w-4 h-4 ml-3" x-show="expanded" x-cloak>
+              {%- render 'icon-chevron-up' %}
+            </div>
+          </button>
+          <ul
+            id="country-list"
+            class="absolute border border-scheme-text bg-scheme-background bottom-[calc(100%_+_0.5rem)] left-0 right-auto md:left-auto md:right-0 max-h-[60vh] overflow-y-auto p-3 snap-y snap-mandatory"
+            x-show="expanded"
+            :aria-hidden="! expanded"
+            x-cloak
+          >
+            {% for country in localization.available_countries %}
+              <li class="text-sm w-40 first:-mt-2 last:-mb-2 snap-start">
+                <a
+                  class="block py-2"
+                  href="#"
+                  {% if country.iso_code == localization.country.iso_code %}
+                    aria-current="true"
+                  {% endif %}
+                  @click.prevent="$refs.input.value = '{{ country.iso_code }}'; $root.closest('form').submit();"
+                >
+                  <span class="{% if country.iso_code == localization.country.iso_code %} underline {% endif %} underline-offset-basic">
+                    {{- country.name }} ({{ country.currency.iso_code }} {{ country.currency.symbol }})
+                  </span>
+                </a>
+              </li>
+            {%- endfor -%}
+          </ul>
+          <input
+            x-ref="input"
+            type="hidden"
+            name="country_code"
+            id="CountrySelector"
+            value="{{ localization.country.iso_code }}"
+          />
+        </div>
+      </div>
+    {% endif %}
+  </div>
+{%- endform -%}

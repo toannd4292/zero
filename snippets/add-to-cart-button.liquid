@@ -1,0 +1,59 @@
+{% capture fallback_button_content %}
+  {% if current_variant.available %}
+    {{ button_text }}
+  {% else %}
+    Sold Out - kommer snart
+  {% endif %}
+{% endcapture %}
+
+{% if current_variant != blank %}
+  <button
+    class="add-to-cart-btn theme-button w-full {{ add_to_cart_class }}
+    {% unless current_variant.available %} opacity-50 cursor-not-allowed {% endunless %}"
+    type="submit"
+    :class="{
+      'opacity-50 cursor-not-allowed': !currentVariantAvailable,
+      'opacity-50 pointer-events-none': loading,
+    }"
+    :disabled="!currentVariantAvailable || loading"
+    {% unless current_variant.available %}
+      disabled="disabled"
+    {% endunless %}
+    x-ref="addToCartButton"
+  >
+    <span class="no-js">
+      {{ fallback_button_content }}
+    </span>
+    <span class="js-enabled" :class="`hidden`">
+      {{ fallback_button_content }}
+    </span>
+    <template x-if="current_variant">
+      <div>
+        <template x-if="currentVariantAvailable">
+          <span>KÖP NU</span>
+        </template>
+        <template x-if="!currentVariantAvailable">
+          <span>{{ fallback_button_content }}</span>
+        </template>
+      </div>
+    </template>
+    <template x-if="!current_variant">
+      <span> Sold Out - kommer snart </span>
+    </template>
+  </button>
+{% else %}
+  <button
+    class="add-to-cart-btn theme-button w-full {{ add_to_cart_class }}"
+    type="button"
+  >
+    <span class="no-js">
+      Sold Out - kommer snart
+    </span>
+    <div>
+      <span>
+        Sold Out - kommer snart
+      </span>
+    </div>
+  </button>
+{% endif %}
+

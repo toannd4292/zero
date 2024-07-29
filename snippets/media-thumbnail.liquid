@@ -1,0 +1,37 @@
+{%- capture media_tag_output -%}
+  {{ media | image_url: width: 600 | image_tag: sizes: '10vw', loading: 'eager' }}
+{%- endcapture -%}
+<li
+  class="{{ class }} relative mb-4"
+  {% if first %}
+    x-intersect:enter.full="firstVisible = true"
+    x-intersect:leave.full="firstVisible = false"
+  {% endif %}
+  {% if last %}
+    x-intersect:enter.full="lastVisible = true"
+    x-intersect:leave.full="lastVisible = false"
+  {% endif %}
+>
+  <a
+    class="block"
+    href="{{ media | image_url }}"
+    @click.prevent
+  >
+  {% if media.media_type != 'image' %}
+    <div class="absolute top-1 right-1 w-6 h-6 bg-scheme-background/90 border border-scheme-text/5 grid place-content-center">
+      <div class="opacity-70">
+        {% if media.media_type == 'model' %}
+          {% render 'icon-model' %}
+        {% elsif media.media_type contains 'video' %}
+          {% render 'icon-video' %}
+        {% endif %}
+      </div>
+    </div>
+    <div>
+      {{ media_tag_output }}
+    </div>
+  {% else %}
+    {{ media_tag_output }}
+  {% endif %}
+  </a>
+</li>

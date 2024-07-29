@@ -1,0 +1,35 @@
+<div x-data="ThemeModule_ModalCart({openOnAddToCart: {{ settings.open_drawer_on_add_to_cart }}})" x-cloak>
+  <div>
+    <template x-teleport="#right-drawer-slot">
+      <div class="max-h-full flex flex-col h-screen" :data-modal-label="`{{ 'cart.general.title' | t }} - ${$store.cart_count.countWithText()}`" x-show="$store.modals.rightDrawer.contents === 'cart'">
+        <div class="px-5 lg:px-10">
+          <div class="relative flex items-center justify-between mt-5 py-4 border-b border-scheme-text">
+             <h2 class="text-center text-lg font-bold mb-4">Din Zero BS varukorg</h2>
+            <h2 class="text-theme-basic" class="" tabindex="-1">
+              {{ 'cart.general.title' | t }}
+            </h2>
+            <button @click.prevent="$store.modals.close('cart')" class="block top-0">
+              <span class="sr-only">{{ 'general.accessibility.close_modal' | t }}</span>
+              <span class="inline-block w-6 h-6">{% render 'icon-close' %}</span>
+            </button>
+          </div>
+        </div>
+      
+
+
+        <div class="flex-auto flex flex-col overflow-hidden px-5 lg:px-10">
+          {% render 'cart-items' %}
+ 
+          <div class="pt-5  pb-safe-bottom relative"> 
+            <div class="-translate-y-full h-16 w-full bg-gradient-to-t from-scheme-background to-transparent absolute top-0 left-0 right-0 pointer-events-none"></div>
+            {% render 'cart-footer' %}
+          </div>
+        </div>
+        
+
+
+      </div>
+    </template>
+  </div>
+</div>
+<script src="{{ 'modal-cart.js' | asset_url }}" type="module"></script>

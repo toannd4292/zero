@@ -1,0 +1,375 @@
+{%- liquid
+  assign section_color = section.settings.color_scheme
+  assign items = collections
+
+  assign block_collections = section.blocks | where: "type", "collection"
+
+  if block_collections.size > 0
+    assign using_blocks = true
+    assign items = block_collections
+  endif
+
+  assign show_description = section.settings.show_description
+
+  assign counter = 0
+-%}
+
+<section
+  class="text-scheme-text bg-scheme-background overflow-hidden"
+  data-color-scheme="{{ section_color }}"
+  x-data
+>
+  {% if section.settings.layout == 'grid' %}
+    {% for collection_item in items %}
+      {% liquid
+        if using_blocks
+          assign collection = collection_item.settings.collection
+          assign title = collection_item.settings.title
+
+          if title == blank
+            assign title = collection.title
+          endif
+
+          assign subheading = collection_item.settings.subheading
+
+          if section.settings.show_collection_link
+            assign cta_link = collection.url
+          endif
+
+          assign slideshow_id = section.id | append: '-' | append: collection_item.id
+        else
+          assign collection = collection_item
+          assign title = collection_item.title
+
+          if show_description == true
+            assign subheading = collection_item.description
+          else
+            assign subheading = ''
+          endif
+
+          if section.settings.show_collection_link
+            assign cta_link = collection_item.url
+          endif
+
+          assign collection_uid = collection.handle | append: '-' | append: counter
+          assign slideshow_id = section.id | append: '-' | append: collection_uid
+        endif
+
+        assign mod = counter | modulo: 2
+
+        if section.settings.alternate_row_color_scheme != 'follow'
+          if mod > 0
+            assign color_scheme = section.settings.alternate_row_color_scheme
+          else
+            assign color_scheme = section_color
+          endif
+        else
+          assign color_scheme = section_color
+        endif
+
+        if title == blank
+          assign title = 'sections.onboarding.collection_title' | t
+        endif
+
+        if section.settings.show_collection_link
+          assign cta_label = 'collections.general.all_of_collection' | t
+        endif
+
+      %}
+
+      <div class="bg-scheme-background text-scheme-text" data-color-scheme="{{ color_scheme }}">
+        {% render 'product-list-grid',
+           class: 'py-section',
+           title: title,
+           subheading: subheading,
+           cta_label: cta_label,
+           cta_link: cta_link,
+           product_list: collection.products,
+           enable_mobile_carousel: section.settings.enable_mobile_carousel,
+           enable_desktop_carousel: section.settings.enable_desktop_carousel,
+           max_products: section.settings.max_products_grid,
+           slideshow_id: slideshow_id,
+        %}
+      </div>
+      {% assign counter = counter | plus: 1 %}
+    {% endfor %}
+  {% elsif section.settings.layout == 'cascade' %}
+    {% render 'list-collections-cascade',
+       section: section,
+       items: items,
+       using_blocks: using_blocks,
+       show_collection_link: section.settings.show_collection_link,
+       show_description: show_description,
+    %}
+  {% endif %}
+</section>
+
+
+{% schema %}
+{
+  "name": "List with product tiles",
+  "settings": [
+    {
+      "type": "radio",
+      "id": "layout",
+      "label": "Layout",
+      "default": "grid",
+      "options": [
+        {
+          "value": "grid",
+          "label": "Grid"
+        },
+        {
+          "value": "cascade",
+          "label": "Cascade"
+        }
+      ]
+    },
+    {
+      "type": "checkbox",
+      "id": "show_collection_link",
+      "label": "Show link to collection",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_description",
+      "label": "Show collection descriptions",
+      "default": true,
+      "info": "Does not apply if using blocks."
+    },
+    {
+      "type": "header",
+      "content": "Grid"
+    },
+    {
+      "type": "paragraph",
+      "content": "These settings only apply when layout is set to “Grid”."
+    },
+    {
+      "type": "select",
+      "id": "max_products_grid",
+      "default": "3",
+      "options": [
+        {
+          "value": "3",
+          "label": "3 Products"
+        },
+        {
+          "value": "4",
+          "label": "4 Products"
+        },
+        {
+          "value": "6",
+          "label": "6 Products"
+        },
+        {
+          "value": "8",
+          "label": "8 Products"
+        }
+      ],
+      "label": "Number of products"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_mobile_carousel",
+      "label": "Enable carousel on mobile",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_desktop_carousel",
+      "label": "Enable carousel on desktop",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "Cascade"
+    },
+    {
+      "type": "paragraph",
+      "content": "These settings only apply when layout is set to “Cascade”."
+    },
+    {
+      "type": "range",
+      "id": "max_products_cascade",
+      "min": 2,
+      "max": 10,
+      "step": 1,
+      "label": "Number of products",
+      "default": 5
+    },
+    {
+      "type": "checkbox",
+      "id": "feature_full_width_products",
+      "label": "Feature full width products",
+      "info": "Enable this setting to showcase a mix of products at half width and full width. [Learn more](https://help.switchthemes.co)",
+      "default": true
+    },
+    {
+      "type": "radio",
+      "id": "desktop_layout",
+      "label": "Desktop layout",
+      "default": "two_columns",
+      "options": [
+        {
+          "value": "single_column",
+          "label": "Single column"
+        },
+        {
+          "value": "two_columns",
+          "label": "Two columns"
+        }
+      ]
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_cascade_on_mobile",
+      "label": "Enable cascade layout on mobile",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "spacing",
+      "label": "Vertical space between items",
+      "options": [
+        {
+          "value": "global",
+          "label": "Same as theme settings"
+        },
+        {
+          "value": "small",
+          "label": "Small"
+        },
+        {
+          "value": "medium",
+          "label": "Medium"
+        },
+        {
+          "value": "large",
+          "label": "Large"
+        }
+      ],
+      "default": "global"
+    },
+    {
+      "type": "header",
+      "content": "Media"
+    },
+    {
+      "type": "paragraph",
+      "content": "Adjust variation and sequence of media sizes to create unique layouts. [Learn more](https://help.switchthemes.co/)"
+    },
+    {
+      "type": "select",
+      "id": "variance",
+      "label": "Variation between media sizes",
+      "options": [
+        {
+          "value": "global",
+          "label": "Same as theme settings"
+        },
+        {
+          "value": "none",
+          "label": "None"
+        },
+        {
+          "value": "low",
+          "label": "Low"
+        },
+        {
+          "value": "medium",
+          "label": "Medium"
+        },
+        {
+          "value": "high",
+          "label": "High"
+        }
+      ],
+      "default": "global"
+    },
+    {
+      "type": "range",
+      "id": "sequence",
+      "min": 1,
+      "max": 5,
+      "step": 1,
+      "label": "Sequence",
+      "default": 1
+    },
+    {
+      "type": "header",
+      "content": "Color"
+    },
+    {
+      "type": "select",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "options": [
+        {
+          "value": "primary",
+          "label": "Primary"
+        },
+        {
+          "value": "secondary",
+          "label": "Secondary"
+        },
+        {
+          "value": "tertiary",
+          "label": "Tertiary"
+        }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "alternate_row_color_scheme",
+      "label": "Alternate color scheme",
+      "info": "Applies to every second collection.",
+      "options": [
+        {
+          "value": "follow",
+          "label": "Same"
+        },
+        {
+          "value": "primary",
+          "label": "Primary"
+        },
+        {
+          "value": "secondary",
+          "label": "Secondary"
+        },
+        {
+          "value": "tertiary",
+          "label": "Tertiary"
+        }
+      ],
+      "default": "follow"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "collection",
+      "name": "Collection",
+      "settings": [
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Heading",
+          "default": "Featured collection"
+        },
+        {
+          "type": "collection",
+          "id": "collection",
+          "label": "Collection"
+        },
+        {
+          "id": "subheading",
+          "type": "richtext",
+          "label": "Subheading",
+          "default": "<p>Use this text to share information about your collection.</p>"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

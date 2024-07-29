@@ -1,0 +1,246 @@
+<div class="relative flex items-center justify-between pb-4">
+  <h2 class="sr-only" class="" tabindex="-1">
+    {{ section.settings.linklist.title }}
+  </h2>
+  <button @click.prevent="$store.modals.close('mobile-sidebar-nav')" class="block top-0 js-enabled">
+    <span class="sr-only">{{ 'general.accessibility.close_modal' | t }}</span>
+    <span class="ml-auto inline-block w-6 h-6">{% render 'icon-close' %}</span>
+  </button>
+</div>
+<ul class="mt-8">
+  {% for link in section.settings.linklist.links %}
+    {% comment %}
+      First level
+    {% endcomment %}
+    {% assign showcase_link_tiles = '' %}
+    <li class="mb-10 font-heading text-heading-standard">
+      {% if link.links.size > 0 %}
+        <div
+          x-data="
+            {
+              expanded: {% if forloop.first and section.settings.auto_expand %}true{% else %}false{% endif %}
+            }
+          "
+        >
+          <button
+            class="font-heading text-heading-standard w-full flex flex-row justify-between items-center text-left"
+            @click="expanded = ! expanded"
+            :aria-expanded="expanded"
+          >
+            <span>{{ link.title }}</span>
+            <div class="ml-auto js-enabled">
+              <span
+                class="w-6 h-6 block transition-transform ease-gentle duration-[280ms]"
+                x-cloak
+                :class="{ '-rotate-180' : expanded, 'rotate-0' : ! expanded }"
+              >
+                {% render 'icon-chevron-down' %}
+              </span>
+            </div>
+          </button>
+          <div x-show="expanded" x-collapse>
+            <ul class="my-7 text-base font-main">
+              {% for link in link.links %}
+                {% comment %}
+                  Second level
+                {% endcomment %}
+                {%- liquid
+                  assign showcase_link = false
+
+                  if section.settings.showcase_second_level_links != 'none'
+                    if link.type == 'collection_link' or link.type == 'product_link'
+                      if link.links.size == 0
+                        assign showcase_link = true
+                      endif
+                    endif
+                  endif
+                -%}
+
+                {% unless showcase_link %}
+                  <li class="my-3 text-base break-word">
+                    {% if link.links.size > 0 %}
+                      <a href="{{ link.url }}">
+                        {{ link.title }}
+                      </a>
+                      <ul>
+                        {% for link in link.links %}
+                          {% comment %}
+                            Third level
+                          {% endcomment %}
+                          <li
+                            class="my-3 pl-2 text-base break-word"
+                          >
+                            <a href="{{ link.url }}">
+                              &ndash; {{ link.title }}
+                            </a>
+                          </li>
+                        {% endfor %}
+                      </ul>
+                    {% else %}
+                      <a href="{{ link.url }}">
+                        {{ link.title }}
+                      </a>
+                    {% endif %}
+                  </li>
+                {% else %}
+                  {%- capture link_tile -%}
+                    {% if section.settings.showcase_second_level_links == 'scroll' %}
+                      <li class="text-base font-main my-4 mr-4 relative snap-start">
+                        {% render 'showcase-tile', object: link.object, crop: section.settings.collection_image_crop, image_wrapper_class: 'w-[8rem] shrink-0 grow-0 h-auto' %}
+                      </li>
+                    {% else %}
+                      <li class="text-base font-main relative">
+                        {% render 'showcase-tile', object: link.object, crop: section.settings.collection_image_crop %}
+                      </li>
+                    {% endif %}
+                  {%- endcapture -%}
+                  {%- assign showcase_link_tiles = showcase_link_tiles | append: link_tile -%}
+                {%- endunless -%}
+              {% endfor %}
+            </ul>
+            {% if showcase_link_tiles %}
+              <div class="my-4 nav-item">
+                {% render 'showcase-link-tiles', style: section.settings.showcase_second_level_links, content: showcase_link_tiles %}
+              </div>
+            {% endif %}
+          </div>
+        </div>
+    {% else %}
+      <a class="block my-7 break-word" href="{{ link.url }}">
+        {{ link.title }}
+      </a>
+    {% endif %}
+    </li>
+  {% endfor %}
+</ul>
+
+{% if section.settings.secondary_linklist != empty %}
+  <nav class="mt-16">
+    <ul class="space-y-2">
+      {% for link in section.settings.secondary_linklist.links %}
+        <li class="break-word">
+          <a href="{{ link.url }}">
+            {{ link.title }}
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+  </nav>
+{% endif %}
+
+{% if shop.customer_accounts_enabled %}
+  <ul class="mt-16 space-y-2">
+    {% if customer %}
+      <li>
+        <a href="{{ routes.account_url }}">{{ 'layout.customer.account' | t }}</a>
+      </li>
+      <li>
+        {{ 'layout.customer.log_out' | t | customer_logout_link }}
+      </li>
+    {% else %}
+      <li>
+        {{ 'layout.customer.log_in' | t | customer_login_link }}
+      </li>
+      <li>
+        {{ 'layout.customer.create_account' | t | customer_register_link }}
+      </li>
+    {% endif %}
+  </ul>
+{% endif %}
+
+{% if section.settings.show_search %}
+  <form class="mt-16" action="{{ routes.search_url }}" method="get" role="search">
+    <div class="relative">
+      <input
+        id="sidebar-search" type="search"
+        name="q" value=""
+        class="sidebar-search-input py-2 pl-0 pr-9 placeholder-current font-secondary w-full shadow-none border-none"
+        x-ref="input"
+        placeholder="{{ 'general.search.placeholder' | t }}"
+        {%- if predictive_search_enabled -%}
+          :aria-expanded="results ? 'true' : 'false'"
+          aria-owns="predictive-search-results-list"
+          aria-controls="predictive-search-results-list"
+          aria-autocomplete="list"
+          autocorrect="off" autocomplete="off" autocapitalize="off"
+          spellcheck="false"
+          x-model="rawQuery"
+          @input.debounce.300="onChange"
+          @focus="onFocus"
+        {%- endif -%}
+      >
+      <label class="sr-only" for="sidebar-search">{{ 'general.search.placeholder' | t }}</label>
+      <input type="hidden" name="options[prefix]" value="last">
+      {%- if predictive_search_enabled == false and settings.search_products or settings.search_articles or settings.search_pages -%}
+        <input type="hidden" name="type" value="{% if settings.search_products %}product{% endif %}{% if settings.search_articles %},article{% endif %}{% if settings.search_pages %},page{% endif %}">
+      {%- endif -%}
+      <button
+        class="absolute top-0 bottom-0 right-0 left-auto h-full flex items-center justify-center"
+        aria-label="{{ 'general.search.submit' | t }}"
+      >
+        <span class="inline-block w-6 h-6">{% render 'icon-search' %}</span>
+      </button>
+    </div>
+  </form>
+{% endif %}
+
+{% if section.settings.show_social_icons %}
+  {% liquid
+    assign social_accounts = 'Facebook, Twitter, Pinterest, Instagram, Snapchat, TikTok, Tumblr, YouTube, Vimeo, LinkedIn' | split: ', '
+
+    assign social_account_items_string = ''
+
+    assign social_item_separator = '||__social-item-end__||'
+
+    for social in social_accounts
+      assign social_handle = social | handleize
+      assign social_link = 'social_' | append: social_handle | append: '_link'
+
+      if settings[social_link] != blank
+        capture social_account_item
+          echo '<a href="' | append: settings[social_link] | append: '">'
+          case social_handle
+            when 'facebook'
+              render 'icon-facebook'
+            when 'twitter'
+              render 'icon-twitter'
+            when 'pinterest'
+              render 'icon-pinterest'
+            when 'instagram'
+              render 'icon-instagram'
+            when 'snapchat'
+              render 'icon-snapchat'
+            when 'tiktok'
+              render 'icon-tiktok'
+            when 'tumblr'
+              render 'icon-tumblr'
+            when 'youtube'
+              render 'icon-youtube'
+            when 'vimeo'
+              render 'icon-vimeo'
+            when 'linkedin'
+              render 'icon-linkedin'
+          endcase
+          echo '</a>'
+          echo social_item_separator
+        endcapture
+
+        assign social_account_items_string = social_account_items_string | append: social_account_item
+      endif
+    endfor
+
+    if social_account_items_string != blank
+      assign social_account_items = social_account_items_string | split: social_item_separator
+    endif
+  %}
+  <div class="mt-16">
+    <ul class="flex flex-wrap justify-start -m-2">
+      {% for item in social_account_items %}
+        <li class="w-[1.125rem] h-[1.125rem] m-2">
+          {{ item }}
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+{% endif %}
+

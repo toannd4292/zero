@@ -1,0 +1,192 @@
+{%- liquid
+  unless loading
+    assign loading = 'lazy'
+  endunless
+
+  assign buttons = section.blocks | where: 'type', 'button'
+
+  case section.settings.crop
+    when 'square'
+      assign block_container_class = 'aspect-w-1 aspect-h-1'
+    when 'three-four'
+      assign block_container_class = 'aspect-w-3 aspect-h-4'
+    when 'four-three'
+        assign block_container_class = 'aspect-w-4 aspect-h-3'
+    when 'widescreen'
+        assign block_container_class = 'aspect-w-16 aspect-h-9'
+    when 'cinematic'
+      assign block_container_class = 'aspect-w-2.35 aspect-h-1'
+    when 'full-screen'
+      if is_homepage_banner
+        assign block_container_class = 'h-[calc(100vh_-_var(--ab-height))]'
+      else
+        assign block_container_class = 'h-screen'
+      endif
+  endcase
+
+  case section.settings.crop_desktop
+    when 'four-three'
+      assign block_container_class = block_container_class | append: ' lg:h-auto lg:aspect-w-4 lg:aspect-h-3'
+    when 'widescreen'
+      assign block_container_class = block_container_class | append: ' lg:h-auto lg:aspect-w-16 lg:aspect-h-9'
+    when 'cinematic'
+      assign block_container_class = block_container_class | append: ' lg:h-auto lg:aspect-w-2.35 lg:aspect-h-1'
+    when 'full-screen'
+
+      if is_homepage_banner
+        assign block_container_class = block_container_class | append: ' lg:p-0 lg:h-[calc(100vh_-_var(--ab-height))]'
+      else
+        assign block_container_class = block_container_class | append: ' lg:p-0 lg:h-screen'
+      endif
+  endcase
+
+  assign block_class = 'absolute inset-0 w-full h-full lg:w-full lg:h-full'
+  if section.settings.crop == 'natural'
+    assign block_class = 'lg:absolute lg:inset-0 lg:w-full lg:h-full'
+  endif 
+
+  assign blocks_in_stacking_order = section.blocks
+-%}
+{% capture section_content %}
+  {% if section.settings.title != blank %}
+    <div class="font-heading {{ section.settings.text_size }} break-word">
+      {{ section.settings.title | escape }}
+    </div>
+  {% endif %}
+  {% if section.settings.text != blank %}
+  <div class="rte rte--compact break-word text-base mt-5">
+    {{ section.settings.text }}
+  </div>
+  {% endif %}
+
+  {% for block in buttons %}
+    <div class="mt-8" {% unless section.settings.text_color == 'color_scheme' %}data-color-scheme="{{ section.settings.text_color | replace: 'text-', '' | append: '-text' }}"{% endunless %}>
+      <a
+        class="theme-button {% if block.settings.style == 'solid' %}theme-button--solid theme-button--solid-overlay{% endif %} break-word"
+        href="{{ block.settings.link }}"
+      >
+        {{ block.settings.text | escape }}
+      </a>
+    </div>
+  {% endfor %}
+{% endcapture %}
+<div
+  class="relative w-full {{ block_container_class }}" data-media-container
+  {% if section.settings.show_arrow or request.design_mode %}
+    x-data="ThemeSection_DownArrow()"
+  {% endif %}
+>
+
+  {%- if media_type == 'image_split' -%}
+    {%- liquid
+      assign image_container_class = 'absolute inset-0 w-full h-full'
+      if section.settings.crop == 'natural'
+        assign image_container_class = 'lg:absolute lg:inset-0 lg:w-full lg:h-full'
+      endif 
+    -%}
+    <div class="{{ block_class }}"> 
+      <div class="h-full grid lg:grid-cols-12">
+        <div class="relative {{ section.settings.first_image_width | split: '|' | first | strip }} bg-scheme-background" {% if section.settings.first_image_color_scheme != 'follow' %}data-color-scheme="{{ section.settings.first_image_color_scheme }}" {% endif %}>
+          <div class="{{ image_container_class }} {% if section.settings.indent_first_image %} p-10 lg:p-20 {% endif %}">
+            {% if section.settings.first_image != blank %}
+              {% assign image = section.settings.first_image %}
+              {{ image | image_url: width: 2000 | image_tag: sizes: '100vw', loading: loading, class: 'block w-full lg:w-full h-full lg:h-full object-cover' }}
+            {% else %}
+              {{ 'image' | placeholder_svg_tag: 'w-full h-full lg:w-full lg:h-full bg-scheme-placeholder-background text-scheme-placeholder-foreground fill-current' }}
+            {% endif %}
+          </div>
+        </div>
+        <div class="relative {{ section.settings.first_image_width | split: '|' | last | strip }} bg-scheme-background" {% if section.settings.second_image_color_scheme != 'follow' %}data-color-scheme="{{ section.settings.second_image_color_scheme }}" {% endif %}>
+          <div class="{{ image_container_class }} {% if section.settings.indent_second_image %} p-10 lg:p-20 {% endif %}">
+            {% if section.settings.second_image != blank %}
+              {% assign image = section.settings.second_image %}
+              {{ image | image_url: width: 2000 | image_tag: sizes: '100vw', loading: loading, class: 'block w-full lg:w-full h-full lg:h-full object-cover' }}
+            {% else %}
+              {{ 'image' | placeholder_svg_tag: 'w-full h-full lg:w-full lg:h-full bg-scheme-placeholder-background text-scheme-placeholder-foreground fill-current' }}
+            {% endif %}
+          </div>
+        </div>
+      </div>
+  </div>
+  {%- endif -%}
+
+  {%- if media_type == 'image' -%}
+    {% if section.settings.image != blank %}
+      <div class="{{ block_class }}">
+        {% assign image = section.settings.image %}
+        {{ image | image_url: width: 2000 | image_tag: sizes: '100vw', loading: loading, class: 'block w-full lg:w-full h-full lg:h-full object-cover' }}
+      </div>
+    {% else %}
+      <div class="{{ block_class }}">
+        {{ 'image' | placeholder_svg_tag: 'w-full h-full lg:w-full lg:h-full bg-scheme-placeholder-background text-scheme-placeholder-foreground fill-current' }}
+      </div>
+    {% endif %}
+  {%- endif -%}
+
+  {%- if media_type == 'video' -%}
+    {% assign component_id = section.id %}
+    <div class="{{ block_class }}">
+      {% render 'block-background-video',
+        video: section.settings.video_url,
+        fallback_image: section.settings.fallback_image,
+        component_id: component_id
+      %}
+    </div>
+  {%- endif -%}
+
+  {% for block in blocks_in_stacking_order %}
+    {% case block.type %}
+      {% when 'color' %}
+        {% liquid
+          if block.settings.opacity == 100
+            assign background_color = block.settings.color
+          else
+            assign alpha = block.settings.opacity | divided_by: 100.00
+            assign background_color = block.settings.color | color_modify: 'alpha', alpha
+          endif
+        %}
+        <div
+          class="{{ block_class }} block"
+          style="background-color: {{ background_color }};"
+          {{ block.shopify_attributes }}
+        >
+        </div>
+      {% when 'color_background' %}
+        <div
+          class="{{ block_class }} block"
+          style="
+            background-image: {{ block.settings.color_background }};
+            opacity: {{ block.settings.opacity | divided_by: 100.00 }};
+          "
+          {{ block.shopify_attributes }}
+        >
+        </div>
+    {% endcase %}
+  {% endfor %}
+  <div
+    class="absolute inset-0 w-full h-full lg:w-full lg:h-full {% if content_below_on_mobile %} sw-hidden lg:grid {% else %} grid {% endif %} {{ section.settings.place_content }} {{ section.settings.text_align }} p-12 lg:p-24"
+  >
+    {{ section_content }}
+  </div>
+  {% if section.settings.show_arrow or request.design_mode %}
+    <script src="{{ 'down-arrow.js' | asset_url }}" type="module"></script>
+    <div class="absolute inset-0 w-full h-full lg:w-full lg:h-full grid place-content-end-center pb-3 pointer-events-none overflow-hidden {% if request.design_mode and section.settings.show_arrow == false %} hidden {% endif %}">
+      <button
+        x-ref="scrollButton"
+        @click="sctollToNextSection"
+        class="cursor-pointer pointer-events-auto opacity-0 translate-y-1 motion-reduce:transition-none transition duration-700 delay-200"
+        x-transition
+      >
+        <span class="sr-only">{{ 'general.accessibility.skip_to_first_section' | t }}</span>
+        <div class="w-10 h-10">
+          {% render 'icon-arrow-down' %}
+        </div>
+      </button>
+    </div>
+  {% endif %}
+</div>
+{% if content_below_on_mobile %}
+  <div class="text-scheme-text bg-scheme-background px-5 py-10 lg:hidden"  data-color-scheme="{{ section.settings.color_scheme }}">
+    {{ section_content }}
+  </div>
+{% endif %}

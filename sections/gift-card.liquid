@@ -1,0 +1,189 @@
+{% layout 'gift_card' %}
+
+{%- liquid
+  if settings.currency_code_enable
+    assign formatted_initial_value = gift_card.initial_value | money_with_currency
+  else
+    assign formatted_initial_value = gift_card.initial_value | money
+  endif
+
+  assign formatted_initial_value_stripped = formatted_initial_value | strip_html
+-%}
+
+
+<section
+  class="py-section text-scheme-text bg-scheme-background"
+  data-color-scheme="{{ section.settings.color_scheme }}"
+>
+  <div class="px-5 lg:px-10">
+    <header class="text-center" role="banner">
+      {% if section.settings.logo != blank %}
+        {% liquid
+          assign logo = section.settings.logo
+          assign logo_max_width = section.settings.logo_max_width
+          assign logo_max_width_2x = section.settings.logo_max_width | times: 2
+        %}
+        {% capture image_size %}{{ logo_max_width }}x{% endcapture %}
+        <style>
+          :root {
+            --gift-card-logo-max-width: {{ logo_max_width }}px;
+          }
+        </style>
+        <h2 class="mr-auto md:ml-auto md:mr-0">
+          <div class="max-w-[var(--gift-card-logo-max-width)] text-center mx-auto">
+            <img
+              src="{{ logo | image_url: width: logo_max_width }}"
+              class="w-full"
+              loading="eager"
+              srcset="{{ logo | image_url: width: logo_max_width }} 1x, {{ logo | image_url: width: logo_max_width_2x }} 2x"
+              alt="{{ logo.alt | default: shop.name }}"
+              sizes="{{ logo_max_width }}px"
+              width="{{ logo.width }}"
+              height="{{ logo.height }}"
+            />
+          </div>
+        </h2>
+      {% else %}
+        <h2 class="font-heading text-heading-standard mr-auto md:ml-auto md:mr-0 break-word">
+          {{ shop.name }}
+        </h2>
+      {% endif %}
+      <h1 class="font-heading text-lg mt-10">
+        {{ 'gift_cards.issued.subtext' | t }}
+      </h1>
+      <div class="text-theme-basic mt-10">
+        {% unless gift_card.enabled %}
+          <p>{{ 'gift_cards.issued.disabled' | t }}</p>
+        {% endunless %}
+        {% assign gift_card_expiry_date = gift_card.expires_on | date: format: "basic" %}
+        {% if gift_card.expired and gift_card.enabled %}
+          <p>{{ 'gift_cards.issued.expired' | t: expiry: gift_card_expiry_date }}</p>
+        {% endif %}
+        {% if gift_card.expired != true and gift_card.expires_on and gift_card.enabled %}
+          <p>{{ 'gift_cards.issued.active' | t: expiry: gift_card_expiry_date }}</p>
+        {% endif %}
+        {% if gift_card.balance != gift_card.initial_value %}
+          {% liquid
+            if settings.currency_code_enable
+              assign formatted_balance = gift_card.balance | money_with_currency
+            else
+              assign formatted_balance = gift_card.balance | money
+            endif
+          %}
+          <p>{{ 'gift_cards.issued.remaining_html' | t: balance: formatted_balance }}</p>
+        {% endif %}
+      </div>
+    </header>
+
+    <div class="mt-8">
+      <main class="giftcard" role="main">
+        <div class="mx-auto w-max max-w-full relative">
+          <img src="{{ 'gift-card/card.svg' | shopify_asset_url }}" alt="" class="mx-auto" height="{{ 570 | divided_by: 1.5 }}" width="570" loading="lazy">
+
+          <div class="h1 text-heading-standard md:text-5xl absolute top-0 right-0 p-2 lg:p-4 text-white text-right">
+            <strong> {{ formatted_initial_value | replace: ' ', '<br>' }}</strong>
+          </div>
+
+          <div class="absolute left-0 bottom-8 right-0 w-full text-center" x-data>
+            <div class="inline-block bg-white text-base lg:text-2xl uppercase text-center p-1">
+              <input
+                type="text"
+                style="box-shadow: none;"
+                class="block p-2 border-dashed border-2 text-center {% if gift_card.expired or gift_card.enabled != true %} disabled {% endif %}"
+                id="GiftCardDigits"
+                value="{{ gift_card.code | format_code }}"
+                aria-label="{{ 'gift_cards.issued.gift_card_code' | t }}"
+                readonly
+                @focus="$el.select()"
+              />
+            </div>
+          </div>
+        </div>
+
+        <p class="text-center max-w-[14rem] mx-auto text-theme-basic mt-10">
+          {{ 'gift_cards.issued.redeem_html' | t: value: formatted_initial_value_stripped }}
+        </p>
+
+        <div class="flex justify-center py-8">
+          <div
+            id="QrCode"
+            class="bg-scheme-background"
+            data-identifier="{{ gift_card.qr_identifier }}"
+          ></div>
+        </div>
+
+        <ul class="text-center text-theme-basic relative z-10">
+          <li class="mt-5">
+            <a
+              href="{{ shop.url }}"
+              class="theme-button theme-button--solid"
+              target="_blank"
+              rel="noopener"
+              aria-describedby="a11y-new-window-message"
+            >
+              <span class="text-theme-basic"> {{ 'gift_cards.issued.shop_link' | t }}</span>
+            </a>
+          </li>
+          <li class="mt-10">
+            <button type="button" class="theme-link" onclick="window.print();">
+              <span class="text-theme-basic">{{ 'gift_cards.issued.print' | t }}</span>
+            </button>
+          </li>
+          {% if gift_card.pass_url %}
+            <li class="mt-10">
+              <a href="{{ gift_card.pass_url }}">
+                <img src="{{ 'gift-card/add-to-apple-wallet.svg' | shopify_asset_url }}" width="120" height="40" alt="{{ 'gift_cards.issued.add_to_apple_wallet' | t }}" loading="lazy">
+              </a>
+            </li>
+          {% endif %}
+        </ul>
+      </main>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Gift card",
+  "settings": [
+    {
+      "type": "image_picker",
+      "id": "logo",
+      "label": "Logo image"
+    },
+    {
+      "type": "range",
+      "id": "logo_max_width",
+      "min": 20,
+      "max": 450,
+      "step": 10,
+      "unit": "px",
+      "label": "Custom logo width",
+      "default": 120
+    },
+    {
+      "type": "header",
+      "content": "Color"
+    },
+    {
+      "type": "select",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "options": [
+        {
+          "value": "primary",
+          "label": "Primary"
+        },
+        {
+          "value": "secondary",
+          "label": "Secondary"
+        },
+        {
+          "value": "tertiary",
+          "label": "Tertiary"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

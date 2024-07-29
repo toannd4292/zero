@@ -1,0 +1,34 @@
+<aside x-data>
+  <template x-teleport="body">
+    <div
+      x-show="$store.modals.rightDrawer.open"
+      @keydown.escape.prevent.stop="$store.modals.close('rightDrawer')"
+      @click="$store.modals.close('rightDrawer')"
+      class="fixed inset-0 z-110"
+      data-color-scheme="{{ settings.modal_color_scheme | default: 'tertiary' }}"
+      id="modals-rightDrawer"
+      @right-drawer-is-open.window="setTimeout(() => { $focus.first() }, 120)"
+    >
+      <div x-show="$store.modals.rightDrawer.open" class="fixed inset-0 bg-scheme-text/50" x-transition.opacity.duration.500ms><!-- Overlay --></div>
+      <div
+        @click.stop
+        x-show="$store.modals.rightDrawer.open"
+        x-transition:enter="transition ease-energetic duration-[300ms]"
+        x-transition:enter-start="translate-x-full"
+        x-transition:enter-end="translate-x-0"
+        x-transition:leave="transition ease-energetic duration-[300ms]"
+        x-transition:leave-start="translate-x-0"
+        x-transition:leave-end="translate-x-full"
+        x-trap.noscroll.inert="$store.modals.rightDrawer.open"
+        class="relative w-11/12 md:w-7/12 lg:w-5/12 h-full bg-scheme-background text-scheme-text ml-auto overflow-y-auto"
+        id="right-drawer-slot"
+        role="dialog"
+        aria-modal="true"
+        :aria-label="getModalLabel('rightDrawer', $el)"
+        tabindex="-1"
+      >
+        <!-- Modal content is teleported here -->
+      </div>
+    </div>
+  </template>
+</aside>
